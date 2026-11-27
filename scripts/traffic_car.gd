@@ -192,6 +192,7 @@ func _try_begin_traffic_turn() -> void:
 			_traffic_turn_duration = maxf(1.5, _traffic_turn_start.distance_to(_traffic_turn_end) / maxf(speed, 2.5) * 1.3)
 			_traffic_turn_elapsed = 0.0
 			_traffic_turn_active = true
+			traffic_current_speed = minf(traffic_current_speed, 3.2)
 			return
 
 
