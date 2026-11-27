@@ -3,6 +3,7 @@ extends Node3D
 const PlayerScript = preload("res://scripts/player.gd")
 const CarScript = preload("res://scripts/traffic_car.gd")
 const NpcScript = preload("res://scripts/npc.gd")
+const MinimapScript = preload("res://scripts/minimap.gd")
 const HouseScene: PackedScene = preload("res://assets/models/casa_simples.glb")
 const MarketScene: PackedScene = preload("res://assets/models/mercado.glb")
 const VehicleScenes: Array[PackedScene] = [
@@ -453,6 +454,15 @@ func _setup_mobile_ui() -> void:
 	var root := Control.new()
 	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	controls_layer.add_child(root)
+
+	var minimap := Control.new()
+	minimap.name = "Minimap"
+	minimap.set_script(MinimapScript)
+	minimap.target = player
+	minimap.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	minimap.position = Vector2(-190, 18)
+	minimap.size = Vector2(172, 172)
+	root.add_child(minimap)
 
 	status_label = Label.new()
 	status_label.text = "OPEN CITY  •  район 01"
