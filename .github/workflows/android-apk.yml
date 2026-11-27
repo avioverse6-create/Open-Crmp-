@@ -78,6 +78,30 @@ jobs:
           mkdir -p assets/sky
           fetch_optional "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/kloofendal_48d_partly_cloudy_puresky_1k.hdr" "assets/sky/cloudy_day_1k.hdr"
           ls -lh assets/models/city/downtown assets/models/vehicles
+      - name: Download high quality CC0 road, grass and sidewalk PBR textures
+        run: |
+          mkdir -p assets/textures/pbr
+          fetch_pbr() {
+            asset="$1"
+            prefix="$2"
+            archive="/tmp/${asset}_1K-JPG.zip"
+            folder="/tmp/${asset}_maps"
+            curl -fsSL --retry 2 --connect-timeout 20 "https://ambientcg.com/get?file=${asset}_1K-JPG.zip" -o "$archive"
+            mkdir -p "$folder"
+            unzip -oq "$archive" -d "$folder"
+            color_map="$(find "$folder" -type f -iname '*Color.jpg' | head -n 1)"
+            normal_map="$(find "$folder" -type f -iname '*NormalGL.jpg' | head -n 1)"
+            rough_map="$(find "$folder" -type f -iname '*Roughness.jpg' | head -n 1)"
+            test -n "$color_map" && test -n "$normal_map" && test -n "$rough_map"
+            cp "$color_map" "assets/textures/pbr/${prefix}_color.jpg"
+            cp "$normal_map" "assets/textures/pbr/${prefix}_normal.jpg"
+            cp "$rough_map" "assets/textures/pbr/${prefix}_roughness.jpg"
+            echo "Installed CC0 PBR material: $asset"
+          }
+          fetch_pbr "Road015A" "road"
+          fetch_pbr "Grass005" "grass"
+          fetch_pbr "Concrete007" "concrete"
+          ls -lh assets/textures/pbr
       - name: Download CC0 winter PBR snow textures
         run: |
           mkdir -p assets/textures/winter
