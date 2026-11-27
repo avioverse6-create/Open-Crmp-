@@ -65,19 +65,20 @@ func _setup_world() -> void:
 		_make_box("Side street", Vector3(x, 0.015, 34), Vector3(7, 0.1, 58), Color(0.16,0.17,0.18), false)
 
 func _make_box(label: String, at: Vector3, dimensions: Vector3, color: Color, solid: bool) -> Node3D:
-	var root := StaticBody3D.new() if solid else MeshInstance3D.new()
-	root.name = label
-	root.position = at
-	var mesh_instance: MeshInstance3D
+	var root: Node3D
+	var mesh_instance := MeshInstance3D.new()
 	if solid:
-		mesh_instance = MeshInstance3D.new()
+		root = StaticBody3D.new()
 		var collision := CollisionShape3D.new()
 		var box_shape := BoxShape3D.new()
 		box_shape.size = dimensions
 		collision.shape = box_shape
 		root.add_child(collision)
+		root.add_child(mesh_instance)
 	else:
-		mesh_instance = root
+		root = mesh_instance
+	root.name = label
+	root.position = at
 	var box := BoxMesh.new()
 	box.size = dimensions
 	mesh_instance.mesh = box
@@ -85,8 +86,6 @@ func _make_box(label: String, at: Vector3, dimensions: Vector3, color: Color, so
 	material.albedo_color = color
 	material.roughness = 0.92
 	mesh_instance.material_override = material
-	if solid:
-		root.add_child(mesh_instance)
 	add_child(root)
 	return root
 
