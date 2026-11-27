@@ -28,6 +28,15 @@ var fuel_capacity := 60.0
 var fuel_liters := 60.0
 var speed_kmh := 0.0
 var traffic_current_speed := 0.0
+var _traffic_turn_active := false
+var _traffic_turn_elapsed := 0.0
+var _traffic_turn_duration := 1.35
+var _traffic_turn_start := Vector3.ZERO
+var _traffic_turn_control_a := Vector3.ZERO
+var _traffic_turn_control_b := Vector3.ZERO
+var _traffic_turn_end := Vector3.ZERO
+var _traffic_turn_exit_direction := Vector3.ZERO
+var _traffic_turn_serial := 0
 
 func set_mobile_input(value: Vector2) -> void:
 	mobile_input_vector = value.limit_length(1.0)
@@ -121,7 +130,13 @@ func _physics_process(delta: float) -> void:
 		traffic_current_speed = move_toward(traffic_current_speed, target_traffic_speed, traffic_rate * delta)
 		var traffic_speed := traffic_current_speed
 		speed_kmh = absf(traffic_speed) * 3.6
-		if vertical_traffic:
+		if _traffic_turn_active:
+			_process_traffic_turn(delta, traffic_speed)
+		else:
+			_try_begin_traffic_turn()
+		if _traffic_turn_active:
+			pass
+		elif vertical_traffic:
 			velocity.x = 0.0
 			velocity.z = traffic_speed * direction
 			rotation.y = PI if direction > 0.0 else 0.0
@@ -145,6 +160,69 @@ func _physics_process(delta: float) -> void:
 	_update_engine_audio()
 	_update_passby_audio()
 	_update_vehicle_camera_collision()
+
+
+func _try_begin_traffic_turn() -> void:
+	# A subset of AI vehicles takes a smooth quarter-turn at city grid junctions.
+	# This keeps traffic circulating without sending every car down the same route.
+	if position.x < -70.0 or position.x > 70.0 or position.z < 86.0 or position.z > 224.0:
+		return
+	var intersection_x_values := [-64.0, -32.0, 0.0, 32.0, 64.0]
+	var intersection_z_values := [91.0, 123.0, 155.0, 187.0, 219.0]
+	for ix in intersection_x_values:
+		for iz in intersection_z_values:
+			var distance_to_line := (iz - global_position.z) * direction if vertical_traffic else (ix - global_position.x) * direction
+			if distance_to_line < 4.5 or distance_to_line > 6.5:
+				continue
+			_traffic_turn_serial += 1
+			if (int(get_instance_id()) + _traffic_turn_serial * 3) % 5 != 0:
+				return
+			var incoming := Vector3(0.0, 0.0, direction) if vertical_traffic else Vector3(direction, 0.0, 0.0)
+			var turn_left := (int(get_instance_id()) + _traffic_turn_serial) % 2 == 0
+			var outgoing := Vector3(-incoming.z, 0.0, incoming.x) if turn_left else Vector3(incoming.z, 0.0, -incoming.x)
+			var lane_offset := Vector3(-2.0 if outgoing.z > 0.0 else 2.0, 0.0, 0.0) if absf(outgoing.z) > 0.5 else Vector3(0.0, 0.0, -2.0 if outgoing.x > 0.0 else 2.0)
+			var junction := Vector3(ix, global_position.y, iz)
+			_traffic_turn_start = global_position
+			_traffic_turn_control_a = global_position + incoming * 3.0
+			_traffic_turn_end = junction + outgoing * 5.5 + lane_offset
+			_traffic_turn_control_b = _traffic_turn_end - outgoing * 3.0
+			_traffic_turn_exit_direction = outgoing
+			_traffic_turn_elapsed = 0.0
+			_traffic_turn_active = true
+			return
+
+
+func _process_traffic_turn(delta: float, traffic_speed: float) -> void:
+	_traffic_turn_elapsed = minf(_traffic_turn_elapsed + delta, _traffic_turn_duration)
+	var t := _traffic_turn_elapsed / _traffic_turn_duration
+	var one_minus_t := 1.0 - t
+	var next_position := one_minus_t * one_minus_t * one_minus_t * _traffic_turn_start
+	next_position += 3.0 * one_minus_t * one_minus_t * t * _traffic_turn_control_a
+	next_position += 3.0 * one_minus_t * t * t * _traffic_turn_control_b
+	next_position += t * t * t * _traffic_turn_end
+	var tangent := (_traffic_turn_end - _traffic_turn_control_b) * (3.0 * t * t)
+	tangent += (_traffic_turn_control_b - _traffic_turn_control_a) * (6.0 * one_minus_t * t)
+	tangent += (_traffic_turn_control_a - _traffic_turn_start) * (3.0 * one_minus_t * one_minus_t)
+	global_position = next_position
+	if tangent.length_squared() > 0.001:
+		var forward := tangent.normalized()
+		rotation.y = atan2(-forward.x, -forward.z)
+	velocity = tangent.normalized() * traffic_speed
+	_spin_wheels(delta, traffic_speed)
+	if _traffic_turn_elapsed >= _traffic_turn_duration:
+		_traffic_turn_active = false
+		if absf(_traffic_turn_exit_direction.x) > 0.5:
+			vertical_traffic = false
+			direction = signf(_traffic_turn_exit_direction.x)
+			lane_z = global_position.z
+			start_x = -64.0 if direction > 0.0 else 64.0
+			end_x = 64.0 if direction > 0.0 else -64.0
+		else:
+			vertical_traffic = true
+			direction = signf(_traffic_turn_exit_direction.z)
+			lane_x = global_position.x
+			start_z = 91.0 if direction > 0.0 else 219.0
+			end_z = 219.0 if direction > 0.0 else 91.0
 
 
 func _update_vehicle_camera_collision() -> void:
