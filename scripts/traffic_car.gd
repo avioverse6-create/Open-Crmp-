@@ -97,10 +97,10 @@ func _ready() -> void:
 	if ResourceLoader.exists(engine_path):
 		engine_audio = AudioStreamPlayer3D.new()
 		engine_audio.name = "EngineAudio"
-		engine_audio.stream = load(engine_path)
-		engine_audio.volume_db = -11.0
+		engine_audio.stream = load(engine_path) if ResourceLoader.exists(engine_path) else _make_engine_sound()
+		engine_audio.volume_db = -7.0
 		engine_audio.unit_size = 3.5
-		engine_audio.max_distance = 100.0
+		engine_audio.max_distance = 120.0
 		engine_audio.doppler_tracking = AudioStreamPlayer3D.DOPPLER_TRACKING_PHYSICS_STEP
 		add_child(engine_audio)
 		if engine_audio.stream is AudioStreamWAV:
@@ -391,6 +391,30 @@ func _update_engine_audio() -> void:
 	var current_speed := absf(drive_speed) if is_player_driven else speed_kmh / 3.6
 	engine_audio.pitch_scale = clampf(0.82 + current_speed / max_drive_speed * 0.55, 0.82, 1.38)
 	engine_audio.volume_db = -12.0 + clampf(current_speed / max_drive_speed, 0.0, 1.0) * 4.0
+
+func _make_engine_sound() -> AudioStreamWAV:
+	# Guaranteed local engine loop when the optional recorded WAV is absent.
+	var sample_rate := 22050
+	var sample_count := 8820 # 0.4 s; exact 55 Hz cycle for a clean loop.
+	var bytes := PackedByteArray()
+	bytes.resize(sample_count * 2)
+	for i in range(sample_count):
+		var t := float(i) / float(sample_rate)
+		var modulation := 0.82 + 0.18 * sin(TAU * 7.5 * t)
+		var wave := (sin(TAU * 55.0 * t) * 0.52 + sin(TAU * 110.0 * t) * 0.27 + sin(TAU * 165.0 * t) * 0.12) * modulation
+		var value := int(clampf(wave * 0.34, -1.0, 1.0) * 32767.0)
+		bytes[i * 2] = value & 0xff
+		bytes[i * 2 + 1] = (value >> 8) & 0xff
+	var stream := AudioStreamWAV.new()
+	stream.format = AudioStreamWAV.FORMAT_16_BITS
+	stream.mix_rate = sample_rate
+	stream.stereo = false
+	stream.data = bytes
+	stream.loop_mode = AudioStreamWAV.LOOP_FORWARD
+	stream.loop_begin = 0
+	stream.loop_end = sample_count
+	return stream
+
 
 func _update_passby_audio() -> void:
 	if passby_audio == null:
