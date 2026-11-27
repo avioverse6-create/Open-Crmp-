@@ -11,6 +11,8 @@ const MixamoAnimations: PackedScene = preload("res://assets/models/people/mixamo
 var target := Vector3.ZERO
 var walk_speed := 1.35
 var change_timer := 0.0
+var district_center_z: float = -34.0
+var sidewalk_side: float = -1.0
 var character_visual: Node3D
 var animation_player: AnimationPlayer
 var idle_clip: StringName = &""
@@ -91,5 +93,10 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 
 func _pick_target() -> void:
-	target = global_position + Vector3(randf_range(-8, 8), 0, randf_range(-8, 8))
-	change_timer = randf_range(3.0, 7.0)
+	# Patrol along the sidewalk instead of wandering through buildings or water.
+	target = Vector3(
+		randf_range(-65.0, 65.0),
+		global_position.y,
+		district_center_z + sidewalk_side * 6.35 + randf_range(-0.65, 0.65)
+	)
+	change_timer = randf_range(5.0, 10.0)
