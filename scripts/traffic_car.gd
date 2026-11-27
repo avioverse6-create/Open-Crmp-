@@ -178,7 +178,7 @@ func _try_begin_traffic_turn() -> void:
 			var lane_alignment := absf(global_position.x - ix) if vertical_traffic else absf(global_position.z - iz)
 			if lane_alignment > 5.0:
 				continue
-			var distance_to_line := (iz - global_position.z) * direction if vertical_traffic else (ix - global_position.x) * direction
+			var distance_to_line: float = (float(iz) - global_position.z) * direction if vertical_traffic else (float(ix) - global_position.x) * direction
 			if distance_to_line < 4.5 or distance_to_line > 6.5:
 				continue
 			# Pick turns deterministically per vehicle and junction. Do not
