@@ -130,7 +130,9 @@ var selected_fps := 60
 var vehicle_hud: PanelContainer
 var vehicle_hud_label: Label
 var snow_particles: GPUParticles3D
+var snow_particle_material: ParticleProcessMaterial
 var snow_overlay_material: ShaderMaterial
+var weather_clock := 0.0
 var movement_joystick: VirtualJoystick
 var jump_button: Button
 var run_button: Button
@@ -150,6 +152,11 @@ func _ready() -> void:
 	_setup_main_menu()
 
 func _process(delta: float) -> void:
+	# Gentle changing wind prevents snowfall from looking like a static vertical curtain.
+	weather_clock += delta
+	if snow_particle_material != null:
+		var wind_phase := weather_clock * 0.19
+		snow_particle_material.gravity = Vector3(-0.18 + sin(wind_phase) * 0.34, -0.38, 0.12 + cos(wind_phase * 0.83) * 0.24)
 	if snow_particles != null and is_instance_valid(player):
 		var snow_anchor: Node3D = player.active_vehicle if player.active_vehicle != null else player
 		if is_instance_valid(snow_anchor):
@@ -264,6 +271,7 @@ func _setup_winter() -> void:
 	particle_process.direction = Vector3(-0.12, -1.0, 0.08)
 	particle_process.spread = 8.0
 	particle_process.gravity = Vector3(-0.18, -0.38, 0.12)
+	snow_particle_material = particle_process
 	particle_process.initial_velocity_min = 1.8
 	particle_process.initial_velocity_max = 3.1
 	particle_process.scale_min = 0.9
