@@ -60,9 +60,18 @@ func _spin_wheels(delta: float, signed_speed: float) -> void:
 	for wheel in vehicle_wheels:
 		wheel.rotate_object_local(Vector3.RIGHT, angle)
 
+var vertical_traffic := false
+var lane_x := 0.0
+var start_z := 99.0
+var end_z := 219.0
+
 func _ready() -> void:
-	position.x = start_x
-	position.z = lane_z
+	if vertical_traffic:
+		position.x = lane_x
+		position.z = start_z
+	else:
+		position.x = start_x
+		position.z = lane_z
 	var collision := CollisionShape3D.new()
 	var shape := BoxShape3D.new()
 	shape.size = Vector3(2.35, 1.65, 4.7)
@@ -104,17 +113,27 @@ func _physics_process(delta: float) -> void:
 	if is_player_driven:
 		_drive_player(delta)
 	else:
-		velocity.x = speed * direction
 		speed_kmh = absf(speed) * 3.6
-		velocity.z = 0.0
-		rotation.y = -PI * 0.5 if direction > 0.0 else PI * 0.5
-		move_and_slide()
-		_spin_wheels(delta, speed * direction)
-
-		if direction > 0.0 and position.x > end_x:
-			position.x = start_x
-		elif direction < 0.0 and position.x < end_x:
-			position.x = start_x
+		if vertical_traffic:
+			velocity.x = 0.0
+			velocity.z = speed * direction
+			rotation.y = PI if direction > 0.0 else 0.0
+			move_and_slide()
+			_spin_wheels(delta, speed * direction)
+			if direction > 0.0 and position.z > end_z:
+				position.z = start_z
+			elif direction < 0.0 and position.z < end_z:
+				position.z = start_z
+		else:
+			velocity.x = speed * direction
+			velocity.z = 0.0
+			rotation.y = -PI * 0.5 if direction > 0.0 else PI * 0.5
+			move_and_slide()
+			_spin_wheels(delta, speed * direction)
+			if direction > 0.0 and position.x > end_x:
+				position.x = start_x
+			elif direction < 0.0 and position.x < end_x:
+				position.x = start_x
 
 	_update_engine_audio()
 	_update_passby_audio()
