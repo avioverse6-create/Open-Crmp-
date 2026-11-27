@@ -180,6 +180,10 @@ func exit_vehicle() -> void:
 		return
 	var vehicle := active_vehicle
 	vehicle.set("is_player_driven", false)
+	if vehicle.has_method("set_mobile_steer"):
+		vehicle.set_mobile_steer(0.0)
+		vehicle.set_mobile_throttle(0.0)
+		vehicle.set_mobile_brake(false)
 	global_position = vehicle.global_position + vehicle.global_basis.x * 2.0
 	camera_pivot.reparent(self)
 	camera_pivot.top_level = true
