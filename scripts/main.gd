@@ -401,15 +401,19 @@ func _setup_player() -> void:
 	add_child(player)
 
 func _setup_traffic() -> void:
-	# Spawn one of each imported vehicle model, with traffic moving both ways.
+	# Spread imported vehicles across both districts and both directions.
+	# Stagger spawn positions so cars never begin stacked on top of each other.
 	for i in range(VehicleScenes.size()):
 		var car: Variant = CharacterBody3D.new()
 		car.set_script(CarScript)
 		car.speed = randf_range(3.2, 5.4)
-		car.direction = 1.0 if i % 2 == 0 else -1.0
-		car.start_x = -65.0 if car.direction > 0.0 else 65.0
+		car.direction = 1.0 if int(i / 2) % 2 == 0 else -1.0
+		var road_z := -34.0 if i % 2 == 0 else 34.0
+		var lane_offset := -1.9 if car.direction > 0.0 else 1.9
+		var spawn_group := int(i / 4)
+		car.start_x = -65.0 - float(spawn_group) * 26.0 if car.direction > 0.0 else 65.0 + float(spawn_group) * 26.0
 		car.end_x = 65.0 if car.direction > 0.0 else -65.0
-		car.lane_z = -34.0 if i % 2 == 0 else 34.0
+		car.lane_z = road_z + lane_offset
 		add_child(car)
 		_make_car_visual(car, i)
 		cars.append(car)
@@ -428,10 +432,19 @@ func _make_car_visual(car: Node3D, model_index: int) -> void:
 	car.call("register_vehicle_visual", model, 0.30 * model_scale)
 
 func _setup_people() -> void:
+	# Keep pedestrians on the two sidewalk strips beside each district road.
 	for i in range(16):
 		var npc := CharacterBody3D.new()
 		npc.set_script(NpcScript)
-		npc.position = Vector3(randf_range(-58,58), 0.1, -34 + randf_range(-24,24)) if i < 8 else Vector3(randf_range(-58,58), 0.1, 34 + randf_range(-24,24))
+		var district_z := -34.0 if i < 8 else 34.0
+		var sidewalk_side := -1.0 if i % 8 < 4 else 1.0
+		npc.district_center_z = district_z
+		npc.sidewalk_side = sidewalk_side
+		npc.position = Vector3(
+			randf_range(-58.0, 58.0),
+			0.1,
+			district_z + sidewalk_side * 6.35 + randf_range(-0.55, 0.55)
+		)
 		add_child(npc)
 
 func _setup_mobile_ui() -> void:
