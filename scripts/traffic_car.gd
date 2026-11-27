@@ -170,6 +170,11 @@ func _try_begin_traffic_turn() -> void:
 	var intersection_z_values := [91.0, 123.0, 155.0, 187.0, 219.0]
 	for ix in intersection_x_values:
 		for iz in intersection_z_values:
+			# A turn is valid only at the junction aligned with this vehicle's lane.
+			# Without this cross-axis check, a car could turn toward a distant street.
+			var lane_alignment := absf(global_position.x - ix) if vertical_traffic else absf(global_position.z - iz)
+			if lane_alignment > 5.0:
+				continue
 			var distance_to_line := (iz - global_position.z) * direction if vertical_traffic else (ix - global_position.x) * direction
 			if distance_to_line < 4.5 or distance_to_line > 6.5:
 				continue
