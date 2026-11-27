@@ -88,7 +88,7 @@ func _physics_process(delta: float) -> void:
 		velocity.x = speed * direction
 		speed_kmh = absf(speed) * 3.6
 		velocity.z = 0.0
-		rotation.y = PI * 0.5 if direction > 0.0 else -PI * 0.5
+		rotation.y = -PI * 0.5 if direction > 0.0 else PI * 0.5
 		move_and_slide()
 		_spin_wheels(delta, speed * direction)
 
