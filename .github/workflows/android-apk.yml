@@ -160,21 +160,6 @@ jobs:
           fetch_pbr "Grass005" "grass"
           fetch_pbr "Concrete007" "concrete"
           ls -lh assets/textures/pbr
-      - name: Download CC0 winter PBR snow textures
-        run: |
-          mkdir -p assets/textures/winter
-          if curl -fL --retry 2 --connect-timeout 20 "https://ambientcg.com/get?file=Snow003_1K-JPG.zip" -o /tmp/Snow003_1K-JPG.zip; then
-            mkdir -p /tmp/snow003
-            unzip -oq /tmp/Snow003_1K-JPG.zip -d /tmp/snow003
-            color_map="$(find /tmp/snow003 -type f -iname '*Color.jpg' | head -n 1)"
-            normal_map="$(find /tmp/snow003 -type f -iname '*NormalGL.jpg' | head -n 1)"
-            if test -n "$color_map"; then cp "$color_map" assets/textures/winter/snow_color.jpg; fi
-            if test -n "$normal_map"; then cp "$normal_map" assets/textures/winter/snow_normal.jpg; fi
-            echo "Snow PBR maps downloaded from ambientCG (CC0)"
-          else
-            echo "Snow texture download unavailable; game uses procedural fallback"
-          fi
-          ls -lh assets/textures/winter
       - name: Validate every runtime asset referenced by gameplay
         run: |
           required_assets=(
