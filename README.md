@@ -67,3 +67,8 @@ Keep the asset credit and license files with the project. The project has not ye
 ### Ground texture set
 
 The mobile scene uses CC0 AmbientCG color/albedo maps for Asphalt021 (roads), Concrete012 (sidewalks, curbs and bridge), and Grass004 (terrain). Materials use triplanar mapping to reduce visible stretching on box-shaped surfaces. These committed maps are color-only; high-resolution normal and roughness maps are not part of this lightweight build yet. Imported Kenney city buildings keep their original atlas textures.
+
+
+### Surface detail maps
+
+Roads, sidewalks, bridge surfaces and terrain now have normal and roughness texture slots wired into their Godot materials. The asphalt and concrete detail maps currently use the project's lightweight procedural SVG maps; grass has matching procedural detail maps. They are not scanned AmbientCG normal/roughness maps, so their bump detail is intentionally subtle. The AmbientCG color maps remain the source of the surface color.
