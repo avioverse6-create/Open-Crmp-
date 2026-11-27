@@ -91,7 +91,10 @@ func _input(event: InputEvent) -> void:
 
 func _physics_process(delta: float) -> void:
 	if camera_pivot.top_level:
-		camera_pivot.global_position = global_position + Vector3(0, 1.55, 0)
+		var camera_target := global_position + Vector3(0, 1.55, 0)
+		# Smooth follow removes small movement jitter without changing the close camera distance.
+		var follow_weight := 1.0 - exp(-delta * 14.0)
+		camera_pivot.global_position = camera_pivot.global_position.lerp(camera_target, follow_weight)
 
 	var input_dir := mobile_input_vector
 	if input_dir.length() < 0.05:
