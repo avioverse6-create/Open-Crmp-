@@ -37,10 +37,10 @@ func _physics_process(delta: float) -> void:
 		velocity.z = 0.0
 		rotation.y = PI * 0.5 if direction > 0.0 else -PI * 0.5
 		move_and_slide()
-		if position.x > end_x:
+		if direction > 0.0 and position.x > end_x:
 			position.x = start_x
-		elif position.x < start_x:
-			position.x = end_x
+		elif direction < 0.0 and position.x < end_x:
+			position.x = start_x
 
 func _drive_player(delta: float) -> void:
 	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
