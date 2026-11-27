@@ -361,7 +361,7 @@ func _setup_world() -> void:
 		# Keep buildings inside the blocks between the new modular side streets.
 		for block_x in [-65.0, -32.0, 0.0, 32.0, 65.0]:
 			for side in [-1.0, 1.0]:
-				var bx := block_x + randf_range(-1.2, 1.2)
+				var bx: float = block_x + randf_range(-1.2, 1.2)
 				var bz: float = district_z + side * randf_range(15.0, 23.0)
 				var chosen_scene: PackedScene = HouseScene if randf() < 0.72 else MarketScene
 				_spawn_asset_building(chosen_scene, Vector3(bx, 0.0, bz), 3.4)
