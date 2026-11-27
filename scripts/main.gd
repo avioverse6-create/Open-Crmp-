@@ -794,12 +794,15 @@ func _make_car_visual(car: Node3D, model_index: int) -> void:
 	car.call("register_vehicle_visual", model, 0.30 * model_scale)
 
 func _setup_people() -> void:
-	# Keep pedestrians on the two sidewalk strips beside each district road.
+	# Keep the existing suburban pedestrian budget, but distribute it across
+	# BOTH districts. The old condition used i < 8 inside range(8), so every
+	# suburban pedestrian spawned in the west district and the east felt empty.
 	for i in range(8):
 		var npc := CharacterBody3D.new()
 		npc.set_script(NpcScript)
-		var district_z := -34.0 if i < 8 else 34.0
-		var sidewalk_side := -1.0 if i % 8 < 4 else 1.0
+		var district_z := -34.0 if i < 4 else 34.0
+		var local_index := i % 4
+		var sidewalk_side := -1.0 if local_index < 2 else 1.0
 		npc.district_center_z = district_z
 		npc.sidewalk_side = sidewalk_side
 		npc.position = Vector3(
