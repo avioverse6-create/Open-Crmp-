@@ -8,6 +8,30 @@ const MarketScene: PackedScene = preload("res://assets/models/mercado.glb")
 const CarScene: PackedScene = preload("res://assets/models/carro.glb")
 const TreeScene: PackedScene = preload("res://assets/models/ipe_amarelo.glb")
 const StreetLightScene: PackedScene = preload("res://assets/models/poste_luz.glb")
+
+const CityBuildingScenes: Array[PackedScene] = [
+	preload("res://assets/models/city/suburban/building_a.glb"),
+	preload("res://assets/models/city/suburban/building_b.glb"),
+	preload("res://assets/models/city/suburban/building_c.glb"),
+	preload("res://assets/models/city/suburban/building_d.glb"),
+	preload("res://assets/models/city/suburban/building_e.glb"),
+	preload("res://assets/models/city/suburban/building_f.glb"),
+	preload("res://assets/models/city/suburban/building_g.glb"),
+	preload("res://assets/models/city/suburban/building_h.glb"),
+	preload("res://assets/models/city/suburban/building_i.glb"),
+	preload("res://assets/models/city/suburban/building_j.glb"),
+	preload("res://assets/models/city/suburban/building_k.glb"),
+	preload("res://assets/models/city/suburban/building_l.glb"),
+	preload("res://assets/models/city/suburban/building_m.glb"),
+	preload("res://assets/models/city/suburban/building_n.glb"),
+	preload("res://assets/models/city/suburban/building_o.glb"),
+	preload("res://assets/models/city/suburban/building_p.glb"),
+	preload("res://assets/models/city/suburban/building_q.glb"),
+	preload("res://assets/models/city/suburban/building_r.glb"),
+	preload("res://assets/models/city/suburban/building_s.glb"),
+	preload("res://assets/models/city/suburban/building_t.glb"),
+	preload("res://assets/models/city/suburban/building_u.glb")
+]
 const PlasterTexture: Texture2D = preload("res://assets/textures/wall_plaster.svg")
 const BrickTexture: Texture2D = preload("res://assets/textures/brick_wall.svg")
 const ConcreteTexture: Texture2D = preload("res://assets/textures/concrete.svg")
@@ -133,58 +157,22 @@ func _add_road_markings() -> void:
 				dash.material_override = paint
 				add_child(dash)
 
-func _spawn_asset_building(scene: PackedScene, at: Vector3, scale_factor: float) -> void:
-	# Textured, GTA-SA-inspired original buildings. The imported CC0 kit remains
-	# in the project as licensed source material; these buildings use UV-mapped
-	# facade/roof textures so the result is consistent and readable on mobile.
-	var is_market := scene == MarketScene
+func _spawn_asset_building(_requested_scene: PackedScene, at: Vector3, _scale_factor: float) -> void:
+	# Use complete imported Kenney building meshes with their original color atlas.
+	# The wrapper supplies a simple mobile-friendly collision volume.
+	var model_scene: PackedScene = CityBuildingScenes[randi() % CityBuildingScenes.size()]
 	var root := StaticBody3D.new()
-	root.name = "TexturedMarket" if is_market else "TexturedHouse"
+	root.name = "ImportedCityBuilding"
 	root.position = at
-	var width := randf_range(8.0, 10.5)
-	var depth := randf_range(7.0, 9.0)
-	var floors := randi_range(2, 4) if not is_market else 2
-	var floor_height := 2.7
-	var height := float(floors) * floor_height
-	var wall_mat := _make_texture_material(BrickTexture if randf() < 0.32 else PlasterTexture, Color(1,1,1), Vector3(2.4, 2.4, 1))
-	var side_mat := _make_texture_material(ConcreteTexture, Color(1,1,1), Vector3(2, 2, 1))
-	var roof_mat := _make_texture_material(RoofTexture, Color(1,1,1), Vector3(2.2, 2.2, 1))
-	_add_textured_box(root, "Facade", Vector3(width, height, depth), Vector3(0, height * 0.5, 0), wall_mat)
-	_add_textured_box(root, "Roof", Vector3(width + 0.45, 0.28, depth + 0.45), Vector3(0, height + 0.14, 0), roof_mat)
-	# Side concrete bands and roof parapet add architectural depth.
-	for side in [-1.0, 1.0]:
-		_add_textured_box(root, "SideBand", Vector3(0.16, height, 0.16), Vector3(side * (width * 0.5 - 0.08), height * 0.5, 0), side_mat)
-		_add_textured_box(root, "Parapet", Vector3(0.22, 0.75, depth + 0.3), Vector3(side * (width * 0.5 - 0.08), height + 0.48, 0), side_mat)
-	# Front and rear window rows, with frames and inset reflective glass.
-	var columns := max(2, int(width / 2.0))
-	for floor in range(floors):
-		var y := 1.0 + float(floor) * floor_height
-		for col in range(columns):
-			var x := -width * 0.5 + (float(col) + 0.5) * width / float(columns)
-			if is_market and floor == 0:
-				_add_window(root, Vector3(x, y, depth * 0.5 + 0.055), Vector2(1.65, 1.85), true)
-				_add_window(root, Vector3(x, y, -depth * 0.5 - 0.055), Vector2(1.65, 1.85), true)
-			else:
-				_add_window(root, Vector3(x, y, depth * 0.5 + 0.055), Vector2(1.05, 1.45), false)
-				_add_window(root, Vector3(x, y, -depth * 0.5 - 0.055), Vector2(1.05, 1.45), false)
-	# Ground-floor entrance and a colored shop fascia.
-	if is_market:
-		_add_textured_box(root, "ShopSign", Vector3(width * 0.82, 0.62, 0.18), Vector3(0, 2.28, depth * 0.5 + 0.14), _make_color_material(Color(0.58, 0.16, 0.10), 0.75))
-		_add_textured_box(root, "ShopDoor", Vector3(0.9, 2.0, 0.12), Vector3(0, 1.0, depth * 0.5 + 0.12), _make_color_material(Color(0.10, 0.16, 0.19), 0.25))
-	else:
-		_add_textured_box(root, "Entrance", Vector3(0.95, 2.0, 0.12), Vector3(0, 1.0, depth * 0.5 + 0.12), _make_color_material(Color(0.18, 0.22, 0.23), 0.3))
-	# Windows on both side elevations.
-	for side in [-1.0, 1.0]:
-		for floor in range(floors):
-			var y := 1.0 + float(floor) * floor_height
-			for z_index in range(2):
-				var z := -depth * 0.28 + float(z_index) * depth * 0.56
-				_add_side_window(root, Vector3(side * (width * 0.5 + 0.055), y, z), Vector2(1.0, 1.4))
+	root.scale = Vector3.ONE * randf_range(7.6, 9.2)
+	var model := model_scene.instantiate() as Node3D
+	root.add_child(model)
+
 	var collision := CollisionShape3D.new()
 	var shape := BoxShape3D.new()
-	shape.size = Vector3(width, height + 0.9, depth)
+	shape.size = Vector3(1.36, 0.90, 1.10)
 	collision.shape = shape
-	collision.position.y = (height + 0.9) * 0.5
+	collision.position.y = 0.45
 	root.add_child(collision)
 	add_child(root)
 
