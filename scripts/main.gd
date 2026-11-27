@@ -646,7 +646,7 @@ func _spawn_asset_building(requested_scene: PackedScene, at: Vector3, scale_fact
 
 	var collision := CollisionShape3D.new()
 	var shape := BoxShape3D.new()
-	shape.size = Vector3(9.0, 7.0, 8.0) * scale_factor
+	shape.size = Vector3(3.6, 2.4, 3.2) * scale_factor
 	collision.shape = shape
 	collision.position.y = shape.size.y * 0.5
 	root.add_child(collision)
