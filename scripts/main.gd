@@ -139,6 +139,9 @@ var run_button: Button
 var driving_controls: Control
 var minimap_control: Control
 var _minimap_tracks_vehicle := false
+var waypoint_label: Label
+var waypoint_position := Vector3.ZERO
+var has_waypoint := false
 
 func _ready() -> void:
 	randomize()
@@ -182,6 +185,20 @@ func _process(delta: float) -> void:
 		if driving:
 			var car = player.active_vehicle
 			vehicle_hud_label.text = "%03d KM/H    •    БЕНЗИН  %.1f L" % [int(car.get("speed_kmh")), float(car.get("fuel_liters"))]
+		if waypoint_label != null:
+			waypoint_label.visible = has_waypoint
+			if has_waypoint:
+				var waypoint_target: Node3D = player.active_vehicle if driving else player
+				var distance_to_waypoint := waypoint_target.global_position.distance_to(waypoint_position)
+				waypoint_label.text = "МЕТКА  •  %d м" % int(round(distance_to_waypoint))
+
+func _on_minimap_destination_changed(world_position: Vector3) -> void:
+	waypoint_position = world_position
+	has_waypoint = true
+	if waypoint_label != null:
+		waypoint_label.visible = true
+		waypoint_label.text = "МЕТКА  •  РАСЧЁТ..."
+
 
 func _setup_audio() -> void:
 	# Authentic field-recorded city traffic and distant crowd chatter, downloaded by CI.
@@ -1003,6 +1020,7 @@ func _setup_mobile_ui() -> void:
 	minimap.set_script(MinimapScript)
 	minimap_control = minimap
 	minimap.set("target", player)
+	minimap.destination_changed.connect(_on_minimap_destination_changed)
 	minimap.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	minimap.position = Vector2(-190, 18)
 	minimap.size = Vector2(172, 172)
@@ -1014,6 +1032,14 @@ func _setup_mobile_ui() -> void:
 	status_label.add_theme_font_size_override("font_size", 20)
 	status_label.add_theme_color_override("font_color", Color.WHITE)
 	root.add_child(status_label)
+
+	waypoint_label = Label.new()
+	waypoint_label.name = "WaypointDistance"
+	waypoint_label.position = Vector2(24, 46)
+	waypoint_label.add_theme_font_size_override("font_size", 14)
+	waypoint_label.add_theme_color_override("font_color", Color(0.55, 0.82, 1.0, 0.96))
+	waypoint_label.visible = false
+	root.add_child(waypoint_label)
 
 	vehicle_hud = PanelContainer.new()
 	vehicle_hud.name = "VehicleDashboard"
