@@ -65,6 +65,12 @@ const ConcreteTexture: Texture2D = preload("res://assets/textures/concrete_ambie
 const RoofTexture: Texture2D = preload("res://assets/textures/roof_tiles.svg")
 const AsphaltTexture: Texture2D = preload("res://assets/textures/asphalt_ambientcg.png")
 const GrassTexture: Texture2D = preload("res://assets/textures/grass_ambientcg.png")
+const AsphaltNormalTexture: Texture2D = preload("res://assets/textures/asphalt_normal.svg")
+const AsphaltRoughnessTexture: Texture2D = preload("res://assets/textures/asphalt_roughness.svg")
+const ConcreteNormalTexture: Texture2D = preload("res://assets/textures/concrete_normal.svg")
+const ConcreteRoughnessTexture: Texture2D = preload("res://assets/textures/concrete_roughness.svg")
+const GrassNormalTexture: Texture2D = preload("res://assets/textures/grass_normal.svg")
+const GrassRoughnessTexture: Texture2D = preload("res://assets/textures/grass_roughness.svg")
 
 var player: Variant
 var cars: Array[Node3D] = []
@@ -327,6 +333,10 @@ func _make_box(label: String, at: Vector3, dimensions: Vector3, color: Color, so
 	if label.to_lower().contains("road") or label.to_lower().contains("street"):
 		# AmbientCG Asphalt021 albedo: repeated at street scale, not stretched over the full district.
 		material.albedo_texture = AsphaltTexture
+		material.normal_enabled = true
+		material.normal_texture = AsphaltNormalTexture
+		material.normal_scale = 0.16
+		material.roughness_texture = AsphaltRoughnessTexture
 		material.roughness = 0.96
 		material.uv1_scale = Vector3(14, 14, 1)
 		material.uv1_triplanar = true
@@ -335,6 +345,10 @@ func _make_box(label: String, at: Vector3, dimensions: Vector3, color: Color, so
 	elif label.to_lower().contains("sidewalk") or label.to_lower().contains("curb") or label.to_lower().contains("bridge"):
 		# Concrete012 keeps sidewalks, curbs and bridge surfaces in one material family.
 		material.albedo_texture = ConcreteTexture
+		material.normal_enabled = true
+		material.normal_texture = ConcreteNormalTexture
+		material.normal_scale = 0.12
+		material.roughness_texture = ConcreteRoughnessTexture
 		material.roughness = 0.94
 		material.uv1_scale = Vector3(7, 7, 1)
 		material.uv1_triplanar = true
@@ -343,6 +357,10 @@ func _make_box(label: String, at: Vector3, dimensions: Vector3, color: Color, so
 	elif label.to_lower().contains("mainland"):
 		# Grass004 covers the walkable terrain around both districts.
 		material.albedo_texture = GrassTexture
+		material.normal_enabled = true
+		material.normal_texture = GrassNormalTexture
+		material.normal_scale = 0.08
+		material.roughness_texture = GrassRoughnessTexture
 		material.roughness = 0.98
 		material.uv1_scale = Vector3(28, 28, 1)
 		material.uv1_triplanar = true
