@@ -164,6 +164,52 @@ jobs:
             echo "Snow texture download unavailable; game uses procedural fallback"
           fi
           ls -lh assets/textures/winter
+      - name: Validate every runtime asset referenced by gameplay
+        run: |
+          required_assets=(
+            assets/models/vehicles/realistic_sedan.glb
+            assets/models/vehicles/realistic_suv.glb
+            assets/models/vehicles/realistic_taxi.glb
+            assets/models/vehicles/realistic_police.glb
+            assets/models/vehicles/realistic_pickup.glb
+            assets/models/vehicles/realistic_firetruck.glb
+            assets/models/vehicles/realistic_sports.glb
+            assets/models/vehicles/realistic_ambulance.glb
+            assets/models/vinish_city/road-straight.glb
+            assets/models/vinish_city/road-crossroads.glb
+            assets/models/vinish_city/road-t-junction.glb
+            assets/models/vinish_city/road-bend.glb
+            assets/models/vinish_city/apartment-block-01.glb
+            assets/models/vinish_city/apartment-block-02.glb
+            assets/models/vinish_city/sidewalk-block.glb
+            assets/models/vinish_city/street-light.glb
+            assets/models/vinish_city/traffic-signal.glb
+            assets/models/vinish_city/fire-hydrant.glb
+            assets/textures/pbr/road_color.jpg
+            assets/textures/pbr/road_normal.jpg
+            assets/textures/pbr/road_roughness.jpg
+            assets/textures/pbr/grass_color.jpg
+            assets/textures/pbr/grass_normal.jpg
+            assets/textures/pbr/grass_roughness.jpg
+            assets/textures/pbr/concrete_color.jpg
+            assets/textures/pbr/concrete_normal.jpg
+            assets/textures/pbr/concrete_roughness.jpg
+            assets/audio/menu_urban.mp3
+            assets/audio/pedestrian_chatter.mp3
+            assets/audio/footsteps/01-footstep.ogg
+            assets/audio/footsteps/02-footstep.ogg
+            assets/audio/footsteps/03-footstep.ogg
+            assets/audio/footsteps/04-footstep.ogg
+            assets/audio/footsteps/05-footstep.ogg
+            assets/audio/footsteps/06-footstep.ogg
+          )
+          for asset in "${required_assets[@]}"; do
+            if [ ! -s "$asset" ]; then
+              echo "Missing required runtime asset: $asset" >&2
+              exit 1
+            fi
+          done
+          echo "Validated ${#required_assets[@]} required runtime assets."
       - name: Configure Godot Android SDK paths
         run: |
           mkdir -p ~/.config/godot
