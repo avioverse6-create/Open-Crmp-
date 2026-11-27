@@ -1,18 +1,9 @@
 name: Android debug APK
 
 on:
+  # APK exports are manual only. Code commits should not interrupt development
+  # with an unnecessary Android build; run this workflow when a test APK is requested.
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/android-apk.yml'
-      - 'scripts/main.gd'
-      - 'scripts/traffic_car.gd'
-      - 'scripts/npc.gd'
-      - 'scripts/player.gd'
-      - 'scripts/traffic_car.gd'
-      - 'scripts/humanoid_animator.gd'
-      - 'project.godot'
 
 permissions:
   contents: read
