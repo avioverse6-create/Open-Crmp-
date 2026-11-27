@@ -12,6 +12,7 @@ Included model files are downloaded by the Android build workflow:
 - sidewalk-block.glb
 - street-light.glb
 - traffic-signal.glb
+- fire-hydrant.glb
 - apartment-block-01.glb
 - apartment-block-02.glb
 
