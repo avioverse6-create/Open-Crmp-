@@ -265,12 +265,19 @@ func enter_vehicle(vehicle: Node3D) -> void:
 	collision_layer = 0
 	collision_mask = 0
 	set_physics_process(false)
+	# Rebuild a deterministic chase-camera transform behind the vehicle.
+	# Reset the old free-look angles before parenting so the camera cannot
+	# retain the on-foot orbit direction.
 	camera_pivot.reparent(vehicle)
 	camera_pivot.top_level = false
-	camera_pivot.position = Vector3(0, 1.75, 1.2)
-	camera.position = Vector3(0, 0.9, 4.7)
-	camera.rotation_degrees.x = -9.0
-	camera_pivot.rotation_degrees = Vector3(-12, 0, 0)
+	camera_pivot.transform = Transform3D.IDENTITY
+	camera_pivot.position = Vector3(0.0, 2.15, 6.6)
+	camera_pivot.rotation = Vector3.ZERO
+	camera.position = Vector3.ZERO
+	camera.rotation_degrees = Vector3(-17.0, 0.0, 0.0)
+	camera.current = true
+	camera_collision_timer = 0.0
+	cached_camera_offset = Vector3.ZERO
 
 func exit_vehicle() -> void:
 	if active_vehicle == null:
@@ -281,13 +288,17 @@ func exit_vehicle() -> void:
 		vehicle.set_mobile_steer(0.0)
 		vehicle.set_mobile_throttle(0.0)
 		vehicle.set_mobile_brake(false)
-	global_position = vehicle.global_position + vehicle.global_basis.x * 2.0
+	global_position = vehicle.global_position + vehicle.global_basis.x * 2.25 + Vector3(0.0, 0.12, 0.0)
 	camera_pivot.reparent(self)
 	camera_pivot.top_level = true
 	camera_pivot.global_position = global_position + Vector3(0, 1.55, 0)
 	camera_pivot.global_rotation = Vector3.ZERO
+	camera_pivot.rotation = Vector3.ZERO
 	camera.position = Vector3(0, 0.58, 1.85)
-	camera.rotation_degrees.x = -8.0
+	camera.rotation_degrees = Vector3(-8.0, 0.0, 0.0)
+	camera.current = true
+	camera_collision_timer = 0.0
+	cached_camera_offset = Vector3(0, 0.58, 1.85)
 	active_vehicle = null
 	visible = true
 	collision_layer = saved_collision_layer
