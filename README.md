@@ -14,7 +14,7 @@ Original small-scale 3D open-world mobile game prototype made with Godot 4.x.
 ## World and gameplay
 
 - Two small city districts separated by a river, connected by a bridge.
-- Main roads, side streets, sidewalks, lane markings and imported intersection pieces.
+- Main roads, side streets, sidewalks, lane markings and imported intersection pieces. Road, sidewalk and terrain surfaces use 512×512 AmbientCG color textures.
 - Third-person camera with swipe rotation on the right side of the screen.
 - Live top-right minimap showing the river, bridge, main roads, side streets, building blocks and player position.
 - Camera-relative player movement, running and jumping.
@@ -25,7 +25,7 @@ Original small-scale 3D open-world mobile game prototype made with Godot 4.x.
 
 ## Visual target and current limits
 
-This is a mobile-friendly low-poly prototype, not a photorealistic GTA-quality build yet. The imported building and road meshes use their original Kenney color atlases. The old procedural SVG surface maps remain in `assets/textures/` for the legacy geometry and future material work; they are not scanned photogrammetry textures. The imported city kit is stylized, while the player and pedestrian models are rigged Mixamo characters.
+This is a mobile-friendly low-poly prototype, not a photorealistic GTA-quality build yet. The imported building and road meshes use their original Kenney color atlases. The old procedural SVG surface maps remain in `assets/textures/` for legacy materials; the current road, sidewalk and grass surfaces use 512×512 AmbientCG color maps. These are albedo/color maps only, not a complete scanned PBR set. The imported city kit is stylized, while the player and pedestrian models are rigged Mixamo characters.
 
 No GTA code, maps, characters, logos or extracted game assets are included.
 
@@ -57,6 +57,7 @@ No GTA code, maps, characters, logos or extracted game assets are included.
 
 - City buildings, road pieces and roadside props: Kenney assets, CC0 1.0. See `assets/models/city/CREDITS.md`.
 - The 11-model vehicle fleet: Kenney Car Kit, CC0 1.0. See `assets/models/vehicles/CREDITS.md` and `CC0-1.0.txt`.
+- AmbientCG color textures: CC0 1.0; see `assets/textures/AMBIENTCG-CREDITS.md`.
 - Player and pedestrian characters and their animation library: Mixamo assets bundled by vinish.dev. See `assets/models/people/CREDITS.md`; review Adobe's current terms before publishing.
 - Original city-kit tree and street-light assets: see `assets/licenses/CC0-1.0-City-Kit.txt`.
 
