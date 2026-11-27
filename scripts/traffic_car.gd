@@ -16,6 +16,10 @@ var gravity: float = 24.0
 var vehicle_wheels: Array[Node3D] = []
 var vehicle_wheel_radius: float = 0.45
 var engine_audio: AudioStreamPlayer3D
+var mobile_input_vector := Vector2.ZERO
+
+func set_mobile_input(value: Vector2) -> void:
+	mobile_input_vector = value.limit_length(1.0)
 
 func register_vehicle_visual(model: Node3D, wheel_radius: float = 0.45) -> void:
 	vehicle_wheels.clear()
@@ -77,7 +81,9 @@ func _physics_process(delta: float) -> void:
 	_update_engine_audio()
 
 func _drive_player(delta: float) -> void:
-	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+	var input_dir := mobile_input_vector
+	if input_dir.length() < 0.05:
+		input_dir = Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 	var throttle := -input_dir.y
 	if abs(throttle) > 0.05:
 		drive_speed = move_toward(drive_speed, throttle * max_drive_speed, acceleration * delta)
