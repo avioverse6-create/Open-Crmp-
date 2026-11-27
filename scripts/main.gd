@@ -3,6 +3,11 @@ extends Node3D
 const PlayerScript = preload("res://scripts/player.gd")
 const CarScript = preload("res://scripts/traffic_car.gd")
 const NpcScript = preload("res://scripts/npc.gd")
+const HouseScene: PackedScene = preload("res://assets/models/casa_simples.glb")
+const MarketScene: PackedScene = preload("res://assets/models/mercado.glb")
+const CarScene: PackedScene = preload("res://assets/models/carro.glb")
+const TreeScene: PackedScene = preload("res://assets/models/ipe_amarelo.glb")
+const StreetLightScene: PackedScene = preload("res://assets/models/poste_luz.glb")
 
 var player: Variant
 var cars: Array[Node3D] = []
@@ -53,17 +58,47 @@ func _setup_world() -> void:
 			for side in [-1.0, 1.0]:
 				var bx := float(x) * 13.0 + randf_range(-2.0, 2.0)
 				var bz := district_z + side * randf_range(13.0, 28.0)
-				var height := randf_range(5.0, 17.0)
-				var width := randf_range(6.0, 10.0)
-				var depth := randf_range(7.0, 11.0)
-				var colors := [Color(0.48,0.49,0.47), Color(0.58,0.48,0.38), Color(0.38,0.44,0.49), Color(0.68,0.64,0.55)]
-				var building := _make_box("Building", Vector3(bx, height * 0.5, bz), Vector3(width, height, depth), colors[randi() % colors.size()], true)
-				_add_building_windows(building, width, height, depth)
+				var chosen_scene: PackedScene = HouseScene if randf() < 0.72 else MarketScene
+				_spawn_asset_building(chosen_scene, Vector3(bx, 0.0, bz), 3.4)
+
+	# Imported CC0 trees and street lights.
+	for x in [-58.0, -42.0, -16.0, 16.0, 42.0, 58.0]:
+		_spawn_prop(TreeScene, Vector3(x, 0.0, -49.0), 3.0)
+		_spawn_prop(TreeScene, Vector3(x + 5.0, 0.0, 49.0), 3.0)
+	for x in range(-5, 6):
+		_spawn_prop(StreetLightScene, Vector3(float(x) * 13.0, 0.0, -27.0), 2.5)
+		_spawn_prop(StreetLightScene, Vector3(float(x) * 13.0, 0.0, 27.0), 2.5)
 
 	# Side streets and sidewalks.
 	for x in [-52.0, -26.0, 26.0, 52.0]:
 		_make_box("Side street", Vector3(x, 0.015, -34), Vector3(7, 0.1, 58), Color(0.16,0.17,0.18), false)
 		_make_box("Side street", Vector3(x, 0.015, 34), Vector3(7, 0.1, 58), Color(0.16,0.17,0.18), false)
+
+func _spawn_asset_building(scene: PackedScene, at: Vector3, scale_factor: float) -> void:
+	var root := StaticBody3D.new()
+	root.name = "ImportedBuilding"
+	root.position = at
+	var model := scene.instantiate() as Node3D
+	if model == null:
+		root.queue_free()
+		return
+	model.scale = Vector3.ONE * scale_factor
+	root.add_child(model)
+	var collision := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = Vector3(6.8, 8.0, 6.8)
+	collision.shape = shape
+	collision.position.y = 4.0
+	root.add_child(collision)
+	add_child(root)
+
+func _spawn_prop(scene: PackedScene, at: Vector3, scale_factor: float) -> void:
+	var model := scene.instantiate() as Node3D
+	if model == null:
+		return
+	model.position = at
+	model.scale = Vector3.ONE * scale_factor
+	add_child(model)
 
 func _make_box(label: String, at: Vector3, dimensions: Vector3, color: Color, solid: bool) -> Node3D:
 	var root: Node3D
@@ -129,73 +164,12 @@ func _setup_traffic() -> void:
 		cars.append(car)
 
 func _make_car_visual(car: Node3D, forward: bool) -> void:
-	var body := MeshInstance3D.new()
-	var box := BoxMesh.new()
-	box.size = Vector3(2.0, 0.9, 3.6)
-	body.mesh = box
-	body.position.y = 0.65
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = [Color(0.72,0.12,0.1), Color(0.12,0.32,0.68), Color(0.78,0.76,0.65), Color(0.12,0.13,0.14)][randi() % 4]
-	body.material_override = mat
-	car.add_child(body)
-	var roof := MeshInstance3D.new()
-	var roof_mesh := BoxMesh.new()
-	roof_mesh.size = Vector3(1.55, 0.65, 1.8)
-	roof.mesh = roof_mesh
-	roof.position = Vector3(0, 1.35, -0.1)
-	roof.material_override = mat
-	car.add_child(roof)
-
-	# Dark windshield and side windows.
-	var glass := StandardMaterial3D.new()
-	glass.albedo_color = Color(0.055, 0.09, 0.12)
-	glass.metallic = 0.18
-	glass.roughness = 0.22
-	var windshield := MeshInstance3D.new()
-	var windshield_mesh := BoxMesh.new()
-	windshield_mesh.size = Vector3(1.38, 0.48, 0.08)
-	windshield.mesh = windshield_mesh
-	windshield.position = Vector3(0, 1.38, -0.82)
-	windshield.rotation_degrees.x = -12
-	windshield.material_override = glass
-	car.add_child(windshield)
-
-	# Four simple wheels, positioned outside the body.
-	for x_side in [-1.0, 1.0]:
-		for z_side in [-1.15, 1.15]:
-			var wheel := MeshInstance3D.new()
-			var wheel_mesh := CylinderMesh.new()
-			wheel_mesh.top_radius = 0.38
-			wheel_mesh.bottom_radius = 0.38
-			wheel_mesh.height = 0.22
-			wheel.mesh = wheel_mesh
-			wheel.position = Vector3(x_side * 1.02, 0.38, z_side)
-			wheel.rotation_degrees.z = 90
-			var wheel_mat := StandardMaterial3D.new()
-			wheel_mat.albedo_color = Color(0.035, 0.04, 0.045)
-			wheel_mat.roughness = 0.95
-			wheel.material_override = wheel_mat
-			car.add_child(wheel)
-
-	# Headlights and rear lights.
-	for x_side in [-0.62, 0.62]:
-		var headlight := MeshInstance3D.new()
-		var lamp_mesh := BoxMesh.new()
-		lamp_mesh.size = Vector3(0.34, 0.18, 0.08)
-		headlight.mesh = lamp_mesh
-		headlight.position = Vector3(x_side, 0.68, -1.83)
-		var lamp_mat := StandardMaterial3D.new()
-		lamp_mat.albedo_color = Color(1.0, 0.88, 0.58)
-		headlight.material_override = lamp_mat
-		car.add_child(headlight)
-
-		var taillight := MeshInstance3D.new()
-		taillight.mesh = lamp_mesh
-		taillight.position = Vector3(x_side, 0.68, 1.83)
-		var tail_mat := StandardMaterial3D.new()
-		tail_mat.albedo_color = Color(0.72, 0.035, 0.025)
-		taillight.material_override = tail_mat
-		car.add_child(taillight)
+	var model := CarScene.instantiate() as Node3D
+	if model == null:
+		return
+	model.scale = Vector3.ONE * 2.0
+	model.position.y = 0.05
+	car.add_child(model)
 
 func _setup_people() -> void:
 	for i in range(16):
