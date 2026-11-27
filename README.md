@@ -17,7 +17,7 @@ A small original 3D open-world mobile game prototype made with Godot 4.
 - On-screen touch controls for movement, running, jumping and entering/exiting cars.
 - Swipe the right side of the screen to rotate the third-person camera.
 
-The project still retains CC0 GLB assets from the Low Poly City Kit by kayquer for the car, trees and street lights; these models have not yet been replaced by higher-detail models. Buildings now use original procedural geometry with custom SVG facade, brick, concrete, roof and asphalt textures in `assets/textures/`. The original CC0 license text is stored in `assets/licenses/CC0-1.0-City-Kit.txt`. No GTA assets are included.
+The project still retains CC0 GLB assets from the Low Poly City Kit by kayquer for the car, trees and street lights; these models have not yet been replaced by higher-detail models. The surface maps are procedural SVG material maps, not photogrammetry scans or finished AAA PBR scans. Buildings use original procedural geometry with custom facade, brick, concrete, roof and asphalt textures in `assets/textures/`. The original CC0 license text is stored in `assets/licenses/CC0-1.0-City-Kit.txt`. No GTA assets are included.
 
 ## Open the project
 
@@ -30,6 +30,7 @@ The project still retains CC0 GLB assets from the Low Poly City Kit by kayquer f
 
 - WASD / arrow keys or the on-screen arrows: move.
 - Shift or **БЕЖАТЬ**: run.
+- Space or **ПРЫЖОК**: jump.
 - **МАШИНА**: enter the nearest car.
 - While driving, use up/down to accelerate/brake and left/right to steer.
 - **ВЫЙТИ**: leave the car.
