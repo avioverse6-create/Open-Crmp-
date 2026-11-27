@@ -137,6 +137,8 @@ func _setup_audio() -> void:
 		var traffic_ambience := AudioStreamPlayer.new()
 		traffic_ambience.name = "CityTrafficAmbience"
 		traffic_ambience.stream = load(traffic_path)
+		if traffic_ambience.stream is AudioStreamMP3:
+			(traffic_ambience.stream as AudioStreamMP3).loop = true
 		traffic_ambience.volume_db = -23.0
 		add_child(traffic_ambience)
 		traffic_ambience.play()
@@ -147,6 +149,8 @@ func _setup_audio() -> void:
 			var chatter := AudioStreamPlayer3D.new()
 			chatter.name = "PedestrianChatter"
 			chatter.stream = load(chatter_path)
+			if chatter.stream is AudioStreamMP3:
+				(chatter.stream as AudioStreamMP3).loop = true
 			chatter.position = Vector3(0, 1.0, district_z + 6.0)
 			chatter.volume_db = -25.0
 			chatter.unit_size = 8.0
@@ -560,7 +564,11 @@ func _setup_mobile_ui() -> void:
 	joystick.position = Vector2(24, -190)
 	joystick.size = Vector2(160, 160)
 	root.add_child(joystick)
-	joystick.changed.connect(func(value: Vector2): player.set_mobile_input(value))
+	joystick.changed.connect(func(value: Vector2):
+		player.set_mobile_input(value)
+		if player.active_vehicle != null:
+			player.active_vehicle.set_mobile_input(value)
+	)
 
 	var jump_button := Button.new()
 	jump_button.text = "ПРЫЖОК"
