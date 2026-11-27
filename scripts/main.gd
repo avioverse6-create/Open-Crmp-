@@ -885,6 +885,23 @@ func _setup_traffic() -> void:
 		_make_car_visual(downtown_car, VehicleScenes.size() + i)
 		cars.append(downtown_car)
 
+	# North-south traffic fills the five vertical streets in the downtown GLB grid.
+	# Each street gets one car in each direction, separated into opposing lanes.
+	var downtown_street_x := [-64.0, -32.0, 0.0, 32.0, 64.0]
+	for street_index in range(downtown_street_x.size()):
+		for lane_index in range(2):
+			var vertical_car: Variant = CharacterBody3D.new()
+			vertical_car.set_script(CarScript)
+			vertical_car.vertical_traffic = true
+			vertical_car.speed = randf_range(3.5, 5.2)
+			vertical_car.direction = 1.0 if lane_index == 0 else -1.0
+			vertical_car.lane_x = downtown_street_x[street_index] + (-2.0 if lane_index == 0 else 2.0)
+			vertical_car.start_z = 99.0 if lane_index == 0 else 211.0
+			vertical_car.end_z = 219.0 if lane_index == 0 else 91.0
+			add_child(vertical_car)
+			_make_car_visual(vertical_car, VehicleScenes.size() + 4 + street_index * 2 + lane_index)
+			cars.append(vertical_car)
+
 func _make_car_visual(car: Node3D, model_index: int) -> void:
 	# Each traffic vehicle gets a distinct textured GLB from the Kenney Car Kit.
 	var safe_index := model_index % VehicleScenes.size()
