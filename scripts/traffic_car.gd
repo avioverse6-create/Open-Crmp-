@@ -215,7 +215,7 @@ func _get_safe_traffic_speed() -> float:
 func _update_engine_audio() -> void:
 	if engine_audio == null:
 		return
-	var current_speed := absf(drive_speed) if is_player_driven else absf(speed)
+	var current_speed := absf(drive_speed) if is_player_driven else speed_kmh / 3.6
 	engine_audio.pitch_scale = clampf(0.82 + current_speed / max_drive_speed * 0.55, 0.82, 1.38)
 	engine_audio.volume_db = -12.0 + clampf(current_speed / max_drive_speed, 0.0, 1.0) * 4.0
 
