@@ -30,6 +30,8 @@ var footstep_player: AudioStreamPlayer3D
 var footstep_timer := 0.0
 var camera_collision_timer := 0.0
 var cached_camera_offset := Vector3(0, 0.58, 1.85)
+var pulse_cooldown := 0.0
+var pulse_audio: AudioStreamPlayer
 
 func _ready() -> void:
 	name = "Player"
@@ -58,6 +60,11 @@ func _ready() -> void:
 	footstep_player.unit_size = 3.5
 	footstep_player.max_distance = 20.0
 	add_child(footstep_player)
+	pulse_audio = AudioStreamPlayer.new()
+	pulse_audio.name = "ArcadePulseSound"
+	pulse_audio.stream = _make_pulse_sound()
+	pulse_audio.volume_db = -8.0
+	add_child(pulse_audio)
 
 	camera_pivot = Node3D.new()
 	camera_pivot.name = "IndependentCameraPivot"
@@ -73,6 +80,74 @@ func _ready() -> void:
 
 func set_mobile_input(value: Vector2) -> void:
 	mobile_input_vector = value.limit_length(1.0)
+
+
+func _make_pulse_sound() -> AudioStreamWAV:
+	# A short synthetic sci-fi zap; deliberately not a real firearm recording.
+	var sample_rate := 22050
+	var sample_count := 3307
+	var bytes := PackedByteArray()
+	bytes.resize(sample_count * 2)
+	for i in range(sample_count):
+		var t := float(i) / float(sample_rate)
+		var envelope := exp(-t * 34.0)
+		var frequency := 760.0 - 390.0 * (t / 0.15)
+		var sample := sin(TAU * frequency * t) * envelope * 0.42
+		var value := int(clampf(sample, -1.0, 1.0) * 32767.0)
+		bytes[i * 2] = value & 0xff
+		bytes[i * 2 + 1] = (value >> 8) & 0xff
+	var stream := AudioStreamWAV.new()
+	stream.format = AudioStreamWAV.FORMAT_16_BITS
+	stream.mix_rate = sample_rate
+	stream.stereo = false
+	stream.data = bytes
+	return stream
+
+
+func fire_pulse() -> void:
+	if active_vehicle != null or pulse_cooldown > 0.0 or camera == null:
+		return
+	pulse_cooldown = 0.24
+	if pulse_audio != null:
+		pulse_audio.stop()
+		pulse_audio.play()
+	var origin := camera.global_position
+	var direction := -camera.global_basis.z
+	var end_point := origin + direction * 48.0
+	var query := PhysicsRayQueryParameters3D.create(origin, end_point)
+	query.exclude = [get_rid()]
+	query.collide_with_areas = false
+	var hit := get_world_3d().direct_space_state.intersect_ray(query)
+	if not hit.is_empty():
+		end_point = hit.position
+		if hit.collider is Node and (hit.collider as Node).is_in_group("pulse_targets"):
+			(hit.collider as Node).call("on_pulse_hit")
+	_spawn_pulse_beam(origin + direction * 0.45, end_point)
+
+
+func _spawn_pulse_beam(start_point: Vector3, end_point: Vector3) -> void:
+	var beam_mesh := ImmediateMesh.new()
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.albedo_color = Color(0.20, 0.88, 1.0, 0.95)
+	material.emission_enabled = true
+	material.emission = Color(0.08, 0.72, 1.0)
+	material.emission_energy_multiplier = 2.4
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	beam_mesh.surface_begin(Mesh.PRIMITIVE_LINES, material)
+	beam_mesh.surface_add_vertex(start_point)
+	beam_mesh.surface_add_vertex(end_point)
+	beam_mesh.surface_end()
+	var beam := MeshInstance3D.new()
+	beam.mesh = beam_mesh
+	beam.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	get_tree().current_scene.add_child(beam)
+	var timer := Timer.new()
+	timer.one_shot = true
+	timer.wait_time = 0.075
+	beam.add_child(timer)
+	timer.timeout.connect(beam.queue_free)
+	timer.start()
 
 func _play_footstep() -> void:
 	if footstep_player == null or FootstepSounds.is_empty():
@@ -92,6 +167,7 @@ func _input(event: InputEvent) -> void:
 		camera_pivot.rotation.x = clamp(camera_pivot.rotation.x - event.relative.y * 0.003, deg_to_rad(-28.0), deg_to_rad(20.0))
 
 func _physics_process(delta: float) -> void:
+	pulse_cooldown = maxf(0.0, pulse_cooldown - delta)
 	if camera_pivot.top_level:
 		var camera_target := global_position + Vector3(0, 1.55, 0)
 		# Smooth follow removes small movement jitter without changing the close camera distance.
