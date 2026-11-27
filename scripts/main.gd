@@ -409,11 +409,11 @@ func _make_car_visual(car: Node3D, forward: bool) -> void:
 		var mesh_instance := mesh_node as MeshInstance3D
 		if mesh_instance.mesh == null:
 			continue
-			var body_material := StandardMaterial3D.new()
-			body_material.albedo_color = paint
-			body_material.metallic = 0.18
-			body_material.roughness = 0.38
-			mesh_instance.set_surface_override_material(0, body_material)
+		var body_material := StandardMaterial3D.new()
+		body_material.albedo_color = paint
+		body_material.metallic = 0.18
+		body_material.roughness = 0.38
+		mesh_instance.set_surface_override_material(0, body_material)
 
 func _setup_people() -> void:
 	for i in range(16):
