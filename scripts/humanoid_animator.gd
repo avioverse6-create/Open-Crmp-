@@ -47,7 +47,7 @@ func bind(character_root: Node) -> void:
 		var animation_name := String(full_name)
 		if animation_name.contains("/"):
 			animation_name = animation_name.get_slice("/", 1)
-		if animation_name != "idle" and animation_name != "run":
+		if animation_name != "idle" and animation_name != "walk" and animation_name != "run":
 			continue
 		var source_animation := source_player.get_animation(full_name)
 		if source_animation == null:
@@ -85,13 +85,13 @@ func _bind_procedural_fallback(skeleton: Skeleton3D) -> void:
 
 func update(delta: float, moving: bool, running: bool) -> void:
 	if _animation_player != null:
-		var desired := "run" if moving else "idle"
+		var desired := ("run" if running or not _animation_player.has_animation("walk") else "walk") if moving else "idle"
 		if _current_animation != desired:
 			_animation_player.play(desired, 0.22)
 			_current_animation = desired
 		# The imported run cycle is also used for walking, but slowed down so
 		# the feet do not slide. Idle always plays at its authored speed.
-		_animation_player.speed_scale = (1.0 if running else 0.72) if moving else 1.0
+		_animation_player.speed_scale = (1.0 if running or desired == "walk" else 0.72) if moving else 1.0
 		return
 
 	# Fallback only for a model whose imported skeleton does not match Mixamo.
