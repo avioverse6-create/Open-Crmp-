@@ -30,6 +30,8 @@ var footstep_player: AudioStreamPlayer3D
 var chatter_player: AudioStreamPlayer3D
 var footstep_timer := randf_range(0.15, 0.55)
 var _simulation_accumulator := 0.0
+var _neighbor_refresh_timer := randf_range(0.0, 0.25)
+var _pedestrian_cache: Array[Node] = []
 
 func _ready() -> void:
 	add_to_group("pedestrians")
@@ -106,6 +108,12 @@ func _physics_process(delta: float) -> void:
 		return
 	var step_delta := _simulation_accumulator
 	_simulation_accumulator = 0.0
+	# Refresh the pedestrian list periodically instead of allocating/querying the
+	# scene group on every movement tick for every NPC.
+	_neighbor_refresh_timer -= step_delta
+	if _neighbor_refresh_timer <= 0.0:
+		_pedestrian_cache = get_tree().get_nodes_in_group("pedestrians")
+		_neighbor_refresh_timer = randf_range(0.22, 0.36)
 
 	change_timer -= step_delta
 	if pause_timer > 0.0:
@@ -141,7 +149,7 @@ func _physics_process(delta: float) -> void:
 		# Light local avoidance keeps pedestrians from walking through one another.
 		# Only nearby neighbours are considered; distant NPCs do not affect this route.
 		var avoidance := Vector3.ZERO
-		for neighbour in get_tree().get_nodes_in_group("pedestrians"):
+		for neighbour in _pedestrian_cache:
 			if neighbour == self or not is_instance_valid(neighbour):
 				continue
 			var offset: Vector3 = global_position - neighbour.global_position
