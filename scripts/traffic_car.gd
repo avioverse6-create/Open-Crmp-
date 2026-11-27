@@ -36,7 +36,6 @@ var _traffic_turn_control_a := Vector3.ZERO
 var _traffic_turn_control_b := Vector3.ZERO
 var _traffic_turn_end := Vector3.ZERO
 var _traffic_turn_exit_direction := Vector3.ZERO
-var _traffic_turn_serial := 0
 
 func set_mobile_input(value: Vector2) -> void:
 	mobile_input_vector = value.limit_length(1.0)
@@ -174,14 +173,16 @@ func _try_begin_traffic_turn() -> void:
 			var distance_to_line := (iz - global_position.z) * direction if vertical_traffic else (ix - global_position.x) * direction
 			if distance_to_line < 4.5 or distance_to_line > 6.5:
 				continue
-			_traffic_turn_serial += 1
-			if (int(get_instance_id()) + _traffic_turn_serial * 3) % 5 != 0:
-				return
+			# Pick turns deterministically per vehicle and junction. Do not
+			# roll a new choice every physics frame while approaching the line.
+			var turn_key := int(get_instance_id()) + int(ix * 17.0) + int(iz * 13.0)
+			if posmod(turn_key, 5) != 0:
+				continue
 			var junction := Vector3(ix, global_position.y, iz)
 			if not _is_intersection_clear(junction):
 				return
 			var incoming := Vector3(0.0, 0.0, direction) if vertical_traffic else Vector3(direction, 0.0, 0.0)
-			var turn_left := (int(get_instance_id()) + _traffic_turn_serial) % 2 == 0
+			var turn_left := posmod(int(get_instance_id()) + int(ix * 7.0) - int(iz * 3.0), 2) == 0
 			var outgoing := Vector3(-incoming.z, 0.0, incoming.x) if turn_left else Vector3(incoming.z, 0.0, -incoming.x)
 			var lane_offset := Vector3(-2.0 if outgoing.z > 0.0 else 2.0, 0.0, 0.0) if absf(outgoing.z) > 0.5 else Vector3(0.0, 0.0, -2.0 if outgoing.x > 0.0 else 2.0)
 			_traffic_turn_start = global_position
