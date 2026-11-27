@@ -60,14 +60,12 @@ func _ready() -> void:
 	camera_pivot = Node3D.new()
 	camera_pivot.name = "IndependentCameraPivot"
 	camera_pivot.top_level = true
-	camera.position = Vector3(0, 0.98, 3.85)
-	camera.rotation_degrees.x = -11.0
-	camera_pivot.global_position = global_position + Vector3(0, 1.78, 0)
+	camera_pivot.global_position = global_position + Vector3(0, 1.55, 0)
 	add_child(camera_pivot)
 	camera = Camera3D.new()
-	camera.position = Vector3(0, 0.98, 3.85)
-	camera.rotation_degrees.x = -11.0
-	camera.fov = 70.0
+	camera.position = Vector3(0, 0.72, 2.45)
+	camera.rotation_degrees.x = -8.0
+	camera.fov = 68.0
 	camera.current = true
 	camera_pivot.add_child(camera)
 
@@ -93,7 +91,7 @@ func _input(event: InputEvent) -> void:
 
 func _physics_process(delta: float) -> void:
 	if camera_pivot.top_level:
-		camera_pivot.global_position = global_position + Vector3(0, 1.78, 0)
+		camera_pivot.global_position = global_position + Vector3(0, 1.55, 0)
 
 	var input_dir := mobile_input_vector
 	if input_dir.length() < 0.05:
@@ -170,9 +168,9 @@ func enter_vehicle(vehicle: Node3D) -> void:
 	set_physics_process(false)
 	camera_pivot.reparent(vehicle)
 	camera_pivot.top_level = false
-	camera_pivot.position = Vector3(0, 1.9, 1.2)
-	camera.position = Vector3(0, 1.0, 5.2)
-	camera.rotation_degrees.x = -10.0
+	camera_pivot.position = Vector3(0, 1.75, 1.2)
+	camera.position = Vector3(0, 0.9, 4.7)
+	camera.rotation_degrees.x = -9.0
 	camera_pivot.rotation_degrees = Vector3(-12, 0, 0)
 
 func exit_vehicle() -> void:
@@ -187,8 +185,10 @@ func exit_vehicle() -> void:
 	global_position = vehicle.global_position + vehicle.global_basis.x * 2.0
 	camera_pivot.reparent(self)
 	camera_pivot.top_level = true
-	camera_pivot.global_position = global_position + Vector3(0, 1.78, 0)
+	camera_pivot.global_position = global_position + Vector3(0, 1.55, 0)
 	camera_pivot.global_rotation = Vector3.ZERO
+	camera.position = Vector3(0, 0.72, 2.45)
+	camera.rotation_degrees.x = -8.0
 	active_vehicle = null
 	visible = true
 	collision_layer = saved_collision_layer
