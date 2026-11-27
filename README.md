@@ -62,3 +62,8 @@ No GTA code, maps, characters, logos or extracted game assets are included.
 - Original city-kit tree and street-light assets: see `assets/licenses/CC0-1.0-City-Kit.txt`.
 
 Keep the asset credit and license files with the project. The project has not yet been verified in the Godot editor on a real Android device.
+
+
+### Ground texture set
+
+The mobile scene uses CC0 AmbientCG color/albedo maps for Asphalt021 (roads), Concrete012 (sidewalks, curbs and bridge), and Grass004 (terrain). Materials use triplanar mapping to reduce visible stretching on box-shaped surfaces. These committed maps are color-only; high-resolution normal and roughness maps are not part of this lightweight build yet. Imported Kenney city buildings keep their original atlas textures.
