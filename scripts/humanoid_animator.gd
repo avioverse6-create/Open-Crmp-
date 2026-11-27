@@ -87,9 +87,11 @@ func update(delta: float, moving: bool, running: bool) -> void:
 	if _animation_player != null:
 		var desired := "run" if moving else "idle"
 		if _current_animation != desired:
-			_animation_player.play(desired, 0.14)
+			_animation_player.play(desired, 0.22)
 			_current_animation = desired
-		_animation_player.speed_scale = 1.0 if running else 0.66
+		# The imported run cycle is also used for walking, but slowed down so
+		# the feet do not slide. Idle always plays at its authored speed.
+		_animation_player.speed_scale = (1.0 if running else 0.72) if moving else 1.0
 		return
 
 	# Fallback only for a model whose imported skeleton does not match Mixamo.
