@@ -17,7 +17,7 @@ Original small-scale 3D open-world mobile game prototype made with Godot 4.x.
 - Main roads, side streets, sidewalks, lane markings and imported intersection pieces.
 - Third-person camera with swipe rotation on the right side of the screen.
 - Camera-relative player movement, running and jumping.
-- Pedestrian movement with rigged character animation.
+- 16 rigged Mixamo pedestrians, randomly selected from four character models, patrolling the sidewalks in both districts.
 - Eleven distinct imported traffic vehicles with collision shapes, two-way movement and rotating wheel meshes.
 - Enter/drive/exit interaction with a follow camera.
 - On-screen mobile movement, run, jump and vehicle buttons.
