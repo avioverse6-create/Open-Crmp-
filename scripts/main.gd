@@ -57,10 +57,11 @@ const CityBuildingScenes: Array[PackedScene] = [
 	preload("res://assets/models/city/suburban/building_u.glb")
 ]
 const PlasterTexture: Texture2D = preload("res://assets/textures/wall_plaster.svg")
-const BrickTexture: Texture2D = preload("res://assets/textures/brick_wall.svg")
-const ConcreteTexture: Texture2D = preload("res://assets/textures/concrete.svg")
+const BrickTexture: Texture2D = preload("res://assets/textures/brick_ambientcg.png")
+const ConcreteTexture: Texture2D = preload("res://assets/textures/concrete_ambientcg.png")
 const RoofTexture: Texture2D = preload("res://assets/textures/roof_tiles.svg")
-const AsphaltTexture: Texture2D = preload("res://assets/textures/asphalt.svg")
+const AsphaltTexture: Texture2D = preload("res://assets/textures/asphalt_ambientcg.png")
+const GrassTexture: Texture2D = preload("res://assets/textures/grass_ambientcg.png")
 const AsphaltNormal: Texture2D = preload("res://assets/textures/asphalt_normal.svg")
 const AsphaltRoughness: Texture2D = preload("res://assets/textures/asphalt_roughness.svg")
 const ConcreteNormal: Texture2D = preload("res://assets/textures/concrete_normal.svg")
@@ -241,26 +242,6 @@ func _make_texture_material(texture: Texture2D, tint: Color, uv_scale: Vector3) 
 	material.roughness = 0.88
 	material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	material.uv1_scale = uv_scale
-	if texture == ConcreteTexture:
-		material.normal_enabled = true
-		material.normal_texture = ConcreteNormal
-		material.normal_scale = 0.28
-		material.roughness_texture = ConcreteRoughness
-	elif texture == PlasterTexture:
-		material.normal_enabled = true
-		material.normal_texture = PlasterNormal
-		material.normal_scale = 0.22
-		material.roughness_texture = PlasterRoughness
-	elif texture == BrickTexture:
-		material.normal_enabled = true
-		material.normal_texture = BrickNormal
-		material.normal_scale = 0.38
-		material.roughness_texture = BrickRoughness
-	elif texture == RoofTexture:
-		material.normal_enabled = true
-		material.normal_texture = RoofNormal
-		material.normal_scale = 0.48
-		material.roughness_texture = RoofRoughness
 	return material
 
 func _make_color_material(color: Color, roughness_value: float) -> StandardMaterial3D:
@@ -346,12 +327,18 @@ func _make_box(label: String, at: Vector3, dimensions: Vector3, color: Color, so
 	material.roughness = 0.92
 	if label.to_lower().contains("road") or label.to_lower().contains("street"):
 		material.albedo_texture = AsphaltTexture
-		material.normal_enabled = true
-		material.normal_texture = AsphaltNormal
-		material.normal_scale = 0.42
-		material.roughness_texture = AsphaltRoughness
 		material.roughness = 0.96
 		material.uv1_scale = Vector3(14, 14, 1)
+		material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	elif label.to_lower().contains("sidewalk") or label.to_lower().contains("curb"):
+		material.albedo_texture = ConcreteTexture
+		material.roughness = 0.94
+		material.uv1_scale = Vector3(7, 7, 1)
+		material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	elif label.to_lower().contains("mainland"):
+		material.albedo_texture = GrassTexture
+		material.roughness = 0.98
+		material.uv1_scale = Vector3(28, 28, 1)
 		material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	elif label == "River":
 		var water_shader := Shader.new()
