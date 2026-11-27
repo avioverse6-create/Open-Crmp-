@@ -749,7 +749,7 @@ func _setup_traffic() -> void:
 		return
 	# Spread imported vehicles across both districts and both directions.
 	# Stagger spawn positions so cars never begin stacked on top of each other.
-	for i in range(VehicleScenes.size()):
+	for i in range(mini(VehicleScenes.size(), 4)):
 		var car: Variant = CharacterBody3D.new()
 		car.set_script(CarScript)
 		car.speed = randf_range(3.2, 5.4)
@@ -765,7 +765,7 @@ func _setup_traffic() -> void:
 		cars.append(car)
 
 	# Two-way traffic on all five east-west downtown roads.
-	var downtown_cross_streets := [91.0, 123.0, 155.0, 187.0, 219.0]
+	var downtown_cross_streets := [91.0, 155.0, 219.0]
 	for street_index in range(downtown_cross_streets.size()):
 		for lane_index in range(2):
 			var downtown_car: Variant = CharacterBody3D.new()
@@ -782,7 +782,7 @@ func _setup_traffic() -> void:
 
 	# North-south traffic fills the five vertical streets in the downtown GLB grid.
 	# Each street gets one car in each direction, separated into opposing lanes.
-	var downtown_street_x := [-64.0, -32.0, 0.0, 32.0, 64.0]
+	var downtown_street_x := [-32.0, 32.0]
 	for street_index in range(downtown_street_x.size()):
 		for lane_index in range(2):
 			var vertical_car: Variant = CharacterBody3D.new()
