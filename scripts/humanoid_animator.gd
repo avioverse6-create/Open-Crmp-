@@ -89,8 +89,8 @@ func update(delta: float, moving: bool, running: bool) -> void:
 		if _current_animation != desired:
 			_animation_player.play(desired, 0.22)
 			_current_animation = desired
-		# The imported run cycle is also used for walking, but slowed down so
-		# the feet do not slide. Idle always plays at its authored speed.
+		# Prefer a dedicated walk cycle when the library contains one; otherwise
+		# slow the run cycle for walking. Idle keeps its authored speed.
 		_animation_player.speed_scale = (1.0 if running or desired == "walk" else 0.72) if moving else 1.0
 		return
 
