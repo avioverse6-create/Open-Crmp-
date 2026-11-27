@@ -97,9 +97,14 @@ func _physics_process(delta: float) -> void:
 			return
 		else:
 			character_visual.visible = true
-			# Resume ambient chatter when this pedestrian returns to the audible area.
-			if chatter_player != null and not chatter_player.playing:
-				chatter_player.play(randf_range(0.0, 18.0))
+
+	# Chatter is only mixed while the player is close enough to hear it.
+	# This avoids dozens of inaudible looping audio streams across the city.
+	if chatter_player != null:
+		if distance <= 13.0 and not chatter_player.playing:
+			chatter_player.play(randf_range(0.0, 18.0))
+		elif distance > 15.0 and chatter_player.playing:
+			chatter_player.stop()
 
 	_simulation_accumulator += delta
 	var interval := 0.033
