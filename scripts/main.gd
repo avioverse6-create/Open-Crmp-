@@ -126,8 +126,33 @@ func _ready() -> void:
 	_setup_world()
 	_setup_player()
 	_setup_traffic()
+	_setup_audio()
 	_setup_people()
 	_setup_mobile_ui()
+
+func _setup_audio() -> void:
+	# Authentic field-recorded city traffic and distant crowd chatter, downloaded by CI.
+	var traffic_path := "res://assets/audio/city_traffic.mp3"
+	if ResourceLoader.exists(traffic_path):
+		var traffic_ambience := AudioStreamPlayer.new()
+		traffic_ambience.name = "CityTrafficAmbience"
+		traffic_ambience.stream = load(traffic_path)
+		traffic_ambience.volume_db = -23.0
+		add_child(traffic_ambience)
+		traffic_ambience.play()
+
+	var chatter_path := "res://assets/audio/pedestrian_chatter.mp3"
+	if ResourceLoader.exists(chatter_path):
+		for district_z in [-34.0, 34.0]:
+			var chatter := AudioStreamPlayer3D.new()
+			chatter.name = "PedestrianChatter"
+			chatter.stream = load(chatter_path)
+			chatter.position = Vector3(0, 1.0, district_z + 6.0)
+			chatter.volume_db = -25.0
+			chatter.unit_size = 8.0
+			chatter.max_distance = 42.0
+			add_child(chatter)
+			chatter.play()
 
 func _setup_world() -> void:
 	var sun := DirectionalLight3D.new()
