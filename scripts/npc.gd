@@ -30,8 +30,6 @@ var footstep_player: AudioStreamPlayer3D
 var chatter_player: AudioStreamPlayer3D
 var footstep_timer := randf_range(0.15, 0.55)
 var _simulation_accumulator := 0.0
-var _neighbor_refresh_timer := randf_range(0.0, 0.25)
-var _pedestrian_cache: Array[Node] = []
 
 func _ready() -> void:
 	add_to_group("pedestrians")
@@ -88,7 +86,7 @@ func _physics_process(delta: float) -> void:
 	var distance := 0.0
 	if camera != null:
 		distance = global_position.distance_to(camera.global_position)
-		if distance > 82.0:
+		if distance > 62.0:
 			character_visual.visible = false
 			if footstep_player.playing:
 				footstep_player.stop()
@@ -107,21 +105,15 @@ func _physics_process(delta: float) -> void:
 			chatter_player.stop()
 
 	_simulation_accumulator += delta
-	var interval := 0.033
-	if distance > 50.0:
-		interval = 0.20
-	elif distance > 28.0:
-		interval = 0.066
+	var interval := 0.05
+	if distance > 38.0:
+		interval = 0.22
+	elif distance > 22.0:
+		interval = 0.10
 	if _simulation_accumulator < interval:
 		return
 	var step_delta := _simulation_accumulator
 	_simulation_accumulator = 0.0
-	# Refresh the pedestrian list periodically instead of allocating/querying the
-	# scene group on every movement tick for every NPC.
-	_neighbor_refresh_timer -= step_delta
-	if _neighbor_refresh_timer <= 0.0:
-		_pedestrian_cache = get_tree().get_nodes_in_group("pedestrians")
-		_neighbor_refresh_timer = randf_range(0.22, 0.36)
 
 	change_timer -= step_delta
 	if pause_timer > 0.0:
@@ -154,20 +146,7 @@ func _physics_process(delta: float) -> void:
 	var moving := direction.length() > 0.1
 	if moving:
 		direction = direction.normalized()
-		# Light local avoidance keeps pedestrians from walking through one another.
-		# Only nearby neighbours are considered; distant NPCs do not affect this route.
-		var avoidance := Vector3.ZERO
-		for neighbour in _pedestrian_cache:
-			if neighbour == self or not is_instance_valid(neighbour):
-				continue
-			var offset: Vector3 = global_position - neighbour.global_position
-			offset.y = 0.0
-			var separation := offset.length()
-			if separation > 0.01 and separation < 1.35:
-				var strength := (1.35 - separation) / 1.35
-				avoidance += offset.normalized() * strength
-		if avoidance.length_squared() > 0.0001:
-			direction = (direction + avoidance.normalized() * 0.72).normalized()
+		# Keep pedestrian steering lightweight on mobile; routes are staggered at spawn.
 		velocity.x = direction.x * walk_speed
 		velocity.z = direction.z * walk_speed
 		rotation.y = lerp_angle(rotation.y, atan2(-direction.x, -direction.z), step_delta * 4.5)
