@@ -95,6 +95,7 @@ jobs:
           fetch_city_asset "https://models.vinish.dev/city-kit/sidewalk-block.glb" "sidewalk-block.glb"
           fetch_city_asset "https://models.vinish.dev/city-kit/street-light.glb" "street-light.glb"
           fetch_city_asset "https://models.vinish.dev/city-kit/traffic-signal.glb" "traffic-signal.glb"
+          fetch_city_asset "https://models.vinish.dev/city-kit/fire-hydrant.glb" "fire-hydrant.glb"
           ls -lh assets/models/vinish_city
       - name: Download high quality CC0 road, grass and sidewalk PBR textures
         run: |
