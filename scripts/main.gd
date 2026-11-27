@@ -374,10 +374,11 @@ func _setup_world() -> void:
 		_spawn_prop(StreetLightScene, Vector3(float(x) * 13.0, 0.0, -27.0), 2.5)
 		_spawn_prop(StreetLightScene, Vector3(float(x) * 13.0, 0.0, 27.0), 2.5)
 
-	# Side streets and sidewalks.
-	for x in [-52.0, -26.0, 26.0, 52.0]:
-		_make_box("Side street", Vector3(x, 0.015, -34), Vector3(7, 0.1, 58), Color(0.16,0.17,0.18), false)
-		_make_box("Side street", Vector3(x, 0.015, 34), Vector3(7, 0.1, 58), Color(0.16,0.17,0.18), false)
+	# Side streets use the same textured 16 m GLB kit when it is available.
+	if not ResourceLoader.exists("res://assets/models/vinish_city/road-straight.glb"):
+		for x in [-52.0, -26.0, 26.0, 52.0]:
+			_make_box("Side street", Vector3(x, 0.015, -34), Vector3(7, 0.1, 58), Color(0.16,0.17,0.18), false)
+			_make_box("Side street", Vector3(x, 0.015, 34), Vector3(7, 0.1, 58), Color(0.16,0.17,0.18), false)
 
 	if not ResourceLoader.exists("res://assets/models/vinish_city/road-straight.glb"):
 		_add_sidewalks()
@@ -387,31 +388,28 @@ func _setup_world() -> void:
 
 
 func _setup_vinish_district_roads() -> void:
-	# Vinish City Kit roads are real textured GLB meshes, 16 x 16 metres.
-	# Their own sidewalks, kerbs, gutters and lane markings replace the old box roads.
+	# Textured 16 m road modules replace the old plain side-road boxes.
 	var road_scene := load("res://assets/models/vinish_city/road-straight.glb") as PackedScene
+	var cross_scene := load("res://assets/models/vinish_city/road-crossroads.glb") as PackedScene
 	if road_scene == null:
 		push_warning("Vinish road mesh could not be loaded; keeping procedural road fallback")
 		_make_box("West road", Vector3(0, 0.02, -34), Vector3(150, 0.12, 10), Color(0.12, 0.13, 0.15), true)
 		_make_box("East road", Vector3(0, 0.02, 34), Vector3(150, 0.12, 10), Color(0.12, 0.13, 0.15), true)
 		return
+
+	# Four side-road junctions on each district boulevard use proper crossroads.
+	var side_street_x := [-48.0, -32.0, 32.0, 48.0]
 	for road_z in [-34.0, 34.0]:
 		for tile_index in range(9):
 			var road_x := -64.0 + float(tile_index) * 16.0
-			var road_body := StaticBody3D.new()
-			road_body.name = "VinishDetailedRoadTile"
-			road_body.position = Vector3(road_x, -0.1, road_z)
-			# The source tile runs along its forward axis; rotate it to run east-west.
-			road_body.rotation.y = PI * 0.5
-			var road_model := road_scene.instantiate() as Node3D
-			road_body.add_child(road_model)
-			var road_collision := CollisionShape3D.new()
-			var road_shape := BoxShape3D.new()
-			road_shape.size = Vector3(16.0, 0.45, 16.0)
-			road_collision.shape = road_shape
-			road_collision.position.y = 0.225
-			road_body.add_child(road_collision)
-			add_child(road_body)
+			var is_intersection := side_street_x.has(road_x)
+			var selected_scene: PackedScene = cross_scene if is_intersection and cross_scene != null else road_scene
+			_spawn_vinish_road_tile(selected_scene, Vector3(road_x, -0.42, road_z), PI * 0.5)
+
+	# Continue each side street away from the boulevard using straight GLB segments.
+	for street_x in side_street_x:
+		for segment_z in [-66.0, -50.0, -18.0, 18.0, 50.0, 66.0]:
+			_spawn_vinish_road_tile(road_scene, Vector3(street_x, -0.42, segment_z), 0.0)
 
 
 func _spawn_vinish_apartment(at: Vector3, variant_index: int) -> void:
