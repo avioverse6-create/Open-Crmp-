@@ -82,10 +82,10 @@ func _ready() -> void:
 	right_arm = _make_limb(Vector3(0.39, 1.42, 0), 0.125, 0.62, shirt)
 	left_leg = _make_limb(Vector3(-0.16, 0.70, 0), 0.15, 0.72, pants)
 	right_leg = _make_limb(Vector3(0.16, 0.70, 0), 0.15, 0.72, pants)
-	_add_hand(Vector3(-0.39, 0.76, 0), skin)
-	_add_hand(Vector3(0.39, 0.76, 0), skin)
-	_add_shoe(Vector3(-0.16, 0.07, -0.075), shoes)
-	_add_shoe(Vector3(0.16, 0.07, -0.075), shoes)
+	_add_hand(Vector3(0, -0.58, 0), skin, left_arm)
+	_add_hand(Vector3(0, -0.58, 0), skin, right_arm)
+	_add_shoe(Vector3(0, -0.65, -0.075), shoes, left_leg)
+	_add_shoe(Vector3(0, -0.65, -0.075), shoes, right_leg)
 
 	camera_pivot = Node3D.new()
 	camera_pivot.position = Vector3(0, 2.2, 0)
@@ -117,23 +117,23 @@ func _make_limb(at: Vector3, radius: float, length: float, material: Material) -
 	pivot.add_child(limb)
 	return pivot
 
-func _add_hand(at: Vector3, material: Material) -> void:
+func _add_hand(at: Vector3, material: Material, parent: Node3D) -> void:
 	var hand := MeshInstance3D.new()
 	var mesh := SphereMesh.new()
 	mesh.radius = 0.105
 	hand.mesh = mesh
 	hand.position = at
 	hand.material_override = material
-	visual_root.add_child(hand)
+	parent.add_child(hand)
 
-func _add_shoe(at: Vector3, material: Material) -> void:
+func _add_shoe(at: Vector3, material: Material, parent: Node3D) -> void:
 	var shoe := MeshInstance3D.new()
 	var mesh := BoxMesh.new()
 	mesh.size = Vector3(0.27, 0.14, 0.42)
 	shoe.mesh = mesh
 	shoe.position = at
 	shoe.material_override = material
-	visual_root.add_child(shoe)
+	parent.add_child(shoe)
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventScreenDrag:
