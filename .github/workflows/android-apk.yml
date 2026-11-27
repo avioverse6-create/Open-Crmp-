@@ -10,6 +10,7 @@ on:
       - 'scripts/traffic_car.gd'
       - 'scripts/npc.gd'
       - 'scripts/player.gd'
+      - 'scripts/traffic_car.gd'
       - 'scripts/humanoid_animator.gd'
       - 'project.godot'
 
