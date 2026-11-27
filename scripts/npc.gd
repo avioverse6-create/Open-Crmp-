@@ -25,6 +25,7 @@ var humanoid_animator
 var footstep_player: AudioStreamPlayer3D
 var chatter_player: AudioStreamPlayer3D
 var footstep_timer := randf_range(0.15, 0.55)
+var _simulation_accumulator := 0.0
 
 func _ready() -> void:
 	var shape := CollisionShape3D.new()
@@ -73,7 +74,23 @@ func _play_footstep() -> void:
 	footstep_player.play()
 
 func _physics_process(delta: float) -> void:
-	change_timer -= delta
+	# Keep every pedestrian in the world, but simulate distant citizens less
+	# often. Nearby NPCs update at 30 Hz; far ones at 10 Hz.
+	_simulation_accumulator += delta
+	var interval := 0.033
+	var camera := get_viewport().get_camera_3d()
+	if camera != null:
+		var distance := global_position.distance_to(camera.global_position)
+		if distance > 55.0:
+			interval = 0.10
+		elif distance > 28.0:
+			interval = 0.066
+	if _simulation_accumulator < interval:
+		return
+	var step_delta := _simulation_accumulator
+	_simulation_accumulator = 0.0
+
+	change_timer -= step_delta
 	if change_timer <= 0.0 or global_position.distance_to(target) < 1.0:
 		_pick_target()
 	var direction := target - global_position
@@ -83,16 +100,16 @@ func _physics_process(delta: float) -> void:
 		direction = direction.normalized()
 		velocity.x = direction.x * walk_speed
 		velocity.z = direction.z * walk_speed
-		rotation.y = lerp_angle(rotation.y, atan2(-direction.x, -direction.z), delta * 4.5)
+		rotation.y = lerp_angle(rotation.y, atan2(-direction.x, -direction.z), step_delta * 4.5)
 	else:
-		velocity.x = move_toward(velocity.x, 0.0, walk_speed * 5.0 * delta)
-		velocity.z = move_toward(velocity.z, 0.0, walk_speed * 5.0 * delta)
+		velocity.x = move_toward(velocity.x, 0.0, walk_speed * 5.0 * step_delta)
+		velocity.z = move_toward(velocity.z, 0.0, walk_speed * 5.0 * step_delta)
 
 	if humanoid_animator != null:
-		humanoid_animator.update(delta, moving, false)
+		humanoid_animator.update(step_delta, moving, false)
 
 	if moving and is_on_floor():
-		footstep_timer -= delta
+		footstep_timer -= step_delta
 		if footstep_timer <= 0.0:
 			_play_footstep()
 			footstep_timer = randf_range(0.48, 0.58)
@@ -100,7 +117,7 @@ func _physics_process(delta: float) -> void:
 		footstep_timer = 0.16
 
 	if not is_on_floor():
-		velocity.y -= 20.0 * delta
+		velocity.y -= 20.0 * step_delta
 	else:
 		velocity.y = 0.0
 	move_and_slide()
