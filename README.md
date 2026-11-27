@@ -8,7 +8,7 @@ Original small-scale 3D open-world mobile game prototype made with Godot 4.x.
 - **Roads:** 10 modular Kenney City Kit Roads GLB pieces, including straight sections, bends, crossings, intersections, a roundabout and a bridge.
 - **Street props:** imported traffic lights, highway signs, bridge pillars, construction barriers and cones. Matching road color atlas is included.
 - **People:** four rigged Mixamo GLB characters are used for the player and pedestrians. The separate animation library currently supplies Idle and Run; Run is slowed to approximate a walk for pedestrians. There is not yet a dedicated Walk clip.
-- **Cars:** traffic now randomly uses eight separate imported Kenney Car Kit GLBs: sedan, SUV, taxi, police car, delivery van, truck, fire truck and garbage truck. Their original atlas colors are preserved. Wheel animation and traffic variety by district are still future work.
+- **Cars:** all eight imported Kenney Car Kit GLBs are now used in traffic: sedan, SUV, taxi, police car, delivery van, truck, fire truck and garbage truck. Each model appears once in the current traffic set, with cars moving in opposite directions on the two main roads. Their original atlas colors are preserved. Wheel animation is still future work.
 - **Nature:** imported low-poly tree models from the original CC0 City Kit.
 
 ## World and gameplay
@@ -18,7 +18,7 @@ Original small-scale 3D open-world mobile game prototype made with Godot 4.x.
 - Third-person camera with swipe rotation on the right side of the screen.
 - Camera-relative player movement, running and jumping.
 - Pedestrian movement with rigged character animation.
-- Traffic cars with collision shapes and basic movement.
+- Eight distinct imported traffic vehicles with collision shapes and two-way movement.
 - Enter/drive/exit interaction with a follow camera.
 - On-screen mobile movement, run, jump and vehicle buttons.
 
@@ -46,9 +46,9 @@ No GTA code, maps, characters, logos or extracted game assets are included.
 
 ## Next milestones
 
-1. Add separate civilian vehicle models (sedan, SUV, van and bus) and wheel rotation.
-2. Replace the single car model used by traffic with a varied fleet.
-3. Improve pedestrian navigation, traffic lane logic and collisions.
+1. Add animated wheels and more realistic vehicle handling.
+2. Improve pedestrian navigation, traffic lane logic and collisions.
+3. Replace the legacy procedural SVG surface maps with genuine seamless PBR materials where they improve the imported city assets.
 4. Add minimap, camera smoothing, missions, save data, sound and graphics settings.
 5. Import and test on an Android device, then optimize based on real frame-time measurements.
 
