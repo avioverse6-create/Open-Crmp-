@@ -343,8 +343,11 @@ func _setup_world() -> void:
 	_make_box("River", Vector3(0, -0.05, 0), Vector3(150, 0.15, 17), Color(0.08, 0.30, 0.48), false)
 
 	# Main road, two districts and the bridge connecting them.
-	_make_box("West road", Vector3(0, 0.02, -34), Vector3(150, 0.12, 10), Color(0.12, 0.13, 0.15), true)
-	_make_box("East road", Vector3(0, 0.02, 34), Vector3(150, 0.12, 10), Color(0.12, 0.13, 0.15), true)
+	if ResourceLoader.exists("res://assets/models/vinish_city/road-straight.glb"):
+		_setup_vinish_district_roads()
+	else:
+		_make_box("West road", Vector3(0, 0.02, -34), Vector3(150, 0.12, 10), Color(0.12, 0.13, 0.15), true)
+		_make_box("East road", Vector3(0, 0.02, 34), Vector3(150, 0.12, 10), Color(0.12, 0.13, 0.15), true)
 	_make_box("Bridge", Vector3(0, 0.18, 0), Vector3(11, 0.45, 24), Color(0.25, 0.26, 0.28), true)
 	_make_box("Bridge rail left", Vector3(-5.4, 1.0, 0), Vector3(0.35, 1.5, 24), Color(0.55, 0.58, 0.6), true)
 	_make_box("Bridge rail right", Vector3(5.4, 1.0, 0), Vector3(0.35, 1.5, 24), Color(0.55, 0.58, 0.6), true)
@@ -376,10 +379,65 @@ func _setup_world() -> void:
 		_make_box("Side street", Vector3(x, 0.015, -34), Vector3(7, 0.1, 58), Color(0.16,0.17,0.18), false)
 		_make_box("Side street", Vector3(x, 0.015, 34), Vector3(7, 0.1, 58), Color(0.16,0.17,0.18), false)
 
-	_add_sidewalks()
-	_add_road_markings()
-	_add_city_road_assets()
+	if not ResourceLoader.exists("res://assets/models/vinish_city/road-straight.glb"):
+		_add_sidewalks()
+		_add_road_markings()
+		_add_city_road_assets()
 	_setup_downtown()
+
+
+func _setup_vinish_district_roads() -> void:
+	# Vinish City Kit roads are real textured GLB meshes, 16 x 16 metres.
+	# Their own sidewalks, kerbs, gutters and lane markings replace the old box roads.
+	var road_scene := load("res://assets/models/vinish_city/road-straight.glb") as PackedScene
+	if road_scene == null:
+		push_warning("Vinish road mesh could not be loaded; keeping procedural road fallback")
+		_make_box("West road", Vector3(0, 0.02, -34), Vector3(150, 0.12, 10), Color(0.12, 0.13, 0.15), true)
+		_make_box("East road", Vector3(0, 0.02, 34), Vector3(150, 0.12, 10), Color(0.12, 0.13, 0.15), true)
+		return
+	for road_z in [-34.0, 34.0]:
+		for tile_index in range(9):
+			var road_x := -64.0 + float(tile_index) * 16.0
+			var road_body := StaticBody3D.new()
+			road_body.name = "VinishDetailedRoadTile"
+			road_body.position = Vector3(road_x, -0.1, road_z)
+			# The source tile runs along its forward axis; rotate it to run east-west.
+			road_body.rotation.y = PI * 0.5
+			var road_model := road_scene.instantiate() as Node3D
+			road_body.add_child(road_model)
+			var road_collision := CollisionShape3D.new()
+			var road_shape := BoxShape3D.new()
+			road_shape.size = Vector3(16.0, 0.45, 16.0)
+			road_collision.shape = road_shape
+			road_body.add_child(road_collision)
+			add_child(road_body)
+
+
+func _spawn_vinish_apartment(at: Vector3, variant_index: int) -> void:
+	var model_path := "res://assets/models/vinish_city/apartment-block-01.glb" if variant_index % 2 == 0 else "res://assets/models/vinish_city/apartment-block-02.glb"
+	if not ResourceLoader.exists(model_path):
+		_spawn_asset_building(CityBuildingScenes[0], at, 3.4)
+		return
+	var packed := load(model_path) as PackedScene
+	if packed == null:
+		_spawn_asset_building(CityBuildingScenes[0], at, 3.4)
+		return
+	var root := StaticBody3D.new()
+	root.name = "VinishDetailedApartment"
+	root.position = at
+	var model := packed.instantiate() as Node3D
+	if model == null:
+		root.queue_free()
+		_spawn_asset_building(CityBuildingScenes[0], at, 3.4)
+		return
+	root.add_child(model)
+	var collision := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = Vector3(14.8, 24.0, 14.0) if variant_index % 2 == 0 else Vector3(11.5, 20.5, 13.0)
+	collision.shape = shape
+	collision.position.y = shape.size.y * 0.5
+	root.add_child(collision)
+	add_child(root)
 
 
 func _setup_downtown() -> void:
@@ -420,8 +478,12 @@ func _setup_downtown() -> void:
 				continue
 			var left_building := Vector3(center_x - 7.0, 0.0, center_z + randf_range(-2.0, 2.0))
 			var right_building := Vector3(center_x + 7.0, 0.0, center_z + randf_range(-2.0, 2.0))
-			_spawn_asset_building(CityBuildingScenes[0], left_building, 3.4)
-			_spawn_asset_building(CityBuildingScenes[0], right_building, 3.4)
+			if ResourceLoader.exists("res://assets/models/vinish_city/apartment-block-01.glb"):
+				_spawn_vinish_apartment(left_building, row_index + column_index)
+				_spawn_vinish_apartment(right_building, row_index + column_index + 1)
+			else:
+				_spawn_asset_building(CityBuildingScenes[0], left_building, 3.4)
+				_spawn_asset_building(CityBuildingScenes[0], right_building, 3.4)
 
 	# Traffic lights at selected boulevard junctions and street lamps along sidewalks.
 	for street_z in [95.0, 135.0, 175.0, 215.0]:
