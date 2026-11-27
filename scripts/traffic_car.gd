@@ -226,8 +226,8 @@ func _get_safe_traffic_speed() -> float:
 
 func _get_intersection_speed_limit() -> float:
 	var safe_speed := speed
-	var intersection_x_values := [-32.0, 32.0]
-	var intersection_z_values := [123.0, 187.0]
+	var intersection_x_values := [-64.0, -32.0, 0.0, 32.0, 64.0]
+	var intersection_z_values := [91.0, 123.0, 155.0, 187.0, 219.0]
 	for intersection_x in intersection_x_values:
 		for intersection_z in intersection_z_values:
 			var distance_to_line := INF
@@ -247,7 +247,7 @@ func _get_intersection_speed_limit() -> float:
 				if other_vertical == vertical_traffic and not other_is_player:
 					continue
 				# The crossing vehicle must actually be close to this junction.
-				var cross_distance := Vector2(other.global_position.x - intersection_x, other.global_position.z - intersection_z).length() if other_is_player else (absf(float(other.global_position.x) - intersection_x) if other_vertical else absf(float(other.global_position.z) - intersection_z))
+				var cross_distance := Vector2(other.global_position.x - intersection_x, other.global_position.z - intersection_z).length()
 				if cross_distance > 8.5:
 					continue
 				# Player has priority. Otherwise only north-south AI yields to
