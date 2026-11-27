@@ -94,18 +94,17 @@ func _ready() -> void:
 	add_child(collision)
 
 	var engine_path := "res://assets/audio/car_engine_loop.wav"
-	if ResourceLoader.exists(engine_path):
-		engine_audio = AudioStreamPlayer3D.new()
-		engine_audio.name = "EngineAudio"
-		engine_audio.stream = load(engine_path) if ResourceLoader.exists(engine_path) else _make_engine_sound()
-		engine_audio.volume_db = -7.0
-		engine_audio.unit_size = 3.5
-		engine_audio.max_distance = 120.0
-		engine_audio.doppler_tracking = AudioStreamPlayer3D.DOPPLER_TRACKING_PHYSICS_STEP
-		add_child(engine_audio)
-		if engine_audio.stream is AudioStreamWAV:
-			(engine_audio.stream as AudioStreamWAV).loop_mode = AudioStreamWAV.LOOP_FORWARD
-		engine_audio.play()
+	engine_audio = AudioStreamPlayer3D.new()
+	engine_audio.name = "EngineAudio"
+	engine_audio.stream = load(engine_path) if ResourceLoader.exists(engine_path) else _make_engine_sound()
+	engine_audio.volume_db = -7.0
+	engine_audio.unit_size = 3.5
+	engine_audio.max_distance = 120.0
+	engine_audio.doppler_tracking = AudioStreamPlayer3D.DOPPLER_TRACKING_PHYSICS_STEP
+	add_child(engine_audio)
+	if engine_audio.stream is AudioStreamWAV:
+		(engine_audio.stream as AudioStreamWAV).loop_mode = AudioStreamWAV.LOOP_FORWARD
+	engine_audio.play()
 
 	var passby_path := "res://assets/audio/car_passby.wav"
 	if ResourceLoader.exists(passby_path):
@@ -277,8 +276,8 @@ func _update_vehicle_camera_collision(delta: float) -> void:
 	var active_camera := get_viewport().get_camera_3d()
 	if active_camera == null:
 		return
-	var camera_origin := global_position + Vector3(0.0, 1.75, 1.2)
-	var desired_camera_position := to_global(Vector3(0.0, 1.75, 1.2) + Vector3(0.0, 0.9, 4.7).rotated(Vector3.RIGHT, deg_to_rad(-12.0)))
+	var camera_origin := global_position + Vector3(0.0, 1.0, 0.0)
+	var desired_camera_position := to_global(Vector3(0.0, 2.15, 6.6))
 	var camera_query := PhysicsRayQueryParameters3D.create(camera_origin, desired_camera_position)
 	camera_query.exclude = [get_rid()]
 	camera_query.collide_with_areas = false
