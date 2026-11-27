@@ -6,7 +6,7 @@ A small original 3D open-world mobile game prototype made with Godot 4.
 
 - Two small city districts separated by a river.
 - A bridge connecting the districts.
-- Imported CC0 GLB house and market buildings, plus procedural road layout.
+- Original multi-floor buildings with tiled plaster/brick/concrete facade textures, framed reflective windows, shop fronts and roof tiles.
 - Imported CC0 GLB car, tree and street-light models.
 - Third-person player controller with a simple animated character model.
 - Camera-relative movement: controls follow the direction the camera faces.
@@ -17,7 +17,7 @@ A small original 3D open-world mobile game prototype made with Godot 4.
 - On-screen touch controls for movement, running and entering/exiting cars.
 - Swipe the right side of the screen to rotate the third-person camera.
 
-The city now uses imported GLB models from the Low Poly City Kit by kayquer (CC0 1.0): small house, grocery market, red hatchback, yellow ipê tree and street light. The original license text is stored in `assets/licenses/CC0-1.0-City-Kit.txt`. No GTA assets are included.
+The project retains CC0 GLB assets from the Low Poly City Kit by kayquer for the car, trees and street lights. Buildings now use original procedural geometry with custom SVG facade, brick, concrete, roof and asphalt textures in `assets/textures/`. The original CC0 license text is stored in `assets/licenses/CC0-1.0-City-Kit.txt`. No GTA assets are included.
 
 ## Open the project
 
