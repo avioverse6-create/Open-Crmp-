@@ -209,13 +209,21 @@ func _is_intersection_clear(junction: Vector3) -> bool:
 
 func _process_traffic_turn(delta: float, traffic_speed: float) -> void:
 	var turn_speed_factor := clampf(traffic_speed / maxf(speed, 0.1), 0.15, 1.1)
-	_traffic_turn_elapsed = minf(_traffic_turn_elapsed + delta * turn_speed_factor, _traffic_turn_duration)
-	var t := _traffic_turn_elapsed / _traffic_turn_duration
+	var next_elapsed := minf(_traffic_turn_elapsed + delta * turn_speed_factor, _traffic_turn_duration)
+	var t := next_elapsed / _traffic_turn_duration
 	var one_minus_t := 1.0 - t
 	var next_position := one_minus_t * one_minus_t * one_minus_t * _traffic_turn_start
 	next_position += 3.0 * one_minus_t * one_minus_t * t * _traffic_turn_control_a
 	next_position += 3.0 * one_minus_t * t * t * _traffic_turn_control_b
 	next_position += t * t * t * _traffic_turn_end
+	var movement := next_position - global_position
+	# Keep the vehicle collision active while following the curved path.
+	if test_move(global_transform, movement):
+		traffic_current_speed = move_toward(traffic_current_speed, 0.0, braking * delta)
+		velocity = Vector3.ZERO
+		return
+
+	_traffic_turn_elapsed = next_elapsed
 	var tangent := (_traffic_turn_end - _traffic_turn_control_b) * (3.0 * t * t)
 	tangent += (_traffic_turn_control_b - _traffic_turn_control_a) * (6.0 * one_minus_t * t)
 	tangent += (_traffic_turn_control_a - _traffic_turn_start) * (3.0 * one_minus_t * one_minus_t)
