@@ -30,8 +30,8 @@ var footstep_player: AudioStreamPlayer3D
 var footstep_timer := 0.0
 var camera_collision_timer := 0.0
 var cached_camera_offset := Vector3(0, 0.58, 1.85)
-var pulse_cooldown := 0.0
-var pulse_audio: AudioStreamPlayer
+var scan_cooldown := 0.0
+var scan_audio: AudioStreamPlayer
 
 func _ready() -> void:
 	name = "Player"
@@ -60,11 +60,11 @@ func _ready() -> void:
 	footstep_player.unit_size = 3.5
 	footstep_player.max_distance = 20.0
 	add_child(footstep_player)
-	pulse_audio = AudioStreamPlayer.new()
-	pulse_audio.name = "ArcadePulseSound"
-	pulse_audio.stream = _make_pulse_sound()
-	pulse_audio.volume_db = -8.0
-	add_child(pulse_audio)
+	scan_audio = AudioStreamPlayer.new()
+	scan_audio.name = "ScannerPulseSound"
+	scan_audio.stream = _make_scan_sound()
+	scan_audio.volume_db = -8.0
+	add_child(scan_audio)
 
 	camera_pivot = Node3D.new()
 	camera_pivot.name = "IndependentCameraPivot"
@@ -82,8 +82,8 @@ func set_mobile_input(value: Vector2) -> void:
 	mobile_input_vector = value.limit_length(1.0)
 
 
-func _make_pulse_sound() -> AudioStreamWAV:
-	# A short synthetic sci-fi zap; deliberately not a real firearm recording.
+func _make_scan_sound() -> AudioStreamWAV:
+	# A short synthetic sci-fi scanner chirp; no damage or combat behavior.
 	var sample_rate := 22050
 	var sample_count := 3307
 	var bytes := PackedByteArray()
@@ -104,13 +104,13 @@ func _make_pulse_sound() -> AudioStreamWAV:
 	return stream
 
 
-func fire_pulse() -> void:
-	if active_vehicle != null or pulse_cooldown > 0.0 or camera == null:
+func scan_pulse() -> void:
+	if active_vehicle != null or scan_cooldown > 0.0 or camera == null:
 		return
-	pulse_cooldown = 0.24
-	if pulse_audio != null:
-		pulse_audio.stop()
-		pulse_audio.play()
+	scan_cooldown = 0.24
+	if scan_audio != null:
+		scan_audio.stop()
+		scan_audio.play()
 	var origin := camera.global_position
 	var direction := -camera.global_basis.z
 	var end_point := origin + direction * 48.0
@@ -120,8 +120,6 @@ func fire_pulse() -> void:
 	var hit := get_world_3d().direct_space_state.intersect_ray(query)
 	if not hit.is_empty():
 		end_point = hit.position
-		if hit.collider is Node and (hit.collider as Node).is_in_group("pulse_targets"):
-			(hit.collider as Node).call("on_pulse_hit")
 	_spawn_pulse_beam(origin + direction * 0.45, end_point)
 
 
@@ -167,7 +165,7 @@ func _input(event: InputEvent) -> void:
 		camera_pivot.rotation.x = clamp(camera_pivot.rotation.x - event.relative.y * 0.003, deg_to_rad(-28.0), deg_to_rad(20.0))
 
 func _physics_process(delta: float) -> void:
-	pulse_cooldown = maxf(0.0, pulse_cooldown - delta)
+	scan_cooldown = maxf(0.0, scan_cooldown - delta)
 	if camera_pivot.top_level:
 		var camera_target := global_position + Vector3(0, 1.55, 0)
 		# Smooth follow removes small movement jitter without changing the close camera distance.
