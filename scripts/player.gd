@@ -60,12 +60,12 @@ func _ready() -> void:
 	camera_pivot = Node3D.new()
 	camera_pivot.name = "IndependentCameraPivot"
 	camera_pivot.top_level = true
-	camera_pivot.global_position = global_position + Vector3(0, 2.0, 0)
+	camera_pivot.global_position = global_position + Vector3(0, 1.78, 0)
 	add_child(camera_pivot)
 	camera = Camera3D.new()
-	camera.position = Vector3(0, 1.05, 4.9)
-	camera.rotation_degrees.x = -12.0
-	camera.fov = 72.0
+	camera.position = Vector3(0, 0.98, 3.85)
+	camera.rotation_degrees.x = -11.0
+	camera.fov = 70.0
 	camera.current = true
 	camera_pivot.add_child(camera)
 
@@ -91,7 +91,7 @@ func _input(event: InputEvent) -> void:
 
 func _physics_process(delta: float) -> void:
 	if camera_pivot.top_level:
-		camera_pivot.global_position = global_position + Vector3(0, 2.0, 0)
+		camera_pivot.global_position = global_position + Vector3(0, 1.78, 0)
 
 	var input_dir := mobile_input_vector
 	if input_dir.length() < 0.05:
@@ -179,7 +179,7 @@ func exit_vehicle() -> void:
 	global_position = vehicle.global_position + vehicle.global_basis.x * 2.0
 	camera_pivot.reparent(self)
 	camera_pivot.top_level = true
-	camera_pivot.global_position = global_position + Vector3(0, 2.0, 0)
+	camera_pivot.global_position = global_position + Vector3(0, 1.78, 0)
 	camera_pivot.global_rotation = Vector3.ZERO
 	active_vehicle = null
 	visible = true
