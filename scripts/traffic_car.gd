@@ -216,6 +216,48 @@ func _get_safe_traffic_speed() -> float:
 			var safe_gap := 4.2 if bool(other.get("is_player_driven")) else 3.2
 			var following_factor := clampf((gap - safe_gap) / 8.0, 0.0, 1.0)
 			safe_speed = minf(safe_speed, speed * following_factor)
+
+	# Downtown intersections use a predictable right-of-way rule: through traffic
+	# on the east-west avenue goes first; north-south traffic yields. Every AI car
+	# also yields to the player vehicle, regardless of approach direction.
+	safe_speed = minf(safe_speed, _get_intersection_speed_limit())
+	return safe_speed
+
+
+func _get_intersection_speed_limit() -> float:
+	var safe_speed := speed
+	var intersection_x_values := [-32.0, 32.0]
+	var intersection_z_values := [123.0, 187.0]
+	for intersection_x in intersection_x_values:
+		for intersection_z in intersection_z_values:
+			var distance_to_line := INF
+			if vertical_traffic:
+				distance_to_line = (intersection_z - global_position.z) * direction
+			else:
+				distance_to_line = (intersection_x - global_position.x) * direction
+			if distance_to_line < 0.0 or distance_to_line > 13.0:
+				continue
+
+			var conflict := false
+			for other in get_tree().get_nodes_in_group("traffic_vehicles"):
+				if other == self or not is_instance_valid(other):
+					continue
+				var other_vertical := bool(other.get("vertical_traffic"))
+				var other_is_player := bool(other.get("is_player_driven"))
+				if other_vertical == vertical_traffic and not other_is_player:
+					continue
+				# The crossing vehicle must actually be close to this junction.
+				var cross_distance := absf(float(other.global_position.x) - intersection_x) if other_vertical else absf(float(other.global_position.z) - intersection_z)
+				if cross_distance > 8.5:
+					continue
+				# Player has priority. Otherwise only north-south AI yields to
+				# east-west AI, preventing both directions from deadlocking.
+				if other_is_player or vertical_traffic:
+					conflict = true
+					break
+			if conflict:
+				var approach_factor := clampf((distance_to_line - 4.8) / 5.0, 0.0, 1.0)
+				safe_speed = minf(safe_speed, speed * approach_factor)
 	return safe_speed
 
 
