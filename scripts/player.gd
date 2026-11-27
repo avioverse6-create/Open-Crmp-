@@ -138,6 +138,14 @@ func _physics_process(delta: float) -> void:
 
 func enter_vehicle(vehicle: Node3D) -> void:
 	active_vehicle = vehicle
+	var start_path := "res://assets/audio/car_start.wav"
+	if ResourceLoader.exists(start_path):
+		var start_audio := AudioStreamPlayer.new()
+		start_audio.stream = load(start_path)
+		start_audio.volume_db = -5.0
+		add_child(start_audio)
+		start_audio.finished.connect(start_audio.queue_free)
+		start_audio.play()
 	vehicle.set("is_player_driven", true)
 	visible = false
 	collision_layer = 0
