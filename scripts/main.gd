@@ -123,7 +123,7 @@ func _setup_world() -> void:
 		for x in range(-5, 6):
 			for side in [-1.0, 1.0]:
 				var bx := float(x) * 13.0 + randf_range(-2.0, 2.0)
-				var bz := district_z + side * randf_range(13.0, 28.0)
+				var bz: float = district_z + side * randf_range(13.0, 28.0)
 				var chosen_scene: PackedScene = HouseScene if randf() < 0.72 else MarketScene
 				_spawn_asset_building(chosen_scene, Vector3(bx, 0.0, bz), 3.4)
 
@@ -186,7 +186,7 @@ func _spawn_city_asset(scene: PackedScene, at: Vector3, target_scale: Vector3, r
 func _add_sidewalks() -> void:
 	for road_z in [-34.0, 34.0]:
 		for side in [-1.0, 1.0]:
-			var sidewalk_z := road_z + side * 6.35
+			var sidewalk_z: float = road_z + side * 6.35
 			_make_box("Sidewalk", Vector3(0, 0.035, sidewalk_z), Vector3(150, 0.20, 2.45), Color(0.43, 0.44, 0.42), true)
 			_make_box("Curb", Vector3(0, 0.15, road_z + side * 5.12), Vector3(150, 0.28, 0.22), Color(0.57, 0.57, 0.53), true)
 
@@ -393,10 +393,10 @@ func _add_building_windows(building: Node3D, width: float, height: float, depth:
 	window_material.albedo_color = Color(0.12, 0.2, 0.25)
 	window_material.metallic = 0.12
 	window_material.roughness = 0.28
-	var columns := max(1, int(width / 2.8))
-	var rows := max(1, int(height / 3.0))
+	var columns: int = maxi(1, int(width / 2.8))
+	var rows: int = maxi(1, int(height / 3.0))
 	for row in range(rows):
-		var y := min(2.0 + float(row) * 2.7, height - 1.0)
+		var y: float = minf(2.0 + float(row) * 2.7, height - 1.0)
 		for column in range(columns):
 			var x := -width * 0.5 + (float(column) + 0.5) * (width / float(columns))
 			for side in [-1.0, 1.0]:
@@ -547,7 +547,7 @@ func _toggle_vehicle() -> void:
 	var nearest: Node3D = null
 	var best := 5.0
 	for car in cars:
-		var distance := player.global_position.distance_to(car.global_position)
+		var distance: float = player.global_position.distance_to(car.global_position)
 		if distance < best:
 			best = distance
 			nearest = car
