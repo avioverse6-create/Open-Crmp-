@@ -938,6 +938,20 @@ func _setup_mobile_ui() -> void:
 	root.add_child(enter_button)
 	enter_button.pressed.connect(_toggle_vehicle)
 
+	var pulse_button := Button.new()
+	pulse_button.name = "ArcadePulseButton"
+	pulse_button.text = "PULSE"
+	pulse_button.position = Vector2(-150, -231)
+	pulse_button.size = Vector2(126, 54)
+	pulse_button.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+	pulse_button.add_theme_font_size_override("font_size", 15)
+	_style_action_button(pulse_button, 18)
+	root.add_child(pulse_button)
+	pulse_button.pressed.connect(func():
+		if is_instance_valid(player) and player.has_method("fire_pulse"):
+			player.fire_pulse()
+	)
+
 	driving_controls = Control.new()
 	driving_controls.name = "VehicleTouchControls"
 	driving_controls.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
