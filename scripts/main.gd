@@ -419,11 +419,11 @@ func _spawn_vinish_apartment(at: Vector3, variant_index: int) -> void:
 	var use_first := variant_index % 2 == 0
 	var model_path := "res://assets/models/vinish_city/apartment-block-01.glb" if use_first else "res://assets/models/vinish_city/apartment-block-02.glb"
 	if not ResourceLoader.exists(model_path):
-		_spawn_asset_building(HouseScene, at, 3.4)
+		push_warning("Required downtown apartment asset is missing: " + model_path)
 		return
 	var packed := load(model_path) as PackedScene
 	if packed == null:
-		_spawn_asset_building(HouseScene, at, 3.4)
+		push_warning("Downtown apartment asset could not be loaded: " + model_path)
 		return
 	var root := StaticBody3D.new()
 	root.name = "VinishBrickApartment"
@@ -431,7 +431,7 @@ func _spawn_vinish_apartment(at: Vector3, variant_index: int) -> void:
 	var model := packed.instantiate() as Node3D
 	if model == null:
 		root.queue_free()
-		_spawn_asset_building(HouseScene, at, 3.4)
+		push_warning("Downtown apartment model could not be instantiated: " + model_path)
 		return
 	root.add_child(model)
 	var collision := CollisionShape3D.new()
@@ -467,13 +467,13 @@ func _setup_downtown() -> void:
 	var block_x_centers := [-48.0, -16.0, 16.0, 48.0]
 	var block_z_centers := [107.0, 139.0, 171.0, 203.0]
 	var detailed_buildings := ResourceLoader.exists("res://assets/models/vinish_city/apartment-block-01.glb") and ResourceLoader.exists("res://assets/models/vinish_city/apartment-block-02.glb")
-	for row_index in range(block_z_centers.size()):
-		for column_index in range(block_x_centers.size()):
-			var center := Vector3(block_x_centers[column_index], 0.0, block_z_centers[row_index])
-			if detailed_buildings:
+	if not detailed_buildings:
+		push_warning("Downtown apartment kit is incomplete; skipping those blocks rather than substituting small-house placeholders.")
+	else:
+		for row_index in range(block_z_centers.size()):
+			for column_index in range(block_x_centers.size()):
+				var center := Vector3(block_x_centers[column_index], 0.0, block_z_centers[row_index])
 				_spawn_vinish_apartment(center, row_index + column_index)
-			else:
-				_spawn_asset_building(HouseScene, center, 3.4)
 
 	# Textured street furniture from the same kit, with a mobile-friendly count.
 	if detailed_roads and ResourceLoader.exists("res://assets/models/vinish_city/street-light.glb"):
