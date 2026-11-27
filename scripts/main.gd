@@ -131,6 +131,10 @@ var vehicle_hud: PanelContainer
 var vehicle_hud_label: Label
 var snow_particles: GPUParticles3D
 var snow_overlay_material: ShaderMaterial
+var movement_joystick: VirtualJoystick
+var jump_button: Button
+var run_button: Button
+var driving_controls: Control
 
 func _ready() -> void:
 	randomize()
@@ -153,6 +157,14 @@ func _process(delta: float) -> void:
 	if vehicle_hud != null and is_instance_valid(player):
 		var driving := player.active_vehicle != null
 		vehicle_hud.visible = driving
+		if driving_controls != null:
+			driving_controls.visible = driving
+		if movement_joystick != null:
+			movement_joystick.visible = not driving
+		if jump_button != null:
+			jump_button.visible = not driving
+		if run_button != null:
+			run_button.visible = not driving
 		if driving:
 			var car = player.active_vehicle
 			vehicle_hud_label.text = "%03d KM/H    •    БЕНЗИН  %.1f L" % [int(car.get("speed_kmh")), float(car.get("fuel_liters"))]
@@ -850,17 +862,17 @@ func _setup_mobile_ui() -> void:
 
 	var joystick := VirtualJoystick.new()
 	joystick.name = "MovementJoystick"
-	joystick.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
-	joystick.position = Vector2(24, -190)
-	joystick.size = Vector2(160, 160)
-	root.add_child(joystick)
-	joystick.changed.connect(func(value: Vector2):
+	movement_joystick.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+	movement_joystick.position = Vector2(24, -190)
+	movement_joystick.size = Vector2(160, 160)
+	root.add_child(movement_joystick)
+	movement_joystick.changed.connect(func(value: Vector2):
 		player.set_mobile_input(value)
 		if player.active_vehicle != null:
 			player.active_vehicle.set_mobile_input(value)
 	)
 
-	var jump_button := Button.new()
+	jump_button = Button.new()
 	jump_button.text = "⤒"
 	jump_button.position = Vector2(-150, -168)
 	jump_button.size = Vector2(126, 54)
@@ -870,7 +882,7 @@ func _setup_mobile_ui() -> void:
 	jump_button.button_down.connect(func(): Input.action_press("jump"))
 	jump_button.button_up.connect(func(): Input.action_release("jump"))
 
-	var run_button := Button.new()
+	run_button = Button.new()
 	run_button.text = "»"
 	run_button.position = Vector2(-150, -105)
 	run_button.size = Vector2(126, 54)
@@ -888,6 +900,74 @@ func _setup_mobile_ui() -> void:
 	enter_button.add_theme_font_size_override("font_size", 17)
 	root.add_child(enter_button)
 	enter_button.pressed.connect(_toggle_vehicle)
+
+	driving_controls = Control.new()
+	driving_controls.name = "VehicleTouchControls"
+	driving_controls.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	driving_controls.mouse_filter = Control.MOUSE_FILTER_PASS
+	driving_controls.visible = false
+	root.add_child(driving_controls)
+
+	var steer_left := _make_drive_button(driving_controls, "‹", Control.PRESET_BOTTOM_LEFT, Vector2(24, -178))
+	var steer_right := _make_drive_button(driving_controls, "›", Control.PRESET_BOTTOM_LEFT, Vector2(116, -178))
+	var gas_button := _make_drive_button(driving_controls, "▲", Control.PRESET_BOTTOM_RIGHT, Vector2(-194, -178))
+	var brake_button := _make_drive_button(driving_controls, "▼", Control.PRESET_BOTTOM_RIGHT, Vector2(-102, -178))
+	steer_left.button_down.connect(func():
+		if is_instance_valid(player) and player.active_vehicle != null:
+			player.active_vehicle.set_mobile_steer(-1.0)
+	)
+	steer_left.button_up.connect(func():
+		if is_instance_valid(player) and player.active_vehicle != null:
+			player.active_vehicle.set_mobile_steer(0.0)
+	)
+	steer_right.button_down.connect(func():
+		if is_instance_valid(player) and player.active_vehicle != null:
+			player.active_vehicle.set_mobile_steer(1.0)
+	)
+	steer_right.button_up.connect(func():
+		if is_instance_valid(player) and player.active_vehicle != null:
+			player.active_vehicle.set_mobile_steer(0.0)
+	)
+	gas_button.button_down.connect(func():
+		if is_instance_valid(player) and player.active_vehicle != null:
+			player.active_vehicle.set_mobile_throttle(1.0)
+	)
+	gas_button.button_up.connect(func():
+		if is_instance_valid(player) and player.active_vehicle != null:
+			player.active_vehicle.set_mobile_throttle(0.0)
+	)
+	brake_button.button_down.connect(func():
+		if is_instance_valid(player) and player.active_vehicle != null:
+			player.active_vehicle.set_mobile_brake(true)
+	)
+	brake_button.button_up.connect(func():
+		if is_instance_valid(player) and player.active_vehicle != null:
+			player.active_vehicle.set_mobile_brake(false)
+	)
+
+
+func _make_drive_button(parent: Control, caption: String, anchor: Control.LayoutPreset, offset: Vector2) -> Button:
+	var button := Button.new()
+	button.text = caption
+	button.set_anchors_preset(anchor)
+	button.position = offset
+	button.size = Vector2(82, 82)
+	button.custom_minimum_size = Vector2(82, 82)
+	button.add_theme_font_size_override("font_size", 30)
+	button.add_theme_color_override("font_color", Color(0.96, 0.98, 1.0))
+	var normal := StyleBoxFlat.new()
+	normal.bg_color = Color(0.025, 0.045, 0.065, 0.78)
+	normal.border_color = Color(0.82, 0.90, 0.98, 0.55)
+	normal.set_border_width_all(1)
+	normal.set_corner_radius_all(42)
+	var pressed := normal.duplicate() as StyleBoxFlat
+	pressed.bg_color = Color(0.20, 0.32, 0.42, 0.92)
+	pressed.border_color = Color(1.0, 1.0, 1.0, 0.92)
+	button.add_theme_stylebox_override("normal", normal)
+	button.add_theme_stylebox_override("hover", pressed)
+	button.add_theme_stylebox_override("pressed", pressed)
+	parent.add_child(button)
+	return button
 
 
 func _setup_clouds() -> void:
