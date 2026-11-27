@@ -136,6 +136,18 @@ func _process(delta: float) -> void:
 		if driving:
 			var car = player.active_vehicle
 			vehicle_hud_label.text = "%03d  KM/H\nБЕНЗИН  %.1f L" % [int(car.get("speed_kmh")), float(car.get("fuel_liters"))]
+		if enter_button != null:
+			if driving:
+				enter_button.visible = true
+				enter_button.text = "ВЫЙТИ"
+			else:
+				var nearby_vehicle := false
+				for candidate in cars:
+					if is_instance_valid(candidate) and player.global_position.distance_to(candidate.global_position) <= 5.0:
+						nearby_vehicle = true
+						break
+				enter_button.visible = nearby_vehicle
+				enter_button.text = "СЕСТЬ"
 		if waypoint_label != null:
 			waypoint_label.visible = has_waypoint
 			if has_waypoint:
@@ -930,9 +942,10 @@ func _setup_mobile_ui() -> void:
 
 	enter_button = Button.new()
 	enter_button.text = "СЕСТЬ"
-	enter_button.position = Vector2(198, -80)
+	enter_button.position = Vector2(22, 78)
 	enter_button.size = Vector2(146, 54)
-	enter_button.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+	enter_button.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	enter_button.visible = false
 	enter_button.add_theme_font_size_override("font_size", 16)
 	_style_action_button(enter_button, 27)
 	root.add_child(enter_button)
