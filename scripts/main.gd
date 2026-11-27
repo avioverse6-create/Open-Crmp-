@@ -97,7 +97,7 @@ func _setup_player() -> void:
 
 func _setup_traffic() -> void:
 	for i in range(5):
-		var car := CharacterBody3D.new()
+		var car: Variant = CharacterBody3D.new()
 		car.set_script(CarScript)
 		car.speed = randf_range(3.0, 6.0)
 		car.start_x = -65.0 - float(i) * 22.0
