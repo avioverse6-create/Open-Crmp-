@@ -160,6 +160,11 @@ func _physics_process(delta: float) -> void:
 	else:
 		velocity.y = 0.0
 	move_and_slide()
+	# If a pedestrian reaches a wall or gets blocked by another character,
+	# choose a fresh sidewalk destination instead of pushing against it.
+	if is_on_wall():
+		_pick_target()
+		pause_timer = randf_range(0.2, 0.55)
 
 func _pick_target() -> void:
 	if vertical_route:
