@@ -49,20 +49,21 @@ const NpcScript = preload("res://scripts/npc.gd")
 const MinimapScript = preload("res://scripts/minimap.gd")
 const HouseScene: PackedScene = preload("res://assets/models/casa_simples.glb")
 const MarketScene: PackedScene = preload("res://assets/models/mercado.glb")
-const VehicleScenes: Array[PackedScene] = [
-	preload("res://assets/models/vehicles/sedan.glb"),
-	preload("res://assets/models/vehicles/suv.glb"),
-	preload("res://assets/models/vehicles/taxi.glb"),
-	preload("res://assets/models/vehicles/police.glb"),
-	preload("res://assets/models/vehicles/delivery.glb"),
-	preload("res://assets/models/vehicles/truck.glb"),
-	preload("res://assets/models/vehicles/firetruck.glb"),
-	preload("res://assets/models/vehicles/garbage_truck.glb"),
-	preload("res://assets/models/vehicles/hatchback_sports.glb"),
-	preload("res://assets/models/vehicles/sedan_sports.glb"),
-	preload("res://assets/models/vehicles/ambulance.glb")
+# Realistic CC0 vehicle GLBs are downloaded by the Android build workflow.
+# Keep these as paths rather than preload() so the editor can still open the project
+# before the optional external asset download step has run.
+var VehicleScenes: Array[PackedScene] = []
+const VehicleScenePaths: Array[String] = [
+	"res://assets/models/vehicles/realistic_sedan.glb",
+	"res://assets/models/vehicles/realistic_suv.glb",
+	"res://assets/models/vehicles/realistic_taxi.glb",
+	"res://assets/models/vehicles/realistic_police.glb",
+	"res://assets/models/vehicles/realistic_pickup.glb",
+	"res://assets/models/vehicles/realistic_firetruck.glb",
+	"res://assets/models/vehicles/realistic_sports.glb",
+	"res://assets/models/vehicles/realistic_ambulance.glb"
 ]
-const VehicleScales: Array[float] = [1.5, 1.45, 1.45, 1.5, 1.35, 1.3, 1.3, 1.25, 1.5, 1.5, 1.35]
+const VehicleScales: Array[float] = [2.45, 2.35, 2.45, 2.45, 2.4, 2.4, 2.35, 2.3]
 const TreeScene: PackedScene = preload("res://assets/models/ipe_amarelo.glb")
 const StreetLightScene: PackedScene = preload("res://assets/models/poste_luz.glb")
 const BushScene: PackedScene = preload("res://assets/models/nature/bush.glb")
@@ -904,6 +905,10 @@ func _setup_player() -> void:
 	add_child(player)
 
 func _setup_traffic() -> void:
+	_load_realistic_vehicle_scenes()
+	if VehicleScenes.is_empty():
+		push_warning("Realistic vehicle GLBs are missing; traffic spawning is skipped instead of using low-poly placeholders.")
+		return
 	# Spread imported vehicles across both districts and both directions.
 	# Stagger spawn positions so cars never begin stacked on top of each other.
 	for i in range(VehicleScenes.size()):
@@ -954,8 +959,19 @@ func _setup_traffic() -> void:
 			_make_car_visual(vertical_car, VehicleScenes.size() + 4 + street_index * 2 + lane_index)
 			cars.append(vertical_car)
 
+func _load_realistic_vehicle_scenes() -> void:
+	VehicleScenes.clear()
+	for scene_path in VehicleScenePaths:
+		if not ResourceLoader.exists(scene_path):
+			continue
+		var loaded_scene := load(scene_path) as PackedScene
+		if loaded_scene != null:
+			VehicleScenes.append(loaded_scene)
+	if VehicleScenes.size() != VehicleScenePaths.size():
+		push_warning("Only %d of %d realistic vehicle models are available." % [VehicleScenes.size(), VehicleScenePaths.size()])
+
 func _make_car_visual(car: Node3D, model_index: int) -> void:
-	# Each traffic vehicle gets a distinct textured GLB from the Kenney Car Kit.
+	# Use only detailed, textured CC0 vehicles. No Kenney/low-poly fallback.
 	var safe_index := model_index % VehicleScenes.size()
 	var model_scene: PackedScene = VehicleScenes[safe_index]
 	var model := model_scene.instantiate() as Node3D
