@@ -135,7 +135,7 @@ func _process(delta: float) -> void:
 			run_button.visible = not driving
 		if driving:
 			var car = player.active_vehicle
-			vehicle_hud_label.text = "%03d KM/H    •    БЕНЗИН  %.1f L" % [int(car.get("speed_kmh")), float(car.get("fuel_liters"))]
+			vehicle_hud_label.text = "%03d  KM/H\nБЕНЗИН  %.1f L" % [int(car.get("speed_kmh")), float(car.get("fuel_liters"))]
 		if waypoint_label != null:
 			waypoint_label.visible = has_waypoint
 			if has_waypoint:
@@ -873,8 +873,8 @@ func _setup_mobile_ui() -> void:
 	vehicle_hud = PanelContainer.new()
 	vehicle_hud.name = "VehicleDashboard"
 	vehicle_hud.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	vehicle_hud.position = Vector2(-150, 16)
-	vehicle_hud.size = Vector2(300, 58)
+	vehicle_hud.position = Vector2(-154, 14)
+	vehicle_hud.size = Vector2(308, 76)
 	vehicle_hud.visible = false
 	var dashboard_style := StyleBoxFlat.new()
 	dashboard_style.bg_color = Color(0.025, 0.035, 0.045, 0.88)
@@ -889,8 +889,8 @@ func _setup_mobile_ui() -> void:
 	vehicle_hud_label = Label.new()
 	vehicle_hud_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vehicle_hud_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	vehicle_hud_label.text = "000 KM/H    •    БЕНЗИН 60.0 L"
-	vehicle_hud_label.add_theme_font_size_override("font_size", 17)
+	vehicle_hud_label.text = "000  KM/H\nБЕНЗИН  60.0 L"
+	vehicle_hud_label.add_theme_font_size_override("font_size", 19)
 	vehicle_hud.add_child(vehicle_hud_label)
 	root.add_child(vehicle_hud)
 
@@ -907,31 +907,31 @@ func _setup_mobile_ui() -> void:
 	)
 
 	jump_button = Button.new()
-	jump_button.text = "⤒"
-	jump_button.position = Vector2(-150, -168)
-	jump_button.size = Vector2(126, 54)
+	jump_button.text = "ПРЫЖОК"
+	jump_button.position = Vector2(-94, -164)
+	jump_button.size = Vector2(66, 66)
 	jump_button.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-	jump_button.add_theme_font_size_override("font_size", 15)
+	jump_button.add_theme_font_size_override("font_size", 11)
 	_style_action_button(jump_button, 18)
 	root.add_child(jump_button)
 	jump_button.button_down.connect(func(): Input.action_press("jump"))
 	jump_button.button_up.connect(func(): Input.action_release("jump"))
 
 	run_button = Button.new()
-	run_button.text = "»"
-	run_button.position = Vector2(-150, -105)
-	run_button.size = Vector2(126, 54)
+	run_button.text = "БЕГ"
+	run_button.position = Vector2(-94, -88)
+	run_button.size = Vector2(66, 66)
 	run_button.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-	run_button.add_theme_font_size_override("font_size", 17)
+	run_button.add_theme_font_size_override("font_size", 13)
 	_style_action_button(run_button, 18)
 	root.add_child(run_button)
 	run_button.button_down.connect(func(): Input.action_press("run"))
 	run_button.button_up.connect(func(): Input.action_release("run"))
 
 	enter_button = Button.new()
-	enter_button.text = "🚘"
-	enter_button.position = Vector2(-150, -42)
-	enter_button.size = Vector2(126, 54)
+	enter_button.text = "СЕСТЬ"
+	enter_button.position = Vector2(-170, -34)
+	enter_button.size = Vector2(146, 54)
 	enter_button.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
 	enter_button.add_theme_font_size_override("font_size", 17)
 	_style_action_button(enter_button, 18)
@@ -941,8 +941,8 @@ func _setup_mobile_ui() -> void:
 	var scanner_button := Button.new()
 	scanner_button.name = "ScannerButton"
 	scanner_button.text = "SCAN"
-	scanner_button.position = Vector2(-150, -231)
-	scanner_button.size = Vector2(126, 54)
+	scanner_button.position = Vector2(-94, -238)
+	scanner_button.size = Vector2(66, 58)
 	scanner_button.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
 	scanner_button.add_theme_font_size_override("font_size", 15)
 	_style_action_button(scanner_button, 18)
@@ -959,10 +959,10 @@ func _setup_mobile_ui() -> void:
 	driving_controls.visible = false
 	root.add_child(driving_controls)
 
-	var steer_left := _make_drive_button(driving_controls, "‹", Control.PRESET_BOTTOM_LEFT, Vector2(24, -178))
-	var steer_right := _make_drive_button(driving_controls, "›", Control.PRESET_BOTTOM_LEFT, Vector2(116, -178))
-	var gas_button := _make_drive_button(driving_controls, "▲", Control.PRESET_BOTTOM_RIGHT, Vector2(-194, -178))
-	var brake_button := _make_drive_button(driving_controls, "▼", Control.PRESET_BOTTOM_RIGHT, Vector2(-102, -178))
+	var steer_left := _make_drive_button(driving_controls, "◀", Control.PRESET_BOTTOM_LEFT, Vector2(24, -166))
+	var steer_right := _make_drive_button(driving_controls, "▶", Control.PRESET_BOTTOM_LEFT, Vector2(112, -166))
+	var gas_button := _make_drive_button(driving_controls, "ГАЗ", Control.PRESET_BOTTOM_RIGHT, Vector2(-190, -166))
+	var brake_button := _make_drive_button(driving_controls, "ТОРМ", Control.PRESET_BOTTOM_RIGHT, Vector2(-102, -166))
 	steer_left.button_down.connect(func():
 		if is_instance_valid(player) and player.active_vehicle != null:
 			player.active_vehicle.set_mobile_steer(-1.0)
@@ -1028,9 +1028,9 @@ func _make_drive_button(parent: Control, caption: String, anchor, offset: Vector
 	button.text = caption
 	button.set_anchors_preset(anchor)
 	button.position = offset
-	button.size = Vector2(82, 82)
-	button.custom_minimum_size = Vector2(82, 82)
-	button.add_theme_font_size_override("font_size", 30)
+	button.size = Vector2(76, 76)
+	button.custom_minimum_size = Vector2(76, 76)
+	button.add_theme_font_size_override("font_size", 18)
 	button.add_theme_color_override("font_color", Color(0.96, 0.98, 1.0))
 	var normal := StyleBoxFlat.new()
 	normal.bg_color = Color(0.025, 0.045, 0.065, 0.78)
@@ -1208,7 +1208,7 @@ func _toggle_vehicle() -> void:
 		return
 	if player.active_vehicle != null:
 		player.exit_vehicle()
-		enter_button.text = "МАШИНА"
+		enter_button.text = "СЕСТЬ"
 		return
 	var nearest: Node3D = null
 	var best := 5.0
@@ -1219,4 +1219,4 @@ func _toggle_vehicle() -> void:
 			nearest = car
 	if nearest != null:
 		player.enter_vehicle(nearest)
-		enter_button.text = "↗"
+		enter_button.text = "ВЫЙТИ"
