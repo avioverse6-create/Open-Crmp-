@@ -8,6 +8,9 @@ on:
       - '.github/workflows/android-apk.yml'
       - 'scripts/main.gd'
       - 'scripts/traffic_car.gd'
+      - 'scripts/npc.gd'
+      - 'scripts/player.gd'
+      - 'scripts/humanoid_animator.gd'
       - 'project.godot'
 
 permissions:
