@@ -129,6 +129,8 @@ var cloud_groups: Array[Node3D] = []
 var selected_fps := 60
 var vehicle_hud: PanelContainer
 var vehicle_hud_label: Label
+var snow_particles: GPUParticles3D
+var snow_overlay_material: ShaderMaterial
 
 func _ready() -> void:
 	randomize()
@@ -137,10 +139,13 @@ func _ready() -> void:
 	_setup_traffic()
 	_setup_audio()
 	_setup_people()
+	_setup_winter()
 	_setup_mobile_ui()
 	_setup_main_menu()
 
 func _process(delta: float) -> void:
+	if snow_particles != null and is_instance_valid(player):
+		snow_particles.global_position = player.global_position + Vector3(0.0, 10.0, 0.0)
 	for cloud in cloud_groups:
 		cloud.position.x += delta * 0.42
 		if cloud.position.x > 98.0:
@@ -194,6 +199,88 @@ func _setup_audio() -> void:
 			add_child(chatter)
 			chatter.play()
 
+
+func _setup_winter() -> void:
+	# Snow overlay is a second material pass: original model textures remain intact.
+	var snow_shader := load("res://assets/shaders/snow_overlay.gdshader") as Shader
+	if snow_shader != null:
+		snow_overlay_material = ShaderMaterial.new()
+		snow_overlay_material.shader = snow_shader
+		var snow_color_path := "res://assets/textures/winter/snow_color.jpg"
+		var snow_normal_path := "res://assets/textures/winter/snow_normal.jpg"
+		var snow_color: Texture2D
+		var snow_normal: Texture2D
+		if ResourceLoader.exists(snow_color_path):
+			snow_color = load(snow_color_path) as Texture2D
+		else:
+			var noise := FastNoiseLite.new()
+			noise.frequency = 0.045
+			var noise_texture := NoiseTexture2D.new()
+			noise_texture.noise = noise
+			noise_texture.width = 256
+			noise_texture.height = 256
+			snow_color = noise_texture
+		if ResourceLoader.exists(snow_normal_path):
+			snow_normal = load(snow_normal_path) as Texture2D
+		else:
+			var normal_image := Image.create(4, 4, false, Image.FORMAT_RGBA8)
+			normal_image.fill(Color(0.5, 0.5, 1.0, 1.0))
+			snow_normal = ImageTexture.create_from_image(normal_image)
+		snow_overlay_material.set_shader_parameter("snow_albedo", snow_color)
+		snow_overlay_material.set_shader_parameter("snow_normal", snow_normal)
+		_apply_snow_overlay(self)
+
+	# GPU snow particles follow the player, keeping a local snowfall volume around the camera.
+	snow_particles = GPUParticles3D.new()
+	snow_particles.name = "WinterSnowfall"
+	snow_particles.amount = 420
+	snow_particles.lifetime = 7.0
+	snow_particles.preprocess = 2.0
+	snow_particles.explosiveness = 0.0
+	snow_particles.emitting = true
+	snow_particles.visibility_aabb = AABB(Vector3(-76, -24, -76), Vector3(152, 48, 152))
+	var particle_process := ParticleProcessMaterial.new()
+	particle_process.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+	particle_process.emission_box_extents = Vector3(72, 20, 72)
+	particle_process.direction = Vector3(0.0, -1.0, 0.0)
+	particle_process.spread = 11.0
+	particle_process.gravity = Vector3(0.0, -1.05, 0.0)
+	particle_process.initial_velocity_min = 0.55
+	particle_process.initial_velocity_max = 1.35
+	particle_process.scale_min = 0.65
+	particle_process.scale_max = 1.2
+	snow_particles.process_material = particle_process
+	var snowflake := QuadMesh.new()
+	snowflake.size = Vector2(0.055, 0.055)
+	var flake_material := StandardMaterial3D.new()
+	flake_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	flake_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	flake_material.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	flake_material.albedo_color = Color(0.94, 0.98, 1.0, 0.82)
+	flake_material.roughness = 1.0
+	snowflake.material = flake_material
+	snow_particles.draw_pass_1 = snowflake
+	add_child(snow_particles)
+	if is_instance_valid(player):
+		snow_particles.global_position = player.global_position + Vector3(0.0, 10.0, 0.0)
+
+
+func _apply_snow_overlay(node: Node) -> void:
+	if node is MeshInstance3D:
+		var mesh_instance := node as MeshInstance3D
+		if mesh_instance.mesh != null:
+			for surface_index in range(mesh_instance.mesh.get_surface_count()):
+				var source_material := mesh_instance.get_active_material(surface_index)
+				if source_material == null:
+					continue
+				var layered_material := source_material.duplicate() as Material
+				if layered_material != null:
+					layered_material.next_pass = snow_overlay_material
+					mesh_instance.set_surface_override_material(surface_index, layered_material)
+	for child in node.get_children():
+		_apply_snow_overlay(child)
+
+
 func _setup_world() -> void:
 	var sun := DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-48, -28, 0)
@@ -207,8 +294,9 @@ func _setup_world() -> void:
 	env.background_mode = Environment.BG_SKY
 	var sky := Sky.new()
 	var sky_mat := ProceduralSkyMaterial.new()
-	sky_mat.sky_top_color = Color(0.12, 0.28, 0.48)
-	sky_mat.sky_horizon_color = Color(0.65, 0.78, 0.86)
+	# Cold overcast winter sky; the snow particle layer supplies the visible snowfall.
+	sky_mat.sky_top_color = Color(0.24, 0.34, 0.45)
+	sky_mat.sky_horizon_color = Color(0.70, 0.78, 0.84)
 	var hdri_path := "res://assets/sky/cloudy_day_1k.hdr"
 	if ResourceLoader.exists(hdri_path):
 		var panorama_material := PanoramaSkyMaterial.new()
@@ -218,8 +306,11 @@ func _setup_world() -> void:
 		sky.sky_material = sky_mat
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-	env.ambient_light_energy = 0.78
+	env.ambient_light_energy = 0.92
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	env.fog_enabled = true
+	env.fog_light_color = Color(0.67, 0.75, 0.82)
+	env.fog_density = 0.00115
 	environment.environment = env
 	add_child(environment)
 	if not ResourceLoader.exists("res://assets/sky/cloudy_day_1k.hdr"):
