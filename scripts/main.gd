@@ -5,7 +5,16 @@ const CarScript = preload("res://scripts/traffic_car.gd")
 const NpcScript = preload("res://scripts/npc.gd")
 const HouseScene: PackedScene = preload("res://assets/models/casa_simples.glb")
 const MarketScene: PackedScene = preload("res://assets/models/mercado.glb")
-const CarScene: PackedScene = preload("res://assets/models/carro.glb")
+const VehicleScenes: Array[PackedScene] = [
+	preload("res://assets/models/vehicles/sedan.glb"),
+	preload("res://assets/models/vehicles/suv.glb"),
+	preload("res://assets/models/vehicles/taxi.glb"),
+	preload("res://assets/models/vehicles/police.glb"),
+	preload("res://assets/models/vehicles/delivery.glb"),
+	preload("res://assets/models/vehicles/truck.glb"),
+	preload("res://assets/models/vehicles/firetruck.glb"),
+	preload("res://assets/models/vehicles/garbage_truck.glb")
+]
 const TreeScene: PackedScene = preload("res://assets/models/ipe_amarelo.glb")
 const StreetLightScene: PackedScene = preload("res://assets/models/poste_luz.glb")
 
@@ -399,27 +408,16 @@ func _setup_traffic() -> void:
 		_make_car_visual(car, i % 2 == 0)
 		cars.append(car)
 
-func _make_car_visual(car: Node3D, forward: bool) -> void:
-	var model := CarScene.instantiate() as Node3D
+func _make_car_visual(car: Node3D, _forward: bool) -> void:
+	# Use the imported Kenney Car Kit fleet instead of cloning one model.
+	# Each GLB keeps its original atlas colors and separate body details.
+	var model_scene: PackedScene = VehicleScenes[randi() % VehicleScenes.size()]
+	var model := model_scene.instantiate() as Node3D
 	if model == null:
 		return
-	model.scale = Vector3.ONE * 4.25
+	model.scale = Vector3.ONE * 1.5
 	model.position.y = 0.02
 	car.add_child(model)
-	var paint_palette: Array[Color] = [
-		Color("#d7dce0"), Color("#202b3b"), Color("#b22d32"),
-		Color("#d5a82f"), Color("#456b58"), Color("#e6e2d7")
-	]
-	var paint: Color = paint_palette[randi() % paint_palette.size()]
-	for mesh_node in model.find_children("*", "MeshInstance3D", true, false):
-		var mesh_instance := mesh_node as MeshInstance3D
-		if mesh_instance.mesh == null:
-			continue
-		var body_material := StandardMaterial3D.new()
-		body_material.albedo_color = paint
-		body_material.metallic = 0.18
-		body_material.roughness = 0.38
-		mesh_instance.set_surface_override_material(0, body_material)
 
 func _setup_people() -> void:
 	for i in range(16):
