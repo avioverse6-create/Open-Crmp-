@@ -113,8 +113,10 @@ var has_waypoint := false
 
 func _ready() -> void:
 	randomize()
-	_setup_world()
+	# Create the player and active camera first. If world asset setup reports an
+	# error on a device, the app must not remain on the default blue clear color.
 	_setup_player()
+	_setup_world()
 	_setup_traffic()
 	_setup_audio()
 	_setup_people()
@@ -387,6 +389,8 @@ func _setup_world() -> void:
 	if not ResourceLoader.exists("res://assets/models/vinish_city/road-straight.glb"):
 		_add_sidewalks()
 		_add_road_markings()
+
+	# Downtown setup is required whether the modular road kit exists or not.
 	_setup_downtown()
 
 
