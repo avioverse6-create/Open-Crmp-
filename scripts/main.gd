@@ -365,7 +365,7 @@ func _setup_downtown() -> void:
 	_make_box("Mainland Downtown", Vector3(0, -0.6, 155), Vector3(150, 1, 160), Color(0.28, 0.39, 0.27), true)
 
 	# Central north-south boulevard and parallel streets.
-	_make_box("Downtown Boulevard", Vector3(0, 0.025, 155), Vector3(13, 0.14, 160), Color(0.12, 0.13, 0.15), true)
+	_make_box("Downtown Boulevard Road", Vector3(0, 0.025, 155), Vector3(13, 0.14, 160), Color(0.12, 0.13, 0.15), true)
 	for street_x in [-60.0, -30.0, 30.0, 60.0]:
 		_make_box("Downtown Street", Vector3(street_x, 0.02, 155), Vector3(8.5, 0.13, 160), Color(0.13, 0.14, 0.16), true)
 
@@ -389,14 +389,17 @@ func _setup_downtown() -> void:
 		for column_index in range(block_x_centers.size()):
 			var center_x: float = block_x_centers[column_index]
 			var center_z: float = block_z_centers[row_index]
+			# Reserve two block centres for optional landmark imports to avoid overlapping meshes.
+			if row_index == 0 and column_index == 0 and ResourceLoader.exists("res://assets/models/city/downtown/apartment_block.glb"):
+				_spawn_optional_city_model("res://assets/models/city/downtown/apartment_block.glb", Vector3(center_x, 0, center_z), Vector3.ONE, Vector3(15, 20, 15))
+				continue
+			if row_index == 2 and column_index == 3 and ResourceLoader.exists("res://assets/models/city/downtown/highrise_apartment.glb"):
+				_spawn_optional_city_model("res://assets/models/city/downtown/highrise_apartment.glb", Vector3(center_x, 0, center_z), Vector3.ONE, Vector3(18, 48, 18))
+				continue
 			var left_building := Vector3(center_x - 7.0, 0.0, center_z + randf_range(-2.0, 2.0))
 			var right_building := Vector3(center_x + 7.0, 0.0, center_z + randf_range(-2.0, 2.0))
 			_spawn_asset_building(CityBuildingScenes[0], left_building, 3.4)
 			_spawn_asset_building(CityBuildingScenes[0], right_building, 3.4)
-
-	# Landmark buildings are optional imports; the rest of the city remains playable without them.
-	_spawn_optional_city_model("res://assets/models/city/downtown/apartment_block.glb", Vector3(-45, 0, 115), Vector3.ONE, Vector3(15, 20, 15))
-	_spawn_optional_city_model("res://assets/models/city/downtown/highrise_apartment.glb", Vector3(45, 0, 195), Vector3.ONE, Vector3(18, 48, 18))
 
 	# Traffic lights at selected boulevard junctions and street lamps along sidewalks.
 	for street_z in [95.0, 135.0, 175.0, 215.0]:
