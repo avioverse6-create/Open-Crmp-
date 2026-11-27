@@ -37,6 +37,19 @@ jobs:
         run: |
           npm install --no-save --no-package-lock @gltf-transform/core @gltf-transform/extensions @gltf-transform/functions meshoptimizer
           node scripts/preprocess_glb.mjs
+      - name: Download real recorded city and vehicle audio
+        run: |
+          mkdir -p assets/audio
+          curl -fsSL https://opengameart.org/sites/default/files/genericv8sound.zip -o /tmp/genericv8sound.zip
+          mkdir -p /tmp/v8audio
+          unzip -o /tmp/genericv8sound.zip -d /tmp/v8audio
+          first_wav="$(find /tmp/v8audio -type f -iname '*.wav' | sort | head -n 1)"
+          test -n "$first_wav"
+          cp "$first_wav" assets/audio/car_engine_loop.wav
+          curl -fsSL https://opengameart.org/sites/default/files/engine_start_up_01.wav -o assets/audio/car_start.wav
+          curl -fsSL "https://opengameart.org/sites/default/files/city_ambience_-_traffic_-_street_-_cars_and_tram.mp3" -o assets/audio/city_traffic.mp3
+          curl -fsSL https://opengameart.org/sites/default/files/crowd_-_mall_ambience.mp3 -o assets/audio/pedestrian_chatter.mp3
+          ls -lh assets/audio
       - name: Configure Godot Android SDK paths
         run: |
           mkdir -p ~/.config/godot
