@@ -871,19 +871,21 @@ func _setup_traffic() -> void:
 		_make_car_visual(car, i)
 		cars.append(car)
 
-	# Downtown boulevard traffic: one vehicle on each new cross-street.
-	for i in range(4):
-		var downtown_car: Variant = CharacterBody3D.new()
-		downtown_car.set_script(CarScript)
-		downtown_car.speed = randf_range(3.8, 5.8)
-		downtown_car.direction = 1.0 if i % 2 == 0 else -1.0
-		var road_z := [95.0, 135.0, 175.0, 215.0][i]
-		downtown_car.start_x = -64.0 if downtown_car.direction > 0.0 else 64.0
-		downtown_car.end_x = 64.0 if downtown_car.direction > 0.0 else -64.0
-		downtown_car.lane_z = road_z + (-2.0 if downtown_car.direction > 0.0 else 2.0)
-		add_child(downtown_car)
-		_make_car_visual(downtown_car, VehicleScenes.size() + i)
-		cars.append(downtown_car)
+	# Two-way traffic on all five east-west downtown roads.
+	var downtown_cross_streets := [91.0, 123.0, 155.0, 187.0, 219.0]
+	for street_index in range(downtown_cross_streets.size()):
+		for lane_index in range(2):
+			var downtown_car: Variant = CharacterBody3D.new()
+			downtown_car.set_script(CarScript)
+			downtown_car.speed = randf_range(3.8, 5.8)
+			downtown_car.direction = 1.0 if lane_index == 0 else -1.0
+			var road_z: float = downtown_cross_streets[street_index]
+			downtown_car.start_x = -64.0 if downtown_car.direction > 0.0 else 64.0
+			downtown_car.end_x = 64.0 if downtown_car.direction > 0.0 else -64.0
+			downtown_car.lane_z = road_z + (-2.0 if downtown_car.direction > 0.0 else 2.0)
+			add_child(downtown_car)
+			_make_car_visual(downtown_car, VehicleScenes.size() + street_index * 2 + lane_index)
+			cars.append(downtown_car)
 
 	# North-south traffic fills the five vertical streets in the downtown GLB grid.
 	# Each street gets one car in each direction, separated into opposing lanes.
@@ -931,11 +933,12 @@ func _setup_people() -> void:
 		)
 		add_child(npc)
 
-	# A small extra pedestrian population brings the downtown blocks to life.
-	for i in range(8):
+	# Pedestrians use the textured sidewalk edges of all five east-west streets.
+	var downtown_pedestrian_streets := [91.0, 123.0, 155.0, 187.0, 219.0]
+	for i in range(10):
 		var downtown_npc := CharacterBody3D.new()
 		downtown_npc.set_script(NpcScript)
-		downtown_npc.district_center_z = [95.0, 135.0, 175.0, 215.0][i % 4]
+		downtown_npc.district_center_z = downtown_pedestrian_streets[i % downtown_pedestrian_streets.size()]
 		downtown_npc.sidewalk_side = -1.0 if i % 2 == 0 else 1.0
 		downtown_npc.sidewalk_offset = 6.0
 		downtown_npc.position = Vector3(randf_range(-62.0, 62.0), 0.1, downtown_npc.district_center_z + downtown_npc.sidewalk_side * 6.0)
