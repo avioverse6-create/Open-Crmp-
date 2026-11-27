@@ -7,6 +7,7 @@ on:
     paths:
       - '.github/workflows/android-apk.yml'
       - 'scripts/main.gd'
+      - 'project.godot'
 
 permissions:
   contents: read
