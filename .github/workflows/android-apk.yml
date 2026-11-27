@@ -76,6 +76,26 @@ jobs:
           mkdir -p assets/sky
           fetch_optional "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/kloofendal_48d_partly_cloudy_puresky_1k.hdr" "assets/sky/cloudy_day_1k.hdr"
           ls -lh assets/models/city/downtown assets/models/vehicles
+      - name: Download detailed Vinish City Kit GLB models
+        run: |
+          mkdir -p assets/models/vinish_city
+          fetch_city_asset() {
+            source="$1"
+            target="$2"
+            curl -fsSL --retry 3 --connect-timeout 20 "$source" -o "assets/models/vinish_city/$target"
+            test -s "assets/models/vinish_city/$target"
+            echo "Downloaded $target"
+          }
+          fetch_city_asset "https://models.vinish.dev/city-kit/road-straight.glb" "road-straight.glb"
+          fetch_city_asset "https://models.vinish.dev/city-kit/apartment-block-01.glb" "apartment-block-01.glb"
+          fetch_city_asset "https://models.vinish.dev/city-kit/apartment-block-02.glb" "apartment-block-02.glb"
+          fetch_city_asset "https://models.vinish.dev/city-kit/road-crossroads.glb" "road-crossroads.glb"
+          fetch_city_asset "https://models.vinish.dev/city-kit/road-t-junction.glb" "road-t-junction.glb"
+          fetch_city_asset "https://models.vinish.dev/city-kit/road-bend.glb" "road-bend.glb"
+          fetch_city_asset "https://models.vinish.dev/city-kit/sidewalk-block.glb" "sidewalk-block.glb"
+          fetch_city_asset "https://models.vinish.dev/city-kit/street-light.glb" "street-light.glb"
+          fetch_city_asset "https://models.vinish.dev/city-kit/traffic-signal.glb" "traffic-signal.glb"
+          ls -lh assets/models/vinish_city
       - name: Download high quality CC0 road, grass and sidewalk PBR textures
         run: |
           mkdir -p assets/textures/pbr
