@@ -31,6 +31,11 @@ jobs:
       - name: Install Android build packages
         run: sdkmanager "platforms;android-34" "build-tools;34.0.0"
 
+      - name: Prepare compressed character models for Godot
+        run: |
+          npm install --no-save --no-package-lock @gltf-transform/core @gltf-transform/extensions @gltf-transform/functions meshoptimizer
+          node scripts/preprocess_glb.mjs
+
       - name: Export Android APK
         uses: firebelley/godot-export@v8.0.0
         with:
