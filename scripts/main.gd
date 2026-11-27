@@ -22,6 +22,9 @@ const VehicleScenes: Array[PackedScene] = [
 const VehicleScales: Array[float] = [1.5, 1.45, 1.45, 1.5, 1.35, 1.3, 1.3, 1.25, 1.5, 1.5, 1.35]
 const TreeScene: PackedScene = preload("res://assets/models/ipe_amarelo.glb")
 const StreetLightScene: PackedScene = preload("res://assets/models/poste_luz.glb")
+const BushScene: PackedScene = preload("res://assets/models/nature/bush.glb")
+const BushFlowersScene: PackedScene = preload("res://assets/models/nature/bush_flowers.glb")
+const GrassClumpScene: PackedScene = preload("res://assets/models/nature/grass.glb")
 
 const RoadCrossingScene: PackedScene = preload("res://assets/models/city/roads/road-crossing.glb")
 const RoadCrossroadScene: PackedScene = preload("res://assets/models/city/roads/road-crossroad.glb")
@@ -122,6 +125,12 @@ func _setup_world() -> void:
 	for x in [-58.0, -42.0, -16.0, 16.0, 42.0, 58.0]:
 		_spawn_prop(TreeScene, Vector3(x, 0.0, -49.0), 3.0)
 		_spawn_prop(TreeScene, Vector3(x + 5.0, 0.0, 49.0), 3.0)
+	# Low vegetation breaks up the bare river banks and roadside green strips.
+	for x in [-62.0, -46.0, -30.0, -14.0, 14.0, 30.0, 46.0, 62.0]:
+		_spawn_prop(BushScene, Vector3(x, 0.0, -10.0), 1.05)
+		_spawn_prop(BushFlowersScene, Vector3(x + 4.0, 0.0, 10.0), 0.95)
+		_spawn_prop(GrassClumpScene, Vector3(x - 2.0, 0.0, -12.0), 1.25)
+		_spawn_prop(GrassClumpScene, Vector3(x + 2.0, 0.0, 12.0), 1.25)
 	for x in range(-5, 6):
 		_spawn_prop(StreetLightScene, Vector3(float(x) * 13.0, 0.0, -27.0), 2.5)
 		_spawn_prop(StreetLightScene, Vector3(float(x) * 13.0, 0.0, 27.0), 2.5)
