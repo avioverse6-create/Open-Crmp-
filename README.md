@@ -6,18 +6,18 @@ A small original 3D open-world mobile game prototype made with Godot 4.
 
 - Two small city districts separated by a river.
 - A bridge connecting the districts.
-- Original multi-floor buildings with upgraded 1024×1024 seamless plaster, detailed brick, concrete, roof-tile and asphalt textures; framed reflective windows, shop fronts and roof tiles.
+- Original multi-floor buildings with 1024×1024 facade, brick, concrete, roof and asphalt albedo textures, plus separate normal/roughness maps for each surface family; framed windows and shop fronts.
 - Imported CC0 GLB car, tree and street-light models.
-- Third-person player controller with a simple animated character model.
+- Third-person player controller with a more detailed assembled character, separate clothing/hair/shoes, walk/run cycle, body bob and jump input.
 - Camera-relative movement: controls follow the direction the camera faces.
-- Pedestrians with simple head, torso, arms and legs, randomized clothing colors and basic walk-cycle animation.
+- Pedestrians with separate clothing, hair, trousers and shoes, varied outfits and a walk cycle with body motion. They remain procedural characters, not scanned human models.
 - Traffic cars with collision shapes, simple steering, acceleration and braking.
 - Basic enter/drive/exit interaction with a follow camera.
 - Simple car details: wheels, windshield, headlights and rear lights.
-- On-screen touch controls for movement, running and entering/exiting cars.
+- On-screen touch controls for movement, running, jumping and entering/exiting cars.
 - Swipe the right side of the screen to rotate the third-person camera.
 
-The project retains CC0 GLB assets from the Low Poly City Kit by kayquer for the car, trees and street lights. Buildings now use original procedural geometry with custom SVG facade, brick, concrete, roof and asphalt textures in `assets/textures/`. The original CC0 license text is stored in `assets/licenses/CC0-1.0-City-Kit.txt`. No GTA assets are included.
+The project still retains CC0 GLB assets from the Low Poly City Kit by kayquer for the car, trees and street lights; these models have not yet been replaced by higher-detail models. Buildings now use original procedural geometry with custom SVG facade, brick, concrete, roof and asphalt textures in `assets/textures/`. The original CC0 license text is stored in `assets/licenses/CC0-1.0-City-Kit.txt`. No GTA assets are included.
 
 ## Open the project
 
