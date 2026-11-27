@@ -1049,6 +1049,7 @@ func _setup_mobile_ui() -> void:
 	jump_button.size = Vector2(126, 54)
 	jump_button.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
 	jump_button.add_theme_font_size_override("font_size", 15)
+	_style_action_button(jump_button, 18)
 	root.add_child(jump_button)
 	jump_button.button_down.connect(func(): Input.action_press("jump"))
 	jump_button.button_up.connect(func(): Input.action_release("jump"))
@@ -1059,6 +1060,7 @@ func _setup_mobile_ui() -> void:
 	run_button.size = Vector2(126, 54)
 	run_button.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
 	run_button.add_theme_font_size_override("font_size", 17)
+	_style_action_button(run_button, 18)
 	root.add_child(run_button)
 	run_button.button_down.connect(func(): Input.action_press("run"))
 	run_button.button_up.connect(func(): Input.action_release("run"))
@@ -1069,6 +1071,7 @@ func _setup_mobile_ui() -> void:
 	enter_button.size = Vector2(126, 54)
 	enter_button.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
 	enter_button.add_theme_font_size_override("font_size", 17)
+	_style_action_button(enter_button, 18)
 	root.add_child(enter_button)
 	enter_button.pressed.connect(_toggle_vehicle)
 
@@ -1115,6 +1118,32 @@ func _setup_mobile_ui() -> void:
 		if is_instance_valid(player) and player.active_vehicle != null:
 			player.active_vehicle.set_mobile_brake(false)
 	)
+
+
+func _style_action_button(button: Button, corner_radius: int) -> void:
+	# Unified translucent mobile action buttons with clear pressed feedback.
+	button.add_theme_color_override("font_color", Color(0.96, 0.98, 1.0))
+	button.add_theme_color_override("font_hover_color", Color.WHITE)
+	button.add_theme_color_override("font_pressed_color", Color.WHITE)
+	var normal := StyleBoxFlat.new()
+	normal.bg_color = Color(0.025, 0.045, 0.065, 0.82)
+	normal.border_color = Color(0.82, 0.90, 0.98, 0.58)
+	normal.set_border_width_all(1)
+	normal.set_corner_radius_all(corner_radius)
+	normal.content_margin_left = 8
+	normal.content_margin_right = 8
+	normal.content_margin_top = 6
+	normal.content_margin_bottom = 6
+	var hover := normal.duplicate() as StyleBoxFlat
+	hover.bg_color = Color(0.12, 0.20, 0.28, 0.94)
+	hover.border_color = Color(0.94, 0.97, 1.0, 0.88)
+	var pressed := normal.duplicate() as StyleBoxFlat
+	pressed.bg_color = Color(0.22, 0.34, 0.45, 0.98)
+	pressed.border_color = Color.WHITE
+	button.add_theme_stylebox_override("normal", normal)
+	button.add_theme_stylebox_override("hover", hover)
+	button.add_theme_stylebox_override("pressed", pressed)
+	button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 
 
 func _make_drive_button(parent: Control, caption: String, anchor, offset: Vector2) -> Button:
