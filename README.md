@@ -6,7 +6,7 @@ A small original 3D open-world mobile game prototype made with Godot 4.
 
 - Two small city districts separated by a river.
 - A bridge connecting the districts.
-- Original multi-floor buildings with tiled plaster/brick/concrete facade textures, framed reflective windows, shop fronts and roof tiles.
+- Original multi-floor buildings with upgraded 1024×1024 seamless plaster, detailed brick, concrete, roof-tile and asphalt textures; framed reflective windows, shop fronts and roof tiles.
 - Imported CC0 GLB car, tree and street-light models.
 - Third-person player controller with a simple animated character model.
 - Camera-relative movement: controls follow the direction the camera faces.
