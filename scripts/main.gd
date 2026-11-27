@@ -9,6 +9,11 @@ const CarScene: PackedScene = preload("res://assets/models/carro.glb")
 const TreeScene: PackedScene = preload("res://assets/models/ipe_amarelo.glb")
 const StreetLightScene: PackedScene = preload("res://assets/models/poste_luz.glb")
 
+const RoadCrossingScene: PackedScene = preload("res://assets/models/city/roads/road-crossing.glb")
+const RoadCrossroadScene: PackedScene = preload("res://assets/models/city/roads/road-crossroad.glb")
+const RoadBridgeScene: PackedScene = preload("res://assets/models/city/roads/road-bridge.glb")
+const TrafficLightScene: PackedScene = preload("res://assets/models/city/roads/light-square-cross.glb")
+
 const CityBuildingScenes: Array[PackedScene] = [
 	preload("res://assets/models/city/suburban/building_a.glb"),
 	preload("res://assets/models/city/suburban/building_b.glb"),
@@ -118,7 +123,25 @@ func _setup_world() -> void:
 
 	_add_sidewalks()
 	_add_road_markings()
+	_add_city_road_assets()
 
+
+
+func _add_city_road_assets() -> void:
+	# Imported modular road kit pieces add real mesh detail to key intersections.
+	_spawn_city_asset(RoadBridgeScene, Vector3(0, 0.20, 0), Vector3(11.0, 1.0, 24.0))
+	for road_z in [-34.0, 34.0]:
+		_spawn_city_asset(RoadCrossingScene, Vector3(0, 0.105, road_z), Vector3(10.0, 1.0, 10.0), Vector3(0, deg_to_rad(90.0), 0))
+		for road_x in [-52.0, 52.0]:
+			_spawn_city_asset(RoadCrossroadScene, Vector3(road_x, 0.105, road_z), Vector3(10.0, 1.0, 10.0), Vector3(0, deg_to_rad(90.0), 0))
+			_spawn_city_asset(TrafficLightScene, Vector3(road_x + 5.2, 0.0, road_z + 5.2), Vector3.ONE * 3.2)
+
+func _spawn_city_asset(scene: PackedScene, at: Vector3, target_scale: Vector3, rotation_value: Vector3 = Vector3.ZERO) -> void:
+	var instance := scene.instantiate() as Node3D
+	instance.position = at
+	instance.scale = target_scale
+	instance.rotation = rotation_value
+	add_child(instance)
 
 func _add_sidewalks() -> void:
 	for road_z in [-34.0, 34.0]:
