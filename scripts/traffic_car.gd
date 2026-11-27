@@ -338,7 +338,8 @@ func _get_intersection_speed_limit() -> float:
 					continue
 				var other_vertical := bool(other.get("vertical_traffic"))
 				var other_is_player := bool(other.get("is_player_driven"))
-				if other_vertical == vertical_traffic and not other_is_player:
+				var other_is_turning := bool(other.get("_traffic_turn_active"))
+				if other_vertical == vertical_traffic and not other_is_player and not other_is_turning:
 					continue
 				# The crossing vehicle must actually be close to this junction.
 				var cross_distance := Vector2(other.global_position.x - intersection_x, other.global_position.z - intersection_z).length()
@@ -346,7 +347,7 @@ func _get_intersection_speed_limit() -> float:
 					continue
 				# Player has priority. Otherwise only north-south AI yields to
 				# east-west AI, preventing both directions from deadlocking.
-				if other_is_player or vertical_traffic:
+				if other_is_player or other_is_turning or vertical_traffic:
 					conflict = true
 					break
 			if conflict:
