@@ -1,0 +1,57 @@
+name: Android debug APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "**.gd"
+      - "**.tscn"
+      - "**.tres"
+      - "**.godot"
+      - "**.glb"
+      - "**.png"
+      - "**.svg"
+      - "project.godot"
+      - "export_presets.cfg"
+      - ".github/workflows/android-apk.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build Open City APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          api-level: 34
+
+      - name: Export Android APK
+        uses: firebelley/godot-export@v8.0.0
+        with:
+          godot_executable_download_url: https://downloads.tuxfamily.org/godotengine/4.3/Godot_v4.3-stable_linux.x86_64.zip
+          godot_export_templates_download_url: https://downloads.tuxfamily.org/godotengine/4.3/Godot_v4.3-stable_export_templates.tpz
+          relative_project_path: ./
+          presets_to_export: Android
+          export_debug: true
+          verbose: true
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: OpenCity-Android-debug
+          path: build/OpenCity-debug.apk
+          if-no-files-found: error
+          retention-days: 14
