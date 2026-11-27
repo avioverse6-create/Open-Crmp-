@@ -20,9 +20,11 @@ window/stretch/mode="canvas_items"
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
 textures/default_filters/use_nearest_mipmap_filter=false
-textures/default_filters/anisotropic_filtering_level=4
+textures/default_filters/anisotropic_filtering_level=2
 textures/default_filters/texture_filter=2
-anti_aliasing/quality/msaa_3d=2
+anti_aliasing/quality/msaa_3d=0
+scaling_3d/scale=0.82
+scaling_3d/mode=1
 textures/vram_compression/import_etc2_astc=true
 environment/defaults/default_clear_color=Color(0.42, 0.63, 0.78, 1)
 
