@@ -104,31 +104,32 @@ func _draw() -> void:
 			var d := _world_to_screen(road_x + 3.5, road_z + 29)
 			draw_rect(Rect2(c, d - c), Color(0.19, 0.21, 0.22), true)
 
-	# Bridge approaches and the road that continues into the downtown district.
-	var highway_a := _world_to_screen(-5.5, 12)
-	var highway_b := _world_to_screen(5.5, 235)
-	draw_rect(Rect2(highway_a, highway_b - highway_a), Color(0.20, 0.22, 0.23), true)
-	for cross_z in [95.0, 155.0, 215.0]:
-		var a := _world_to_screen(-66, cross_z - 3.5)
-		var b := _world_to_screen(66, cross_z + 3.5)
+	# Downtown grid: match the actual boulevard, four parallel streets and four cross streets.
+	var boulevard_a := _world_to_screen(-6.5, 75)
+	var boulevard_b := _world_to_screen(6.5, 235)
+	draw_rect(Rect2(boulevard_a, boulevard_b - boulevard_a), Color(0.20, 0.22, 0.23), true)
+	for street_x in [-60.0, -30.0, 30.0, 60.0]:
+		var a := _world_to_screen(street_x - 4.25, 75)
+		var b := _world_to_screen(street_x + 4.25, 235)
 		draw_rect(Rect2(a, b - a), Color(0.19, 0.21, 0.22), true)
-	for side_x in [-54.0, 54.0]:
-		var a := _world_to_screen(side_x - 3.5, 75)
-		var b := _world_to_screen(side_x + 3.5, 235)
+	for cross_z in [95.0, 135.0, 175.0, 215.0]:
+		var a := _world_to_screen(-66, cross_z - 4.75)
+		var b := _world_to_screen(66, cross_z + 4.75)
 		draw_rect(Rect2(a, b - a), Color(0.19, 0.21, 0.22), true)
 
-	# Existing village blocks and new downtown building plots.
+	# Existing village plots and all 12 downtown blocks.
 	for district_z in [-34.0, 34.0]:
 		for x in range(-5, 6):
 			for side in [-1.0, 1.0]:
 				var p := _world_to_screen(float(x) * 13.0, district_z + side * 20.0)
 				var block := maxf(3.0, rect.size.x * 0.012)
 				draw_rect(Rect2(p - Vector2(block, block), Vector2(block * 2, block * 2)), Color(0.49, 0.51, 0.48), true)
-	for city_z in [95.0, 155.0, 198.0]:
-		for city_x in [-38.0, 38.0, -62.0, 62.0]:
-			var p := _world_to_screen(city_x, city_z)
-			var block := maxf(3.0, rect.size.x * 0.018)
-			draw_rect(Rect2(p - Vector2(block, block), Vector2(block * 2, block * 2)), Color(0.56, 0.58, 0.55), true)
+	for city_z in [115.0, 155.0, 195.0]:
+		for city_x in [-45.0, -15.0, 15.0, 45.0]:
+			for building_offset in [-7.0, 7.0]:
+				var p := _world_to_screen(city_x + building_offset, city_z)
+				var block := maxf(2.4, rect.size.x * 0.009)
+				draw_rect(Rect2(p - Vector2(block, block), Vector2(block * 2, block * 2)), Color(0.56, 0.58, 0.55), true)
 
 	if has_destination:
 		var marker := _world_to_screen(destination.x, destination.z)
