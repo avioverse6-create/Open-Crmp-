@@ -13,6 +13,10 @@ const RoadCrossingScene: PackedScene = preload("res://assets/models/city/roads/r
 const RoadCrossroadScene: PackedScene = preload("res://assets/models/city/roads/road-crossroad.glb")
 const RoadBridgeScene: PackedScene = preload("res://assets/models/city/roads/road-bridge.glb")
 const TrafficLightScene: PackedScene = preload("res://assets/models/city/roads/light-square-cross.glb")
+const HighwaySignScene: PackedScene = preload("res://assets/models/city/roads/sign-highway.glb")
+const ConstructionConeScene: PackedScene = preload("res://assets/models/city/roads/construction-cone.glb")
+const ConstructionBarrierScene: PackedScene = preload("res://assets/models/city/roads/construction-barrier.glb")
+const BridgePillarScene: PackedScene = preload("res://assets/models/city/roads/bridge-pillar.glb")
 
 const CityBuildingScenes: Array[PackedScene] = [
 	preload("res://assets/models/city/suburban/building_a.glb"),
@@ -135,6 +139,16 @@ func _add_city_road_assets() -> void:
 		for road_x in [-52.0, 52.0]:
 			_spawn_city_asset(RoadCrossroadScene, Vector3(road_x, 0.105, road_z), Vector3(10.0, 1.0, 10.0), Vector3(0, deg_to_rad(90.0), 0))
 			_spawn_city_asset(TrafficLightScene, Vector3(road_x + 5.2, 0.0, road_z + 5.2), Vector3.ONE * 3.2)
+	# Bridge supports and readable roadside signs make the crossing feel like a built place.
+	for side in [-1.0, 1.0]:
+		_spawn_city_asset(BridgePillarScene, Vector3(side * 4.1, -1.15, -7.0), Vector3.ONE * 2.2)
+		_spawn_city_asset(BridgePillarScene, Vector3(side * 4.1, -1.15, 7.0), Vector3.ONE * 2.2)
+	_spawn_city_asset(HighwaySignScene, Vector3(-61.0, 0.0, -27.0), Vector3.ONE * 1.8)
+	_spawn_city_asset(HighwaySignScene, Vector3(61.0, 0.0, 27.0), Vector3.ONE * 1.8, Vector3(0, PI, 0))
+	# A small roadwork pocket at the far edge adds a few non-building props.
+	_spawn_city_asset(ConstructionBarrierScene, Vector3(62.0, 0.0, -18.0), Vector3.ONE * 1.7)
+	for cone_x in [58.0, 62.0, 66.0]:
+		_spawn_city_asset(ConstructionConeScene, Vector3(cone_x, 0.0, -21.0), Vector3.ONE * 1.5)
 
 func _spawn_city_asset(scene: PackedScene, at: Vector3, target_scale: Vector3, rotation_value: Vector3 = Vector3.ZERO) -> void:
 	var instance := scene.instantiate() as Node3D
@@ -188,6 +202,7 @@ func _spawn_asset_building(_requested_scene: PackedScene, at: Vector3, _scale_fa
 	root.name = "ImportedCityBuilding"
 	root.position = at
 	root.scale = Vector3.ONE * randf_range(7.6, 9.2)
+	root.rotation.y = randf_range(0.0, TAU)
 	var model := model_scene.instantiate() as Node3D
 	root.add_child(model)
 
@@ -382,9 +397,23 @@ func _make_car_visual(car: Node3D, forward: bool) -> void:
 	var model := CarScene.instantiate() as Node3D
 	if model == null:
 		return
-	model.scale = Vector3.ONE * 2.0
-	model.position.y = 0.05
+	model.scale = Vector3.ONE * 4.25
+	model.position.y = 0.02
 	car.add_child(model)
+	var paint_palette: Array[Color] = [
+		Color("#d7dce0"), Color("#202b3b"), Color("#b22d32"),
+		Color("#d5a82f"), Color("#456b58"), Color("#e6e2d7")
+	]
+	var paint: Color = paint_palette[randi() % paint_palette.size()]
+	for mesh_node in model.find_children("*", "MeshInstance3D", true, false):
+		var mesh_instance := mesh_node as MeshInstance3D
+		if mesh_instance.mesh == null:
+			continue
+			var body_material := StandardMaterial3D.new()
+			body_material.albedo_color = paint
+			body_material.metallic = 0.18
+			body_material.roughness = 0.38
+			mesh_instance.set_surface_override_material(0, body_material)
 
 func _setup_people() -> void:
 	for i in range(16):
