@@ -67,8 +67,8 @@ func _ready() -> void:
 	right_arm = _make_limb(Vector3(0.34, 1.35, 0), 0.11, 0.58, shirt)
 	left_leg = _make_limb(Vector3(-0.14, 0.65, 0), 0.135, 0.68, pants)
 	right_leg = _make_limb(Vector3(0.14, 0.65, 0), 0.135, 0.68, pants)
-	_add_shoe(Vector3(-0.14, 0.06, -0.07), shoe_mat)
-	_add_shoe(Vector3(0.14, 0.06, -0.07), shoe_mat)
+	_add_shoe(Vector3(0, -0.61, -0.07), shoe_mat, left_leg)
+	_add_shoe(Vector3(0, -0.61, -0.07), shoe_mat, right_leg)
 	_pick_target()
 
 func _make_material(color: Color, roughness_value: float) -> StandardMaterial3D:
@@ -92,14 +92,14 @@ func _make_limb(at: Vector3, radius: float, length: float, material: Material) -
 	pivot.add_child(mesh_instance)
 	return pivot
 
-func _add_shoe(at: Vector3, material: Material) -> void:
+func _add_shoe(at: Vector3, material: Material, parent: Node3D) -> void:
 	var shoe := MeshInstance3D.new()
 	var mesh := BoxMesh.new()
 	mesh.size = Vector3(0.23, 0.12, 0.34)
 	shoe.mesh = mesh
 	shoe.position = at
 	shoe.material_override = material
-	visual_root.add_child(shoe)
+	parent.add_child(shoe)
 
 func _physics_process(delta: float) -> void:
 	change_timer -= delta
