@@ -37,6 +37,14 @@ func _ready() -> void:
 	camera.current = true
 	camera_pivot.add_child(camera)
 
+func _input(event: InputEvent) -> void:
+	# Swipe on the right side of the screen to orbit the third-person camera.
+	if event is InputEventScreenDrag:
+		var screen_width := get_viewport().get_visible_rect().size.x
+		if event.position.x > screen_width * 0.42:
+			camera_pivot.rotate_y(-event.relative.x * 0.004)
+			camera_pivot.rotation.x = clamp(camera_pivot.rotation.x - event.relative.y * 0.003, deg_to_rad(-35.0), deg_to_rad(25.0))
+
 func _physics_process(delta: float) -> void:
 	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 	var direction := Vector3(input_dir.x, 0, input_dir.y)
