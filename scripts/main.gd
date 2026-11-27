@@ -948,7 +948,7 @@ func _setup_mobile_ui() -> void:
 	_style_action_button(scanner_button, 18)
 	root.add_child(scanner_button)
 	scanner_button.pressed.connect(func():
-		if is_instance_valid(player) and player.has_method("fire_pulse"):
+		if is_instance_valid(player) and player.has_method("scan_pulse"):
 			player.scan_pulse()
 	)
 
