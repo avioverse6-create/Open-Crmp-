@@ -135,6 +135,8 @@ var movement_joystick: VirtualJoystick
 var jump_button: Button
 var run_button: Button
 var driving_controls: Control
+var minimap_control: Control
+var _minimap_tracks_vehicle := false
 
 func _ready() -> void:
 	randomize()
@@ -156,6 +158,9 @@ func _process(delta: float) -> void:
 			cloud.position.x = -98.0
 	if vehicle_hud != null and is_instance_valid(player):
 		var driving := player.active_vehicle != null
+		if minimap_control != null and driving != _minimap_tracks_vehicle:
+			minimap_control.set("target", player.active_vehicle if driving else player)
+			_minimap_tracks_vehicle = driving
 		vehicle_hud.visible = driving
 		if driving_controls != null:
 			driving_controls.visible = driving
@@ -827,6 +832,7 @@ func _setup_mobile_ui() -> void:
 	var minimap := Control.new()
 	minimap.name = "Minimap"
 	minimap.set_script(MinimapScript)
+	minimap_control = minimap
 	minimap.set("target", player)
 	minimap.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	minimap.position = Vector2(-190, 18)
