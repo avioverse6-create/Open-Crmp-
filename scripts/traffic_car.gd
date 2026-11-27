@@ -161,7 +161,7 @@ func _physics_process(delta: float) -> void:
 
 	_update_engine_audio()
 	_update_passby_audio()
-	_update_vehicle_camera_collision()
+	_update_vehicle_camera_collision(delta)
 
 
 func _try_begin_traffic_turn() -> void:
@@ -259,9 +259,9 @@ func _process_traffic_turn(delta: float, traffic_speed: float) -> void:
 			end_z = 219.0 if direction > 0.0 else 91.0
 
 
-func _update_vehicle_camera_collision() -> void:
+func _update_vehicle_camera_collision(delta: float) -> void:
 	# The player camera is reparented to the vehicle while driving.
-	# Pull it forward when a wall or building blocks the view.
+	# Smoothly pull it forward around obstacles and restore the chase view.
 	if not is_player_driven:
 		return
 	var active_camera := get_viewport().get_camera_3d()
@@ -273,10 +273,11 @@ func _update_vehicle_camera_collision() -> void:
 	camera_query.exclude = [get_rid()]
 	camera_query.collide_with_areas = false
 	var camera_hit := get_world_3d().direct_space_state.intersect_ray(camera_query)
-	if camera_hit.is_empty():
-		active_camera.global_position = desired_camera_position
-	else:
-		active_camera.global_position = camera_hit.position + camera_hit.normal * 0.18
+	var safe_camera_position := desired_camera_position
+	if not camera_hit.is_empty():
+		safe_camera_position = camera_hit.position + camera_hit.normal * 0.18
+	var camera_weight := 1.0 - exp(-delta * (24.0 if not camera_hit.is_empty() else 8.0))
+	active_camera.global_position = active_camera.global_position.lerp(safe_camera_position, camera_weight)
 
 func _drive_player(delta: float) -> void:
 	var input_dir := mobile_input_vector
