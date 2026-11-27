@@ -968,7 +968,8 @@ func _load_realistic_vehicle_scenes() -> void:
 		if loaded_scene != null:
 			VehicleScenes.append(loaded_scene)
 	if VehicleScenes.size() != VehicleScenePaths.size():
-		push_warning("Only %d of %d realistic vehicle models are available." % [VehicleScenes.size(), VehicleScenePaths.size()])
+		push_warning("Realistic vehicle fleet incomplete (%d/%d); refusing to spawn placeholder or mismatched cars." % [VehicleScenes.size(), VehicleScenePaths.size()])
+		VehicleScenes.clear()
 
 func _make_car_visual(car: Node3D, model_index: int) -> void:
 	# Use only detailed, textured CC0 vehicles. No Kenney/low-poly fallback.
