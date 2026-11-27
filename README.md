@@ -9,7 +9,7 @@ Original small-scale 3D open-world mobile game prototype made with Godot 4.x.
 - **Street props:** imported traffic lights, highway signs, bridge pillars, construction barriers and cones. Matching road color atlas is included.
 - **People:** four rigged Mixamo GLB characters are used for the player and pedestrians. The separate animation library currently supplies Idle and Run; Run is slowed to approximate a walk for pedestrians. There is not yet a dedicated Walk clip.
 - **Cars:** 11 imported Kenney Car Kit GLBs are used in traffic: sedan, SUV, taxi, police car, delivery van, box truck, fire truck, garbage truck, sports hatchback, sports sedan and ambulance. Each model appears once in the current traffic set, with vehicles moving in opposite directions on the two main roads. Their embedded textures are preserved, and separate wheel meshes rotate while the vehicles move.
-- **Nature:** imported low-poly tree models from the original CC0 City Kit.
+- **Nature:** imported low-poly trees plus Quaternius CC0 bush, flowering-bush and grass GLBs scattered along the riverbanks.
 
 ## World and gameplay
 
@@ -49,8 +49,8 @@ No GTA code, maps, characters, logos or extracted game assets are included.
 
 1. Improve vehicle handling, steering and traffic lane changes.
 2. Improve pedestrian navigation and collisions.
-3. Replace the legacy procedural SVG surface maps with genuine seamless PBR materials where they improve the city assets.
-4. Add a minimap, camera smoothing, missions, save data, sound and graphics settings.
+3. Improve camera smoothing, add missions, save data, sound and graphics settings.
+4. Replace procedural detail maps with true PBR normal/roughness maps where mobile performance allows.
 5. Import and test on an Android device, then optimize based on real frame-time measurements.
 
 ## Asset licensing
@@ -60,6 +60,7 @@ No GTA code, maps, characters, logos or extracted game assets are included.
 - AmbientCG color textures: CC0 1.0; see `assets/textures/AMBIENTCG-CREDITS.md`.
 - Player and pedestrian characters and their animation library: Mixamo assets bundled by vinish.dev. See `assets/models/people/CREDITS.md`; review Adobe's current terms before publishing.
 - Original city-kit tree and street-light assets: see `assets/licenses/CC0-1.0-City-Kit.txt`.
+- Bush, flowering-bush and grass models: Quaternius Stylized Nature MegaKit, CC0; see `assets/models/nature/CREDITS.md`.
 
 Keep the asset credit and license files with the project. The project has not yet been verified in the Godot editor on a real Android device.
 
