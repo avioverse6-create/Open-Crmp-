@@ -155,6 +155,9 @@ func _play_footstep() -> void:
 	footstep_player.play()
 
 func _input(event: InputEvent) -> void:
+	# Vehicle camera stays locked behind the car; touch-drag look is on foot only.
+	if active_vehicle != null:
+		return
 	if event is InputEventScreenDrag:
 		var screen_width := get_viewport().get_visible_rect().size.x
 		if event.position.x > screen_width * 0.42:
