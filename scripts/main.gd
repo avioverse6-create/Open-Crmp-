@@ -80,29 +80,7 @@ const ConstructionConeScene: PackedScene = preload("res://assets/models/city/roa
 const ConstructionBarrierScene: PackedScene = preload("res://assets/models/city/roads/construction-barrier.glb")
 const BridgePillarScene: PackedScene = preload("res://assets/models/city/roads/bridge-pillar.glb")
 
-const CityBuildingScenes: Array[PackedScene] = [
-	preload("res://assets/models/city/suburban/building_a.glb"),
-	preload("res://assets/models/city/suburban/building_b.glb"),
-	preload("res://assets/models/city/suburban/building_c.glb"),
-	preload("res://assets/models/city/suburban/building_d.glb"),
-	preload("res://assets/models/city/suburban/building_e.glb"),
-	preload("res://assets/models/city/suburban/building_f.glb"),
-	preload("res://assets/models/city/suburban/building_g.glb"),
-	preload("res://assets/models/city/suburban/building_h.glb"),
-	preload("res://assets/models/city/suburban/building_i.glb"),
-	preload("res://assets/models/city/suburban/building_j.glb"),
-	preload("res://assets/models/city/suburban/building_k.glb"),
-	preload("res://assets/models/city/suburban/building_l.glb"),
-	preload("res://assets/models/city/suburban/building_m.glb"),
-	preload("res://assets/models/city/suburban/building_n.glb"),
-	preload("res://assets/models/city/suburban/building_o.glb"),
-	preload("res://assets/models/city/suburban/building_p.glb"),
-	preload("res://assets/models/city/suburban/building_q.glb"),
-	preload("res://assets/models/city/suburban/building_r.glb"),
-	preload("res://assets/models/city/suburban/building_s.glb"),
-	preload("res://assets/models/city/suburban/building_t.glb"),
-	preload("res://assets/models/city/suburban/building_u.glb")
-]
+
 const PlasterTexture: Texture2D = preload("res://assets/textures/wall_plaster.svg")
 const BrickTexture: Texture2D = preload("res://assets/textures/brick_ambientcg.png")
 const ConcreteTexture: Texture2D = preload("res://assets/textures/pbr/concrete_color.jpg")
@@ -453,11 +431,11 @@ func _spawn_vinish_apartment(at: Vector3, variant_index: int) -> void:
 	var use_first := variant_index % 2 == 0
 	var model_path := "res://assets/models/vinish_city/apartment-block-01.glb" if use_first else "res://assets/models/vinish_city/apartment-block-02.glb"
 	if not ResourceLoader.exists(model_path):
-		_spawn_asset_building(CityBuildingScenes[0], at, 3.4)
+		_spawn_asset_building(HouseScene, at, 3.4)
 		return
 	var packed := load(model_path) as PackedScene
 	if packed == null:
-		_spawn_asset_building(CityBuildingScenes[0], at, 3.4)
+		_spawn_asset_building(HouseScene, at, 3.4)
 		return
 	var root := StaticBody3D.new()
 	root.name = "VinishBrickApartment"
@@ -465,7 +443,7 @@ func _spawn_vinish_apartment(at: Vector3, variant_index: int) -> void:
 	var model := packed.instantiate() as Node3D
 	if model == null:
 		root.queue_free()
-		_spawn_asset_building(CityBuildingScenes[0], at, 3.4)
+		_spawn_asset_building(HouseScene, at, 3.4)
 		return
 	root.add_child(model)
 	var collision := CollisionShape3D.new()
@@ -507,7 +485,7 @@ func _setup_downtown() -> void:
 			if detailed_buildings:
 				_spawn_vinish_apartment(center, row_index + column_index)
 			else:
-				_spawn_asset_building(CityBuildingScenes[0], center, 3.4)
+				_spawn_asset_building(HouseScene, center, 3.4)
 
 	# Textured street furniture from the same kit, with a mobile-friendly count.
 	if detailed_roads and ResourceLoader.exists("res://assets/models/vinish_city/street-light.glb"):
@@ -691,26 +669,30 @@ func _add_road_markings() -> void:
 				dash.material_override = paint
 				add_child(dash)
 
-func _spawn_asset_building(_requested_scene: PackedScene, at: Vector3, _scale_factor: float) -> void:
-	# Use complete imported Kenney building meshes with their original color atlas.
-	# The wrapper supplies a simple mobile-friendly collision volume.
-	var model_scene: PackedScene = CityBuildingScenes[randi() % CityBuildingScenes.size()]
+func _spawn_asset_building(requested_scene: PackedScene, at: Vector3, scale_factor: float) -> void:
+	# Use the authored house/market model requested by the district generator.
+	# Legacy low-poly building collections are never substituted here.
+	if requested_scene == null:
+		push_warning("Building scene missing at %s; skipping rather than showing a placeholder." % at)
+		return
 	var root := StaticBody3D.new()
-	root.name = "ImportedCityBuilding"
+	root.name = "ImportedBuilding"
 	root.position = at
-	root.scale = Vector3.ONE * randf_range(7.6, 9.2)
-	root.rotation.y = randf_range(0.0, TAU)
-	var model := model_scene.instantiate() as Node3D
+	var model := requested_scene.instantiate() as Node3D
+	if model == null:
+		root.queue_free()
+		push_warning("Building model failed to instantiate at %s." % at)
+		return
+	model.scale = Vector3.ONE * scale_factor
 	root.add_child(model)
 
 	var collision := CollisionShape3D.new()
 	var shape := BoxShape3D.new()
-	shape.size = Vector3(1.36, 0.90, 1.10)
+	shape.size = Vector3(9.0, 7.0, 8.0) * scale_factor
 	collision.shape = shape
-	collision.position.y = 0.45
+	collision.position.y = shape.size.y * 0.5
 	root.add_child(collision)
 	add_child(root)
-
 func _make_texture_material(texture: Texture2D, tint: Color, uv_scale: Vector3) -> StandardMaterial3D:
 	var material := StandardMaterial3D.new()
 	material.albedo_texture = texture
