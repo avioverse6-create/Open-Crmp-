@@ -75,7 +75,12 @@ jobs:
             target="$2"
             curl -fsSL --retry 3 --connect-timeout 20 "$url" -o "$target"
             test -s "$target"
-            echo "Required gameplay asset downloaded: $target"
+            magic="$(head -c 4 "$target")"
+            if [ "$magic" != "glTF" ]; then
+              echo "Downloaded file is not a binary glTF model: $target" >&2
+              exit 1
+            fi
+            echo "Required GLB gameplay asset verified: $target"
           }
           fetch_optional "https://tevy.dev/models/apartment-block/v2/lod0.glb" "assets/models/city/downtown/apartment_block.glb"
           fetch_optional "https://grab3d.com/dl/high-rise-apartment/high-rise-apartment-light.glb" "assets/models/city/downtown/highrise_apartment.glb"
@@ -99,9 +104,15 @@ jobs:
           fetch_city_asset() {
             source="$1"
             target="$2"
-            curl -fsSL --retry 3 --connect-timeout 20 "$source" -o "assets/models/vinish_city/$target"
-            test -s "assets/models/vinish_city/$target"
-            echo "Downloaded $target"
+            output="assets/models/vinish_city/$target"
+            curl -fsSL --retry 3 --connect-timeout 20 "$source" -o "$output"
+            test -s "$output"
+            magic="$(head -c 4 "$output")"
+            if [ "$magic" != "glTF" ]; then
+              echo "Downloaded file is not a binary glTF model: $output" >&2
+              exit 1
+            fi
+            echo "Verified GLB city asset: $target"
           }
           fetch_city_asset "https://models.vinish.dev/city-kit/road-straight.glb" "road-straight.glb"
           fetch_city_asset "https://models.vinish.dev/city-kit/apartment-block-01.glb" "apartment-block-01.glb"
