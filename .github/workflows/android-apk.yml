@@ -75,6 +75,8 @@ jobs:
           fetch_optional "https://tevy.dev/models/apartment-block/v2/lod0.glb" "assets/models/city/downtown/apartment_block.glb"
           fetch_optional "https://grab3d.com/dl/high-rise-apartment/high-rise-apartment-light.glb" "assets/models/city/downtown/highrise_apartment.glb"
           fetch_optional "https://cdn.mint.gg/owned-artifacts/a48562173ee793d79703636cb0ccc623ae9b75bd3299837797fbad45f7dc6946" "assets/models/vehicles/realistic_sports.glb"
+          mkdir -p assets/sky
+          fetch_optional "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/kloofendal_48d_partly_cloudy_puresky_1k.hdr" "assets/sky/cloudy_day_1k.hdr"
           ls -lh assets/models/city/downtown assets/models/vehicles
       - name: Configure Godot Android SDK paths
         run: |
