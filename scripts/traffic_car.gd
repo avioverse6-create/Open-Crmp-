@@ -125,6 +125,9 @@ func _physics_process(delta: float) -> void:
 		_drive_player(delta)
 	else:
 		var target_traffic_speed := _get_safe_traffic_speed()
+		# Keep a steady, low speed for the full duration of a junction turn.
+		if _traffic_turn_active:
+			target_traffic_speed = minf(target_traffic_speed, 3.2)
 		var traffic_rate := braking if target_traffic_speed < traffic_current_speed else acceleration
 		traffic_current_speed = move_toward(traffic_current_speed, target_traffic_speed, traffic_rate * delta)
 		var traffic_speed := traffic_current_speed
