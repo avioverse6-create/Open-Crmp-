@@ -137,6 +137,27 @@ func _physics_process(delta: float) -> void:
 
 	_update_engine_audio()
 	_update_passby_audio()
+	_update_vehicle_camera_collision()
+
+
+func _update_vehicle_camera_collision() -> void:
+	# The player camera is reparented to the vehicle while driving.
+	# Pull it forward when a wall or building blocks the view.
+	if not is_player_driven:
+		return
+	var active_camera := get_viewport().get_camera_3d()
+	if active_camera == null:
+		return
+	var camera_origin := global_position + Vector3(0.0, 1.75, 1.2)
+	var desired_camera_position := to_global(Vector3(0.0, 1.75, 1.2) + Vector3(0.0, 0.9, 4.7).rotated(Vector3.RIGHT, deg_to_rad(-12.0)))
+	var camera_query := PhysicsRayQueryParameters3D.create(camera_origin, desired_camera_position)
+	camera_query.exclude = [get_rid()]
+	camera_query.collide_with_areas = false
+	var camera_hit := get_world_3d().direct_space_state.intersect_ray(camera_query)
+	if camera_hit.is_empty():
+		active_camera.global_position = desired_camera_position
+	else:
+		active_camera.global_position = camera_hit.position + camera_hit.normal * 0.18
 
 func _drive_player(delta: float) -> void:
 	var input_dir := mobile_input_vector
