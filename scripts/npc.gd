@@ -32,6 +32,7 @@ var footstep_timer := randf_range(0.15, 0.55)
 var _simulation_accumulator := 0.0
 
 func _ready() -> void:
+	add_to_group("pedestrians")
 	walk_speed = randf_range(1.05, 1.48)
 	var shape := CollisionShape3D.new()
 	var capsule := CapsuleShape3D.new()
@@ -137,6 +138,20 @@ func _physics_process(delta: float) -> void:
 	var moving := direction.length() > 0.1
 	if moving:
 		direction = direction.normalized()
+		# Light local avoidance keeps pedestrians from walking through one another.
+		# Only nearby neighbours are considered; distant NPCs do not affect this route.
+		var avoidance := Vector3.ZERO
+		for neighbour in get_tree().get_nodes_in_group("pedestrians"):
+			if neighbour == self or not is_instance_valid(neighbour):
+				continue
+			var offset: Vector3 = global_position - neighbour.global_position
+			offset.y = 0.0
+			var separation := offset.length()
+			if separation > 0.01 and separation < 1.35:
+				var strength := (1.35 - separation) / 1.35
+				avoidance += offset.normalized() * strength
+		if avoidance.length_squared() > 0.0001:
+			direction = (direction + avoidance.normalized() * 0.72).normalized()
 		velocity.x = direction.x * walk_speed
 		velocity.z = direction.z * walk_speed
 		rotation.y = lerp_angle(rotation.y, atan2(-direction.x, -direction.z), step_delta * 4.5)
