@@ -92,8 +92,13 @@ func _bind_procedural_fallback(skeleton: Skeleton3D) -> void:
 		var index := skeleton.find_bone(bone_name)
 		if index >= 0:
 			bones[bone_name] = {"index": index, "base": skeleton.get_bone_pose_rotation(index)}
-	if not bones.is_empty() and _rigs.is_empty():
-		_rigs.append({"skeleton": skeleton, "bones": bones})
+	if not bones.is_empty():
+		if _rigs.is_empty():
+			_rigs.append({"skeleton": skeleton, "bones": bones})
+		else:
+			var merged_bones: Dictionary = _rigs[0]["bones"]
+			merged_bones.merge(bones, true)
+			_rigs[0]["bones"] = merged_bones
 
 func update(delta: float, moving: bool, running: bool) -> void:
 	if _animation_player != null:
