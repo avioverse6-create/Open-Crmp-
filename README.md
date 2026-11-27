@@ -7,7 +7,7 @@ Original small-scale 3D open-world mobile game prototype made with Godot 4.x.
 - **Buildings:** 21 separate Kenney City Kit Suburban GLB building models. The matching color atlas is included beside the models; buildings are selected randomly and rotated for variation.
 - **Roads:** 10 modular Kenney City Kit Roads GLB pieces, including straight sections, bends, crossings, intersections, a roundabout and a bridge.
 - **Street props:** imported traffic lights, highway signs, bridge pillars, construction barriers and cones. Matching road color atlas is included.
-- **People:** four rigged Mixamo GLB characters are used for the player and pedestrians. The separate animation library currently supplies Idle and Run; Run is slowed to approximate a walk for pedestrians. There is not yet a dedicated Walk clip.
+- **People:** four rigged Mixamo GLB characters are used for the player and pedestrians. The separate animation library currently supplies Idle and Run; Run is slowed to approximate a walk for pedestrians. The bundled library has Idle and Run but no dedicated Walk clip; the Run cycle is slowed for pedestrian walking.
 - **Cars:** 11 imported Kenney Car Kit GLBs are used in traffic: sedan, SUV, taxi, police car, delivery van, box truck, fire truck, garbage truck, sports hatchback, sports sedan and ambulance. Each model appears once in the current traffic set, with vehicles moving in opposite directions on the two main roads. Their embedded textures are preserved, and separate wheel meshes rotate while the vehicles move.
 - **Nature:** imported low-poly trees plus Quaternius CC0 bush, flowering-bush and grass GLBs scattered along the riverbanks.
 
@@ -15,13 +15,13 @@ Original small-scale 3D open-world mobile game prototype made with Godot 4.x.
 
 - Two small city districts separated by a river, connected by a bridge.
 - Main roads, side streets, sidewalks, lane markings and imported intersection pieces. Road, sidewalk and terrain surfaces use 512×512 AmbientCG color textures.
-- Third-person camera with swipe rotation on the right side of the screen.
+- Closer third-person camera with an independent orbit pivot and swipe rotation on the right side of the screen.
 - Live top-right minimap showing the river, bridge, main roads, side streets, building blocks and player position.
-- Camera-relative player movement, running and jumping.
+- Camera-relative player movement using an independent camera yaw (prevents rotation feedback), running and jumping.
 - 16 rigged Mixamo pedestrians, randomly selected from four character models, patrolling the sidewalks in both districts.
 - Eleven distinct imported traffic vehicles with collision shapes, two-way movement and rotating wheel meshes.
 - Enter/drive/exit interaction with a follow camera.
-- On-screen mobile movement, run, jump and vehicle buttons.
+- On-screen virtual joystick, run, jump and vehicle buttons.
 
 ## Visual target and current limits
 
