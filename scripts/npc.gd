@@ -9,13 +9,14 @@ const PedestrianModels: Array[PackedScene] = [
 const MixamoAnimations: PackedScene = preload("res://assets/models/people/mixamo_animation_library.glb")
 
 var target := Vector3.ZERO
-var walk_speed := 1.35
+var walk_speed := 1.25
 var change_timer := 0.0
 var district_center_z: float = -34.0
 var sidewalk_side: float = -1.0
 var character_visual: Node3D
 var animation_player: AnimationPlayer
 var idle_clip: StringName = &""
+var walk_clip: StringName = &""
 var run_clip: StringName = &""
 
 func _ready() -> void:
@@ -58,8 +59,12 @@ func _setup_mixamo_animations(model: Node3D) -> void:
 		var lower := String(clip).to_lower()
 		if lower.ends_with("/idle") or lower == "idle":
 			idle_clip = clip
+		elif lower.ends_with("/walk") or lower == "walk":
+			walk_clip = clip
 		elif lower.ends_with("/run") or lower == "run":
 			run_clip = clip
+	if walk_clip == &"":
+		walk_clip = run_clip
 	if idle_clip != &"":
 		animation_player.play(idle_clip)
 	source_scene.queue_free()
@@ -69,22 +74,22 @@ func _physics_process(delta: float) -> void:
 	if change_timer <= 0.0 or global_position.distance_to(target) < 1.0:
 		_pick_target()
 	var direction := target - global_position
-	direction.y = 0
+	direction.y = 0.0
 	var moving := direction.length() > 0.1
 	if moving:
 		direction = direction.normalized()
 		velocity.x = direction.x * walk_speed
 		velocity.z = direction.z * walk_speed
-		rotation.y = lerp_angle(rotation.y, atan2(-direction.x, -direction.z), delta * 5.0)
+		rotation.y = lerp_angle(rotation.y, atan2(-direction.x, -direction.z), delta * 4.5)
 	else:
 		velocity.x = move_toward(velocity.x, 0.0, walk_speed * 5.0 * delta)
 		velocity.z = move_toward(velocity.z, 0.0, walk_speed * 5.0 * delta)
 
 	if animation_player != null:
-		var desired_clip := run_clip if moving else idle_clip
+		var desired_clip := walk_clip if moving else idle_clip
 		if desired_clip != &"" and animation_player.current_animation != desired_clip:
 			animation_player.play(desired_clip, 0.2)
-		animation_player.speed_scale = 0.42 if moving else 1.0
+		animation_player.speed_scale = 0.56 if moving else 1.0
 
 	if not is_on_floor():
 		velocity.y -= 20.0 * delta
@@ -93,7 +98,6 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 
 func _pick_target() -> void:
-	# Patrol along the sidewalk instead of wandering through buildings or water.
 	target = Vector3(
 		randf_range(-65.0, 65.0),
 		global_position.y,
