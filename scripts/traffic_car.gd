@@ -20,12 +20,31 @@ var passby_audio: AudioStreamPlayer3D
 var _last_listener_distance := INF
 var _passby_played := false
 var mobile_input_vector := Vector2.ZERO
+var mobile_steer := 0.0
+var mobile_throttle := 0.0
+var mobile_brake := false
+var mobile_drive_controls_active := false
 var fuel_capacity := 60.0
 var fuel_liters := 60.0
 var speed_kmh := 0.0
 
 func set_mobile_input(value: Vector2) -> void:
 	mobile_input_vector = value.limit_length(1.0)
+
+func set_mobile_steer(value: float) -> void:
+	mobile_steer = clampf(value, -1.0, 1.0)
+	_update_mobile_control_state()
+
+func set_mobile_throttle(value: float) -> void:
+	mobile_throttle = clampf(value, -1.0, 1.0)
+	_update_mobile_control_state()
+
+func set_mobile_brake(value: bool) -> void:
+	mobile_brake = value
+	_update_mobile_control_state()
+
+func _update_mobile_control_state() -> void:
+	mobile_drive_controls_active = absf(mobile_steer) > 0.01 or absf(mobile_throttle) > 0.01 or mobile_brake
 
 func register_vehicle_visual(model: Node3D, wheel_radius: float = 0.45) -> void:
 	vehicle_wheels.clear()
@@ -104,16 +123,19 @@ func _drive_player(delta: float) -> void:
 	var input_dir := mobile_input_vector
 	if input_dir.length() < 0.05:
 		input_dir = Input.get_vector("move_left", "move_right", "move_forward", "move_back")
-	var throttle := -input_dir.y
+	var throttle := mobile_throttle if mobile_drive_controls_active else -input_dir.y
+	var steer := mobile_steer if mobile_drive_controls_active else input_dir.x
 	if fuel_liters <= 0.0:
 		throttle = 0.0
-	if abs(throttle) > 0.05:
+	if mobile_brake:
+		drive_speed = move_toward(drive_speed, 0.0, braking * 1.55 * delta)
+	elif absf(throttle) > 0.05:
 		drive_speed = move_toward(drive_speed, throttle * max_drive_speed, acceleration * delta)
 	else:
 		drive_speed = move_toward(drive_speed, 0.0, braking * delta)
 
-	if abs(drive_speed) > 0.15:
-		rotation.y -= input_dir.x * steering_speed * delta * sign(drive_speed)
+	if absf(drive_speed) > 0.15:
+		rotation.y -= steer * steering_speed * delta * sign(drive_speed)
 
 	fuel_liters = maxf(0.0, fuel_liters - absf(drive_speed) * 0.00008 * delta)
 	speed_kmh = absf(drive_speed) * 3.6
