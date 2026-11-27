@@ -50,6 +50,10 @@ func _gui_input(event: InputEvent) -> void:
 		queue_redraw()
 		accept_event()
 		return
+	# Only taps inside the actual map should create a waypoint. The expanded
+	# map has margins around the world rectangle; ignore taps in those margins.
+	if not _map_rect().has_point(point):
+		return
 	var world := _screen_to_world(point)
 	destination = Vector3(world.x, 0.0, world.y)
 	has_destination = true
