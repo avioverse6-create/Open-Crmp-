@@ -94,14 +94,15 @@ func _draw() -> void:
 	var bridge_b := _world_to_screen(5.5, 12)
 	draw_rect(Rect2(bridge_a, bridge_b - bridge_a), Color(0.48, 0.49, 0.47), true)
 
-	# Main roads and side streets.
+	# Main roads and side streets in the two districts, leaving the river clear.
 	for road_z in [-34.0, 34.0]:
-		var a := _world_to_screen(-75, road_z - 5)
-		var b := _world_to_screen(75, road_z + 5)
+		var a := _world_to_screen(-75, road_z - 8.0)
+		var b := _world_to_screen(75, road_z + 8.0)
 		draw_rect(Rect2(a, b - a), Color(0.20, 0.22, 0.23), true)
-		for road_x in [-48.0, -16.0, 16.0, 48.0]:
-			var c := _world_to_screen(road_x - 8.0, road_z - 37.0)
-			var d := _world_to_screen(road_x + 8.0, road_z + 37.0)
+	for road_x in [-48.0, -16.0, 16.0, 48.0]:
+		for road_segment in [Vector2(-74.0, -10.0), Vector2(10.0, 74.0)]:
+			var c := _world_to_screen(road_x - 8.0, road_segment.x)
+			var d := _world_to_screen(road_x + 8.0, road_segment.y)
 			draw_rect(Rect2(c, d - c), Color(0.19, 0.21, 0.22), true)
 
 	# Downtown modular GLB grid: five north-south roads and five cross streets.
