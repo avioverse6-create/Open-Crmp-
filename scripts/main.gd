@@ -936,6 +936,18 @@ func _setup_people() -> void:
 		downtown_npc.position = Vector3(randf_range(-62.0, 62.0), 0.1, downtown_npc.district_center_z + downtown_npc.sidewalk_side * 6.0)
 		add_child(downtown_npc)
 
+	# Extra pedestrians walk the north-south sidewalks, completing both axes of the grid.
+	var downtown_vertical_streets := [-64.0, -32.0, 0.0, 32.0, 64.0]
+	for i in range(10):
+		var vertical_npc := CharacterBody3D.new()
+		vertical_npc.set_script(NpcScript)
+		vertical_npc.vertical_route = true
+		vertical_npc.district_center_x = downtown_vertical_streets[i % downtown_vertical_streets.size()]
+		vertical_npc.sidewalk_side = -1.0 if i % 2 == 0 else 1.0
+		vertical_npc.sidewalk_offset = 6.0
+		vertical_npc.position = Vector3(vertical_npc.district_center_x + vertical_npc.sidewalk_side * 6.0, 0.1, randf_range(95.0, 215.0))
+		add_child(vertical_npc)
+
 func _setup_mobile_ui() -> void:
 	controls_layer = CanvasLayer.new()
 	controls_layer.layer = 10
