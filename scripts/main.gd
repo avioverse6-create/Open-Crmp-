@@ -151,7 +151,9 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	if snow_particles != null and is_instance_valid(player):
-		snow_particles.global_position = player.global_position + Vector3(0.0, 10.0, 0.0)
+		var snow_anchor: Node3D = player.active_vehicle if player.active_vehicle != null else player
+		if is_instance_valid(snow_anchor):
+			snow_particles.global_position = snow_anchor.global_position + Vector3(0.0, 10.0, 0.0)
 	for cloud in cloud_groups:
 		cloud.position.x += delta * 0.42
 		if cloud.position.x > 98.0:
