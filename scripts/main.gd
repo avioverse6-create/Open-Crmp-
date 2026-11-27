@@ -127,6 +127,8 @@ var home_panel: PanelContainer
 var fps_value_label: Label
 var cloud_groups: Array[Node3D] = []
 var selected_fps := 60
+var vehicle_hud: PanelContainer
+var vehicle_hud_label: Label
 
 func _ready() -> void:
 	randomize()
@@ -143,6 +145,12 @@ func _process(delta: float) -> void:
 		cloud.position.x += delta * 0.42
 		if cloud.position.x > 98.0:
 			cloud.position.x = -98.0
+	if vehicle_hud != null and is_instance_valid(player):
+		var driving := player.active_vehicle != null
+		vehicle_hud.visible = driving
+		if driving:
+			var car = player.active_vehicle
+			vehicle_hud_label.text = "%03d KM/H    •    БЕНЗИН  %.1f L" % [int(car.get("speed_kmh")), float(car.get("fuel_liters"))]
 
 func _setup_audio() -> void:
 	# Authentic field-recorded city traffic and distant crowd chatter, downloaded by CI.
@@ -607,6 +615,30 @@ func _setup_mobile_ui() -> void:
 	status_label.add_theme_color_override("font_color", Color.WHITE)
 	root.add_child(status_label)
 
+	vehicle_hud = PanelContainer.new()
+	vehicle_hud.name = "VehicleDashboard"
+	vehicle_hud.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	vehicle_hud.position = Vector2(-150, 16)
+	vehicle_hud.size = Vector2(300, 58)
+	vehicle_hud.visible = false
+	var dashboard_style := StyleBoxFlat.new()
+	dashboard_style.bg_color = Color(0.025, 0.035, 0.045, 0.88)
+	dashboard_style.border_color = Color(0.72, 0.82, 0.92, 0.42)
+	dashboard_style.set_border_width_all(1)
+	dashboard_style.set_corner_radius_all(14)
+	dashboard_style.content_margin_left = 14
+	dashboard_style.content_margin_right = 14
+	dashboard_style.content_margin_top = 8
+	dashboard_style.content_margin_bottom = 8
+	vehicle_hud.add_theme_stylebox_override("panel", dashboard_style)
+	vehicle_hud_label = Label.new()
+	vehicle_hud_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vehicle_hud_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	vehicle_hud_label.text = "000 KM/H    •    БЕНЗИН 60.0 L"
+	vehicle_hud_label.add_theme_font_size_override("font_size", 17)
+	vehicle_hud.add_child(vehicle_hud_label)
+	root.add_child(vehicle_hud)
+
 	var joystick := VirtualJoystick.new()
 	joystick.name = "MovementJoystick"
 	joystick.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
@@ -620,7 +652,7 @@ func _setup_mobile_ui() -> void:
 	)
 
 	var jump_button := Button.new()
-	jump_button.text = "ПРЫЖОК"
+	jump_button.text = "⤒"
 	jump_button.position = Vector2(-150, -168)
 	jump_button.size = Vector2(126, 54)
 	jump_button.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
@@ -630,7 +662,7 @@ func _setup_mobile_ui() -> void:
 	jump_button.button_up.connect(func(): Input.action_release("jump"))
 
 	var run_button := Button.new()
-	run_button.text = "БЕЖАТЬ"
+	run_button.text = "»"
 	run_button.position = Vector2(-150, -105)
 	run_button.size = Vector2(126, 54)
 	run_button.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
@@ -640,7 +672,7 @@ func _setup_mobile_ui() -> void:
 	run_button.button_up.connect(func(): Input.action_release("run"))
 
 	enter_button = Button.new()
-	enter_button.text = "МАШИНА"
+	enter_button.text = "🚘"
 	enter_button.position = Vector2(-150, -42)
 	enter_button.size = Vector2(126, 54)
 	enter_button.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
@@ -847,4 +879,4 @@ func _toggle_vehicle() -> void:
 			nearest = car
 	if nearest != null:
 		player.enter_vehicle(nearest)
-		enter_button.text = "ВЫЙТИ"
+		enter_button.text = "↗"
