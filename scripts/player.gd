@@ -63,9 +63,9 @@ func _ready() -> void:
 	camera_pivot.global_position = global_position + Vector3(0, 1.55, 0)
 	add_child(camera_pivot)
 	camera = Camera3D.new()
-	camera.position = Vector3(0, 0.72, 2.45)
+	camera.position = Vector3(0, 0.58, 1.85)
 	camera.rotation_degrees.x = -8.0
-	camera.fov = 68.0
+	camera.fov = 70.0
 	camera.current = true
 	camera_pivot.add_child(camera)
 
@@ -187,7 +187,7 @@ func exit_vehicle() -> void:
 	camera_pivot.top_level = true
 	camera_pivot.global_position = global_position + Vector3(0, 1.55, 0)
 	camera_pivot.global_rotation = Vector3.ZERO
-	camera.position = Vector3(0, 0.72, 2.45)
+	camera.position = Vector3(0, 0.58, 1.85)
 	camera.rotation_degrees.x = -8.0
 	active_vehicle = null
 	visible = true
