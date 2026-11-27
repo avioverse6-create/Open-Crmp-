@@ -8,7 +8,7 @@ Original small-scale 3D open-world mobile game prototype made with Godot 4.x.
 - **Roads:** 10 modular Kenney City Kit Roads GLB pieces, including straight sections, bends, crossings, intersections, a roundabout and a bridge.
 - **Street props:** imported traffic lights, highway signs, bridge pillars, construction barriers and cones. Matching road color atlas is included.
 - **People:** four rigged Mixamo GLB characters are used for the player and pedestrians. The separate animation library currently supplies Idle and Run; Run is slowed to approximate a walk for pedestrians. The bundled library has Idle and Run but no dedicated Walk clip; the Run cycle is slowed for pedestrian walking.
-- **Cars:** 11 imported Kenney Car Kit GLBs are used in traffic: sedan, SUV, taxi, police car, delivery van, box truck, fire truck, garbage truck, sports hatchback, sports sedan and ambulance. Each model appears once in the current traffic set, with vehicles moving in opposite directions on the two main roads. Their embedded textures are preserved, and separate wheel meshes rotate while the vehicles move.
+- **Cars:** gameplay uses eight detailed Mint vehicle GLBs (sedan, SUV, taxi, police, pickup, fire truck, sports car and ambulance), each around 18k–20k triangles with embedded textures. They are CC0 1.0 and downloaded by the Android build workflow. Legacy Kenney vehicle files may remain in the repository but are not loaded by gameplay.
 - **Nature:** imported low-poly trees plus Quaternius CC0 bush, flowering-bush and grass GLBs scattered along the riverbanks.
 
 ## World and gameplay
@@ -19,7 +19,7 @@ Original small-scale 3D open-world mobile game prototype made with Godot 4.x.
 - Live top-right minimap showing the river, bridge, main roads, side streets, building blocks and player position.
 - Camera-relative player movement using an independent camera yaw (prevents rotation feedback), running and jumping.
 - 16 rigged Mixamo pedestrians, randomly selected from four character models, patrolling the sidewalks in both districts.
-- Eleven distinct imported traffic vehicles with collision shapes, two-way movement and rotating wheel meshes.
+- Eight detailed CC0 vehicle types are used for two-way traffic. The current Mint GLBs are static single-mesh models, so their wheels do not yet rotate independently.
 - Enter/drive/exit interaction with a follow camera.
 - On-screen virtual joystick, run, jump and vehicle buttons.
 
@@ -56,7 +56,7 @@ No GTA code, maps, characters, logos or extracted game assets are included.
 ## Asset licensing
 
 - City buildings, road pieces and roadside props: Kenney assets, CC0 1.0. See `assets/models/city/CREDITS.md`.
-- The 11-model vehicle fleet: Kenney Car Kit, CC0 1.0. See `assets/models/vehicles/CREDITS.md` and `CC0-1.0.txt`.
+- Realistic vehicle models: Mint CC0 1.0 GLBs. See the Mint vehicle library at https://mint.gg/free-3d-models/category/cars.
 - AmbientCG color textures: CC0 1.0; see `assets/textures/AMBIENTCG-CREDITS.md`.
 - Player and pedestrian characters and their animation library: Mixamo assets bundled by vinish.dev. See `assets/models/people/CREDITS.md`; review Adobe's current terms before publishing.
 - Original city-kit tree and street-light assets: see `assets/licenses/CC0-1.0-City-Kit.txt`.
