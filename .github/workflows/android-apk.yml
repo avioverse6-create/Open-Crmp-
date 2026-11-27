@@ -57,6 +57,25 @@ jobs:
           done
           curl -fsSL https://opengameart.org/sites/default/files/urban_theme_bpm115.mp3 -o assets/audio/menu_urban.mp3
           ls -lh assets/audio assets/audio/footsteps
+      - name: Download additional CC0 city and vehicle GLB assets
+        run: |
+          mkdir -p assets/models/city/downtown assets/models/vehicles
+          fetch_optional() {
+            url="$1"
+            target="$2"
+            temp="${target}.download"
+            if curl -fL --retry 2 --connect-timeout 20 "$url" -o "$temp" && test -s "$temp"; then
+              mv "$temp" "$target"
+              echo "Downloaded $target"
+            else
+              rm -f "$temp"
+              echo "Optional asset unavailable: $target"
+            fi
+          }
+          fetch_optional "https://tevy.dev/models/apartment-block/v2/lod0.glb" "assets/models/city/downtown/apartment_block.glb"
+          fetch_optional "https://grab3d.com/dl/high-rise-apartment/high-rise-apartment-light.glb" "assets/models/city/downtown/highrise_apartment.glb"
+          fetch_optional "https://cdn.mint.gg/owned-artifacts/a48562173ee793d79703636cb0ccc623ae9b75bd3299837797fbad45f7dc6946" "assets/models/vehicles/realistic_sports.glb"
+          ls -lh assets/models/city/downtown assets/models/vehicles
       - name: Configure Godot Android SDK paths
         run: |
           mkdir -p ~/.config/godot
