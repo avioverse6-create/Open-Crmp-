@@ -49,7 +49,14 @@ jobs:
           curl -fsSL https://opengameart.org/sites/default/files/engine_start_up_01.wav -o assets/audio/car_start.wav
           curl -fsSL "https://opengameart.org/sites/default/files/city_ambience_-_traffic_-_street_-_cars_and_tram.mp3" -o assets/audio/city_traffic.mp3
           curl -fsSL https://opengameart.org/sites/default/files/crowd_-_mall_ambience.mp3 -o assets/audio/pedestrian_chatter.mp3
-          ls -lh assets/audio
+          mkdir -p assets/audio/footsteps
+          for pair in "01-footstep_0.ogg:01-footstep.ogg" "02-footstep.ogg:02-footstep.ogg" "03-footstep.ogg:03-footstep.ogg" "04-footstep.ogg:04-footstep.ogg" "05-footstep.ogg:05-footstep.ogg" "06-footstep.ogg:06-footstep.ogg"; do
+            source_name="${pair%%:*}"
+            target_name="${pair##*:}"
+            curl -fsSL "https://opengameart.org/sites/default/files/${source_name}" -o "assets/audio/footsteps/${target_name}"
+          done
+          curl -fsSL https://opengameart.org/sites/default/files/urban_theme_bpm115.mp3 -o assets/audio/menu_urban.mp3
+          ls -lh assets/audio assets/audio/footsteps
       - name: Configure Godot Android SDK paths
         run: |
           mkdir -p ~/.config/godot
