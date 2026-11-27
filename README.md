@@ -66,7 +66,7 @@ Keep the asset credit and license files with the project. The project has not ye
 
 ### Ground texture set
 
-The mobile scene uses CC0 AmbientCG color/albedo maps for Asphalt021 (roads), Concrete012 (sidewalks, curbs and bridge), and Grass004 (terrain). Materials use triplanar mapping to reduce visible stretching on box-shaped surfaces. These committed maps are color-only; high-resolution normal and roughness maps are not part of this lightweight build yet. Imported Kenney city buildings keep their original atlas textures.
+The mobile scene uses CC0 AmbientCG color/albedo maps for Asphalt021 (roads), Concrete012 (sidewalks, curbs and bridge), and Grass004 (terrain). Materials use triplanar mapping to reduce visible stretching on box-shaped surfaces. These committed AmbientCG maps are the color/albedo layer. Lightweight procedural normal and roughness detail maps are wired separately; they are not scanned AmbientCG maps. Imported Kenney city buildings keep their original atlas textures.
 
 
 ### Surface detail maps
