@@ -6,7 +6,6 @@ const PedestrianModels: Array[PackedScene] = [
 	preload("res://assets/models/people/citizen_remy.glb"),
 	preload("res://assets/models/people/citizen_shannon.glb")
 ]
-const MixamoAnimations: PackedScene = preload("res://assets/models/people/mixamo_animation_library.glb")
 const FootstepSounds: Array[AudioStream] = [
 	preload("res://assets/audio/footsteps/01-footstep.ogg"),
 	preload("res://assets/audio/footsteps/02-footstep.ogg"),
@@ -22,10 +21,7 @@ var change_timer := 0.0
 var district_center_z: float = -34.0
 var sidewalk_side: float = -1.0
 var character_visual: Node3D
-var animation_player: AnimationPlayer
-var idle_clip: StringName = &""
-var walk_clip: StringName = &""
-var run_clip: StringName = &""
+var humanoid_animator
 var footstep_player: AudioStreamPlayer3D
 var chatter_player: AudioStreamPlayer3D
 var footstep_timer := randf_range(0.15, 0.55)
@@ -46,7 +42,8 @@ func _ready() -> void:
 	var model_scene := PedestrianModels[randi() % PedestrianModels.size()]
 	var model := model_scene.instantiate() as Node3D
 	character_visual.add_child(model)
-	_setup_mixamo_animations(model)
+	humanoid_animator = preload("res://scripts/humanoid_animator.gd").new()
+	humanoid_animator.bind(model)
 	footstep_player = AudioStreamPlayer3D.new()
 	footstep_player.name = "NPCFootsteps"
 	footstep_player.position = Vector3(0, 0.12, 0)
@@ -67,84 +64,6 @@ func _ready() -> void:
 		add_child(chatter_player)
 		chatter_player.play(randf_range(0.0, 18.0))
 	_pick_target()
-
-func _setup_mixamo_animations(model: Node3D) -> void:
-	var source_scene := MixamoAnimations.instantiate()
-	var source_players := source_scene.find_children("*", "AnimationPlayer", true, false)
-	if source_players.is_empty():
-		source_scene.queue_free()
-		return
-	var source_player := source_players[0] as AnimationPlayer
-	animation_player = AnimationPlayer.new()
-	animation_player.name = "PedestrianAnimationPlayer"
-	animation_player.root_node = NodePath("..")
-	model.add_child(animation_player)
-	for library_name in source_player.get_animation_library_list():
-		var source_library := source_player.get_animation_library(library_name)
-		if source_library != null:
-			var copied_library := source_library.duplicate(true) as AnimationLibrary
-			if copied_library != null:
-				_retarget_animation_library(copied_library, model)
-				animation_player.add_animation_library(library_name, copied_library)
-	for clip in animation_player.get_animation_list():
-		var lower := String(clip).to_lower()
-		if lower.ends_with("/idle") or lower == "idle":
-			idle_clip = clip
-		elif lower.ends_with("/walk") or lower == "walk":
-			walk_clip = clip
-		elif lower.ends_with("/run") or lower == "run":
-			run_clip = clip
-	if walk_clip == &"":
-		walk_clip = run_clip
-	if idle_clip != &"":
-		animation_player.play(idle_clip)
-	source_scene.queue_free()
-
-func _retarget_animation_library(library: AnimationLibrary, model: Node3D) -> void:
-	var skeletons := model.find_children("*", "Skeleton3D", true, false)
-	if skeletons.is_empty():
-		push_warning("No Skeleton3D found for pedestrian animation retargeting.")
-		return
-	var retargeted := 0
-	for clip_name in library.get_animation_list():
-		var clip := library.get_animation(clip_name)
-		if clip == null:
-			continue
-		for track_index in range(clip.get_track_count()):
-			var old_path := clip.track_get_path(track_index)
-			var bone_name := ""
-			for name_index in range(old_path.get_name_count()):
-				var candidate := old_path.get_name(name_index)
-				for skeleton_node in skeletons:
-					var skeleton := skeleton_node as Skeleton3D
-					if skeleton.find_bone(candidate) >= 0:
-						bone_name = candidate
-						break
-				if not bone_name.is_empty():
-					break
-			if bone_name.is_empty():
-				for sub_index in range(old_path.get_subname_count()):
-					var candidate := old_path.get_subname(sub_index)
-					for skeleton_node in skeletons:
-						var skeleton := skeleton_node as Skeleton3D
-						if skeleton.find_bone(candidate) >= 0:
-							bone_name = candidate
-							break
-					if not bone_name.is_empty():
-						break
-			if bone_name.is_empty():
-				continue
-			for skeleton_node in skeletons:
-				var skeleton := skeleton_node as Skeleton3D
-				if skeleton.find_bone(bone_name) >= 0:
-					var relative_path := model.get_path_to(skeleton)
-					clip.track_set_path(track_index, NodePath(String(relative_path) + ":" + bone_name))
-					retargeted += 1
-					break
-	if retargeted == 0:
-		push_warning("Mixamo animation tracks did not match this pedestrian skeleton.")
-	else:
-		print("Retargeted ", retargeted, " Mixamo animation tracks for pedestrian.")
 
 func _play_footstep() -> void:
 	if footstep_player == null or FootstepSounds.is_empty():
@@ -169,11 +88,8 @@ func _physics_process(delta: float) -> void:
 		velocity.x = move_toward(velocity.x, 0.0, walk_speed * 5.0 * delta)
 		velocity.z = move_toward(velocity.z, 0.0, walk_speed * 5.0 * delta)
 
-	if animation_player != null:
-		var desired_clip := walk_clip if moving else idle_clip
-		if desired_clip != &"" and animation_player.current_animation != desired_clip:
-			animation_player.play(desired_clip, 0.2)
-		animation_player.speed_scale = 0.70 if moving else 1.0
+	if humanoid_animator != null:
+		humanoid_animator.update(delta, moving, false)
 
 	if moving and is_on_floor():
 		footstep_timer -= delta

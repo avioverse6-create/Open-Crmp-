@@ -157,6 +157,20 @@ func _setup_audio() -> void:
 		add_child(traffic_ambience)
 		traffic_ambience.play()
 
+	var river_path := "res://assets/audio/river_ambience.mp3"
+	if ResourceLoader.exists(river_path):
+		var river_audio := AudioStreamPlayer3D.new()
+		river_audio.name = "RiverAmbience3D"
+		river_audio.stream = load(river_path)
+		if river_audio.stream is AudioStreamMP3:
+			(river_audio.stream as AudioStreamMP3).loop = true
+		river_audio.position = Vector3(0, 0.25, 0)
+		river_audio.volume_db = -14.0
+		river_audio.unit_size = 7.0
+		river_audio.max_distance = 72.0
+		add_child(river_audio)
+		river_audio.play()
+
 	var chatter_path := "res://assets/audio/pedestrian_chatter.mp3"
 	if ResourceLoader.exists(chatter_path):
 		for district_z in [-34.0, 34.0]:
@@ -196,7 +210,8 @@ func _setup_world() -> void:
 	add_child(environment)
 	_setup_clouds()
 
-	_make_box("Mainland", Vector3(0, -0.6, 0), Vector3(150, 1, 150), Color(0.28, 0.39, 0.27), true)
+	_make_box("Mainland West", Vector3(0, -0.6, -41.25), Vector3(150, 1, 67.5), Color(0.28, 0.39, 0.27), true)
+	_make_box("Mainland East", Vector3(0, -0.6, 41.25), Vector3(150, 1, 67.5), Color(0.28, 0.39, 0.27), true)
 	_make_box("River", Vector3(0, -0.05, 0), Vector3(150, 0.15, 17), Color(0.08, 0.30, 0.48), false)
 
 	# Main road, two districts and the bridge connecting them.
@@ -454,16 +469,35 @@ func _make_box(label: String, at: Vector3, dimensions: Vector3, color: Color, so
 		material.uv1_triplanar_sharpness = 4.0
 		material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	elif label == "River":
+		var water_plane := PlaneMesh.new()
+		water_plane.size = Vector2(dimensions.x, dimensions.z)
+		water_plane.subdivide_width = 120
+		water_plane.subdivide_depth = 20
+		mesh_instance.mesh = water_plane
+		root.position.y = at.y + dimensions.y * 0.5
 		var water_shader := Shader.new()
 		water_shader.code = """
 shader_type spatial;
+render_mode cull_disabled, diffuse_burley, specular_schlick_ggx;
+uniform vec3 deep_color : source_color = vec3(0.012, 0.075, 0.12);
+uniform vec3 shallow_color : source_color = vec3(0.035, 0.22, 0.27);
+void vertex() {
+	float long_wave = sin(VERTEX.x * 0.16 + TIME * 0.72) * 0.075;
+	float cross_wave = sin(VERTEX.z * 0.82 - TIME * 0.58) * 0.032;
+	float fine_wave = sin((VERTEX.x + VERTEX.z) * 0.34 + TIME * 0.41) * 0.018;
+	VERTEX.y += long_wave + cross_wave + fine_wave;
+}
 void fragment() {
-	float a = sin(UV.x * 52.0 + TIME * 0.72) * 0.5 + 0.5;
-	float b = sin(UV.y * 39.0 - TIME * 0.51 + UV.x * 13.0) * 0.5 + 0.5;
-	float shimmer = smoothstep(0.58, 0.96, a * 0.56 + b * 0.44);
-	ALBEDO = mix(vec3(0.018, 0.105, 0.17), vec3(0.075, 0.29, 0.36), shimmer * 0.62);
-	METALLIC = 0.12;
-	ROUGHNESS = 0.19;
+	float ripple_a = sin(UV.x * 118.0 + TIME * 0.82);
+	float ripple_b = sin(UV.y * 86.0 - TIME * 0.66 + UV.x * 18.0);
+	float ripple = smoothstep(0.25, 0.92, (ripple_a + ripple_b) * 0.25 + 0.5);
+	float fresnel = pow(1.0 - max(dot(normalize(NORMAL), normalize(VIEW)), 0.0), 4.0);
+	vec3 water = mix(deep_color, shallow_color, 0.30 + ripple * 0.28 + fresnel * 0.30);
+	ALBEDO = water;
+	METALLIC = 0.24;
+	ROUGHNESS = mix(0.18, 0.055, fresnel);
+	SPECULAR = 0.96;
+	EMISSION = shallow_color * ripple * 0.035;
 }
 """
 		var water_material := ShaderMaterial.new()

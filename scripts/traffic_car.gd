@@ -16,6 +16,9 @@ var gravity: float = 24.0
 var vehicle_wheels: Array[Node3D] = []
 var vehicle_wheel_radius: float = 0.45
 var engine_audio: AudioStreamPlayer3D
+var passby_audio: AudioStreamPlayer3D
+var _last_listener_distance := INF
+var _passby_played := false
 var mobile_input_vector := Vector2.ZERO
 
 func set_mobile_input(value: Vector2) -> void:
@@ -50,13 +53,25 @@ func _ready() -> void:
 		engine_audio = AudioStreamPlayer3D.new()
 		engine_audio.name = "EngineAudio"
 		engine_audio.stream = load(engine_path)
-		engine_audio.volume_db = -16.0
-		engine_audio.unit_size = 7.0
-		engine_audio.max_distance = 48.0
+		engine_audio.volume_db = -11.0
+		engine_audio.unit_size = 3.5
+		engine_audio.max_distance = 100.0
+		engine_audio.doppler_tracking = AudioStreamPlayer3D.DOPPLER_TRACKING_PHYSICS_STEP
 		add_child(engine_audio)
 		if engine_audio.stream is AudioStreamWAV:
 			(engine_audio.stream as AudioStreamWAV).loop_mode = AudioStreamWAV.LOOP_FORWARD
 		engine_audio.play()
+
+	var passby_path := "res://assets/audio/car_passby.wav"
+	if ResourceLoader.exists(passby_path):
+		passby_audio = AudioStreamPlayer3D.new()
+		passby_audio.name = "PassByAudio"
+		passby_audio.stream = load(passby_path)
+		passby_audio.volume_db = -1.0
+		passby_audio.unit_size = 4.0
+		passby_audio.max_distance = 48.0
+		passby_audio.doppler_tracking = AudioStreamPlayer3D.DOPPLER_TRACKING_PHYSICS_STEP
+		add_child(passby_audio)
 
 func _physics_process(delta: float) -> void:
 	if not is_on_floor():
@@ -79,6 +94,7 @@ func _physics_process(delta: float) -> void:
 			position.x = start_x
 
 	_update_engine_audio()
+	_update_passby_audio()
 
 func _drive_player(delta: float) -> void:
 	var input_dir := mobile_input_vector
@@ -104,4 +120,18 @@ func _update_engine_audio() -> void:
 		return
 	var current_speed := absf(drive_speed) if is_player_driven else absf(speed)
 	engine_audio.pitch_scale = clampf(0.82 + current_speed / max_drive_speed * 0.55, 0.82, 1.38)
-	engine_audio.volume_db = -20.0 + clampf(current_speed / max_drive_speed, 0.0, 1.0) * 5.0
+	engine_audio.volume_db = -12.0 + clampf(current_speed / max_drive_speed, 0.0, 1.0) * 4.0
+
+func _update_passby_audio() -> void:
+	if passby_audio == null:
+		return
+	var listener := get_viewport().get_camera_3d()
+	if listener == null:
+		return
+	var distance := global_position.distance_to(listener.global_position)
+	if distance > 34.0:
+		_passby_played = false
+	elif distance < 22.0 and distance < _last_listener_distance and not _passby_played:
+		passby_audio.play()
+		_passby_played = true
+	_last_listener_distance = distance

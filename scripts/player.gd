@@ -1,7 +1,6 @@
 extends CharacterBody3D
 
 const PlayerModel: PackedScene = preload("res://assets/models/people/citizen_bryce.glb")
-const MixamoAnimations: PackedScene = preload("res://assets/models/people/mixamo_animation_library.glb")
 const FootstepSounds: Array[AudioStream] = [
 	preload("res://assets/audio/footsteps/01-footstep.ogg"),
 	preload("res://assets/audio/footsteps/02-footstep.ogg"),
@@ -22,10 +21,9 @@ var active_vehicle: Node3D = null
 var saved_collision_layer: int = 1
 var saved_collision_mask: int = 1
 var visual_root: Node3D
-var animation_player: AnimationPlayer
-var idle_clip: StringName = &""
-var walk_clip: StringName = &""
-var run_clip: StringName = &""
+var humanoid_animator
+var in_water := false
+const WATER_SURFACE_Y := 0.025
 var mobile_input_vector := Vector2.ZERO
 var camera_yaw := 0.0
 var footstep_player: AudioStreamPlayer3D
@@ -49,7 +47,8 @@ func _ready() -> void:
 	add_child(visual_root)
 	var character := PlayerModel.instantiate() as Node3D
 	visual_root.add_child(character)
-	_setup_mixamo_animations(character)
+	humanoid_animator = preload("res://scripts/humanoid_animator.gd").new()
+	humanoid_animator.bind(character)
 	footstep_player = AudioStreamPlayer3D.new()
 	footstep_player.name = "FootstepAudio"
 	footstep_player.position = Vector3(0, 0.12, 0)
@@ -72,84 +71,6 @@ func _ready() -> void:
 
 func set_mobile_input(value: Vector2) -> void:
 	mobile_input_vector = value.limit_length(1.0)
-
-func _setup_mixamo_animations(character: Node3D) -> void:
-	var source_scene := MixamoAnimations.instantiate()
-	var source_players := source_scene.find_children("*", "AnimationPlayer", true, false)
-	if source_players.is_empty():
-		source_scene.queue_free()
-		return
-	var source_player := source_players[0] as AnimationPlayer
-	animation_player = AnimationPlayer.new()
-	animation_player.name = "CharacterAnimationPlayer"
-	animation_player.root_node = NodePath("..")
-	character.add_child(animation_player)
-	for library_name in source_player.get_animation_library_list():
-		var source_library := source_player.get_animation_library(library_name)
-		if source_library != null:
-			var copied_library := source_library.duplicate(true) as AnimationLibrary
-			if copied_library != null:
-				_retarget_animation_library(copied_library, character)
-				animation_player.add_animation_library(library_name, copied_library)
-	for clip in animation_player.get_animation_list():
-		var lower := String(clip).to_lower()
-		if lower.ends_with("/idle") or lower == "idle":
-			idle_clip = clip
-		elif lower.ends_with("/walk") or lower == "walk":
-			walk_clip = clip
-		elif lower.ends_with("/run") or lower == "run":
-			run_clip = clip
-	if walk_clip == &"":
-		walk_clip = run_clip
-	if idle_clip != &"":
-		animation_player.play(idle_clip)
-	source_scene.queue_free()
-
-func _retarget_animation_library(library: AnimationLibrary, character: Node3D) -> void:
-	var skeletons := character.find_children("*", "Skeleton3D", true, false)
-	if skeletons.is_empty():
-		push_warning("No Skeleton3D found for player animation retargeting.")
-		return
-	var retargeted := 0
-	for clip_name in library.get_animation_list():
-		var clip := library.get_animation(clip_name)
-		if clip == null:
-			continue
-		for track_index in range(clip.get_track_count()):
-			var old_path := clip.track_get_path(track_index)
-			var bone_name := ""
-			for name_index in range(old_path.get_name_count()):
-				var candidate := old_path.get_name(name_index)
-				for skeleton_node in skeletons:
-					var skeleton := skeleton_node as Skeleton3D
-					if skeleton.find_bone(candidate) >= 0:
-						bone_name = candidate
-						break
-				if not bone_name.is_empty():
-					break
-			if bone_name.is_empty():
-				for sub_index in range(old_path.get_subname_count()):
-					var candidate := old_path.get_subname(sub_index)
-					for skeleton_node in skeletons:
-						var skeleton := skeleton_node as Skeleton3D
-						if skeleton.find_bone(candidate) >= 0:
-							bone_name = candidate
-							break
-					if not bone_name.is_empty():
-						break
-			if bone_name.is_empty():
-				continue
-			for skeleton_node in skeletons:
-				var skeleton := skeleton_node as Skeleton3D
-				if skeleton.find_bone(bone_name) >= 0:
-					var relative_path := character.get_path_to(skeleton)
-					clip.track_set_path(track_index, NodePath(String(relative_path) + ":" + bone_name))
-					retargeted += 1
-					break
-	if retargeted == 0:
-		push_warning("Mixamo animation tracks did not match the player skeleton.")
-	else:
-		print("Retargeted ", retargeted, " Mixamo animation tracks for player.")
 
 func _play_footstep() -> void:
 	if footstep_player == null or FootstepSounds.is_empty():
@@ -180,9 +101,10 @@ func _physics_process(delta: float) -> void:
 	direction.y = 0.0
 	var moving := direction.length() > 0.05
 	var running := Input.is_action_pressed("run")
+	set_in_water(absf(global_position.x) > 6.0 and absf(global_position.z) < 8.5 and global_position.y < 3.0)
 	if moving:
 		direction = direction.normalized()
-		var current_speed := run_speed if running else walk_speed
+		var current_speed := (run_speed if running else walk_speed) * (0.58 if in_water else 1.0)
 		velocity.x = direction.x * current_speed
 		velocity.z = direction.z * current_speed
 		rotation.y = lerp_angle(rotation.y, atan2(-direction.x, -direction.z), delta * 8.0)
@@ -190,16 +112,10 @@ func _physics_process(delta: float) -> void:
 		velocity.x = move_toward(velocity.x, 0.0, walk_speed * 7.0 * delta)
 		velocity.z = move_toward(velocity.z, 0.0, walk_speed * 7.0 * delta)
 
-	if animation_player != null:
-		var desired_clip := run_clip if running and moving else (walk_clip if moving else idle_clip)
-		if desired_clip != &"" and animation_player.current_animation != desired_clip:
-			animation_player.play(desired_clip, 0.2)
-		if moving and desired_clip == walk_clip:
-			animation_player.speed_scale = 0.72 if not running else 1.12
-		else:
-			animation_player.speed_scale = 1.0
+	if humanoid_animator != null:
+		humanoid_animator.update(delta, moving and not in_water, running)
 
-	if moving and is_on_floor() and active_vehicle == null:
+	if moving and is_on_floor() and active_vehicle == null and not in_water:
 		footstep_timer -= delta
 		if footstep_timer <= 0.0:
 			_play_footstep()
@@ -209,11 +125,31 @@ func _physics_process(delta: float) -> void:
 
 	if Input.is_action_just_pressed("jump") and is_on_floor():
 		velocity.y = jump_velocity
-	if not is_on_floor():
+	if in_water:
+		var buoyancy_target := clampf((WATER_SURFACE_Y - global_position.y) * 2.8, -1.5, 1.5)
+		velocity.y = move_toward(velocity.y, buoyancy_target, 3.5 * delta)
+	elif not is_on_floor():
 		velocity.y -= gravity * delta
 	else:
 		velocity.y = maxf(velocity.y, 0.0)
 	move_and_slide()
+
+func set_in_water(value: bool) -> void:
+	if in_water == value:
+		return
+	in_water = value
+	if value:
+		var splash_path := "res://assets/audio/water_splash.wav"
+		if ResourceLoader.exists(splash_path):
+			var splash := AudioStreamPlayer3D.new()
+			splash.stream = load(splash_path)
+			splash.volume_db = -3.0
+			splash.unit_size = 4.0
+			splash.max_distance = 28.0
+			splash.global_position = global_position
+			get_tree().current_scene.add_child(splash)
+			splash.finished.connect(splash.queue_free)
+			splash.play()
 
 func enter_vehicle(vehicle: Node3D) -> void:
 	active_vehicle = vehicle

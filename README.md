@@ -82,3 +82,10 @@ Roads, sidewalks, bridge surfaces and terrain now have normal and roughness text
 - Player and NPC footsteps: six short, real field-recorded subway/concrete step samples by GboxMikeFozzy, CC0, from OpenGameArt.org.
 - Main menu music: "Urban Theme" by MintoDog, loopable MP3, CC0, from OpenGameArt.org.
 - Pedestrian chatter uses the existing real field recording from Gregor Quendel's crowd ambience collection; the sound is placed on selected NPCs with 3D distance falloff.
+
+
+### Additional ambience and vehicle audio
+
+- River stream ambience: “Free General Ambience Sounds” by Gregor Quendel, CC BY-SA 4.0. Source: https://opengameart.org/content/free-general-ambience-sounds
+- Vehicle pass-by recording: “Car 1” by Yaroslav Novikov, CC0. Source: https://opengameart.org/content/car-1-1
+- Water splash: “Water Splash and sand footsteps” by Peludo, CC0. Source: https://opengameart.org/content/water-splash-and-sand-footsteps
