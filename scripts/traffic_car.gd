@@ -13,15 +13,32 @@ var direction: float = 1.0
 var is_player_driven: bool = false
 var drive_speed: float = 0.0
 var gravity: float = 24.0
+var vehicle_wheels: Array[Node3D] = []
+var vehicle_wheel_radius: float = 0.45
+
+func register_vehicle_visual(model: Node3D, wheel_radius: float = 0.45) -> void:
+	vehicle_wheels.clear()
+	vehicle_wheel_radius = maxf(wheel_radius, 0.1)
+	for node in model.find_children("*", "Node3D", true, false):
+		if String(node.name).to_lower().begins_with("wheel"):
+			vehicle_wheels.append(node)
+
+func _spin_wheels(delta: float, signed_speed: float) -> void:
+	if vehicle_wheels.is_empty():
+		return
+	var angle := signed_speed * delta / vehicle_wheel_radius
+	for wheel in vehicle_wheels:
+		wheel.rotate_object_local(Vector3.RIGHT, angle)
+
 
 func _ready() -> void:
 	position.x = start_x
 	position.z = lane_z
 	var collision := CollisionShape3D.new()
 	var shape := BoxShape3D.new()
-	shape.size = Vector3(2.15, 1.35, 3.9)
+	shape.size = Vector3(2.35, 1.65, 4.7)
 	collision.shape = shape
-	collision.position.y = 0.72
+	collision.position.y = 0.82
 	add_child(collision)
 
 func _physics_process(delta: float) -> void:
@@ -37,6 +54,7 @@ func _physics_process(delta: float) -> void:
 		velocity.z = 0.0
 		rotation.y = PI * 0.5 if direction > 0.0 else -PI * 0.5
 		move_and_slide()
+		_spin_wheels(delta, speed * direction)
 		if direction > 0.0 and position.x > end_x:
 			position.x = start_x
 		elif direction < 0.0 and position.x < end_x:
@@ -57,3 +75,4 @@ func _drive_player(delta: float) -> void:
 	velocity.x = forward.x * drive_speed
 	velocity.z = forward.z * drive_speed
 	move_and_slide()
+	_spin_wheels(delta, drive_speed)
