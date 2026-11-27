@@ -387,7 +387,6 @@ func _setup_world() -> void:
 	if not ResourceLoader.exists("res://assets/models/vinish_city/road-straight.glb"):
 		_add_sidewalks()
 		_add_road_markings()
-		_add_city_road_assets()
 	_setup_downtown()
 
 
