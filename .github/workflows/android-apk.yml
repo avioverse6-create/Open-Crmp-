@@ -4,17 +4,6 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths:
-      - "**.gd"
-      - "**.tscn"
-      - "**.tres"
-      - "**.godot"
-      - "**.glb"
-      - "**.png"
-      - "**.svg"
-      - "project.godot"
-      - "export_presets.cfg"
-      - ".github/workflows/android-apk.yml"
 
 permissions:
   contents: read
