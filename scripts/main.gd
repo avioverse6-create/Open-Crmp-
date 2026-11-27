@@ -296,8 +296,11 @@ func _setup_downtown() -> void:
 	]:
 		_spawn_asset_building(CityBuildingScenes[0], at, 3.4)
 
+	# One detailed CC0 sports coupe as a visible downtown street/parking vehicle.
+	_spawn_optional_city_model("res://assets/models/vehicles/realistic_sports.glb", Vector3(-12, 0, 112), Vector3.ONE * 2.4, Vector3(2.2, 1.25, 4.6), Vector3(0, PI, 0))
 
-func _spawn_optional_city_model(path: String, at: Vector3, model_scale: Vector3, collision_size: Vector3) -> void:
+
+func _spawn_optional_city_model(path: String, at: Vector3, model_scale: Vector3, collision_size: Vector3, rotation_value: Vector3 = Vector3.ZERO) -> void:
 	if not ResourceLoader.exists(path):
 		return
 	var packed := load(path) as PackedScene
@@ -307,6 +310,7 @@ func _spawn_optional_city_model(path: String, at: Vector3, model_scale: Vector3,
 	var body := StaticBody3D.new()
 	body.name = "DetailedDowntownBuilding"
 	body.position = at
+	body.rotation = rotation_value
 	var model := packed.instantiate() as Node3D
 	if model == null:
 		body.queue_free()
