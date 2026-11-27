@@ -56,6 +56,7 @@ No GTA code, maps, characters, logos or extracted game assets are included.
 
 - City buildings, road pieces, roadside props and the eight-vehicle Car Kit fleet: Kenney assets, CC0 1.0. See `assets/models/city/CREDITS.md` and `assets/models/vehicles/CREDITS.md`.
 - Player and pedestrian characters and their animation library: Mixamo assets bundled by vinish.dev. See `assets/models/people/CREDITS.md`; review Adobe's current terms before publishing.
-- Original city-kit car, tree and street-light assets: see `assets/licenses/CC0-1.0-City-Kit.txt`.
+- Original city-kit tree and street-light assets: see `assets/licenses/CC0-1.0-City-Kit.txt`.
+- Additional vehicles: Kenney Car Kit, CC0 1.0; see `assets/models/vehicles/CREDITS.md` and `CC0-1.0.txt`.
 
 Keep the asset credit and license files with the project. The project has not yet been verified in the Godot editor on a real Android device.
