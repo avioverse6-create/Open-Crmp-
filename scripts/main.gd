@@ -1,5 +1,48 @@
 extends Node3D
 
+class VirtualJoystick extends Control:
+	signal changed(value: Vector2)
+	var _finger := -1
+	var _mouse_down := false
+	var _value := Vector2.ZERO
+	func _ready() -> void:
+		mouse_filter = Control.MOUSE_FILTER_STOP
+		queue_redraw()
+	func _gui_input(event: InputEvent) -> void:
+		if event is InputEventScreenTouch:
+			if event.pressed and _finger == -1:
+				_finger = event.index
+				_set_value(event.position)
+				accept_event()
+			elif not event.pressed and event.index == _finger:
+				_finger = -1
+				_set_value(size * 0.5)
+				accept_event()
+		elif event is InputEventScreenDrag and event.index == _finger:
+			_set_value(event.position)
+			accept_event()
+		elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+			_mouse_down = event.pressed
+			_set_value(event.position if event.pressed else size * 0.5)
+			accept_event()
+		elif event is InputEventMouseMotion and _mouse_down:
+			_set_value(event.position)
+			accept_event()
+	func _set_value(point: Vector2) -> void:
+		var center := size * 0.5
+		var radius := minf(size.x, size.y) * 0.36
+		_value = ((point - center) / radius).limit_length(1.0)
+		changed.emit(_value)
+		queue_redraw()
+	func _draw() -> void:
+		var center := size * 0.5
+		var radius := minf(size.x, size.y) * 0.36
+		draw_circle(center, radius + 5.0, Color(0.02, 0.03, 0.04, 0.25))
+		draw_circle(center, radius, Color(0.75, 0.82, 0.9, 0.16))
+		draw_arc(center, radius, 0.0, TAU, 64, Color(1, 1, 1, 0.42), 1.5, true)
+		draw_circle(center + _value * radius, radius * 0.43, Color(0.92, 0.95, 1.0, 0.72))
+		draw_arc(center + _value * radius, radius * 0.43, 0.0, TAU, 48, Color(1, 1, 1, 0.8), 1.4, true)
+
 const PlayerScript = preload("res://scripts/player.gd")
 const CarScript = preload("res://scripts/traffic_car.gd")
 const NpcScript = preload("res://scripts/npc.gd")
@@ -463,9 +506,11 @@ func _setup_people() -> void:
 
 func _setup_mobile_ui() -> void:
 	controls_layer = CanvasLayer.new()
+	controls_layer.layer = 10
 	add_child(controls_layer)
 	var root := Control.new()
 	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	root.mouse_filter = Control.MOUSE_FILTER_PASS
 	controls_layer.add_child(root)
 
 	var minimap := Control.new()
@@ -480,23 +525,17 @@ func _setup_mobile_ui() -> void:
 	status_label = Label.new()
 	status_label.text = "OPEN CITY  •  район 01"
 	status_label.position = Vector2(22, 18)
-	status_label.add_theme_font_size_override("font_size", 22)
+	status_label.add_theme_font_size_override("font_size", 20)
 	status_label.add_theme_color_override("font_color", Color.WHITE)
 	root.add_child(status_label)
 
-	var pad := GridContainer.new()
-	pad.columns = 3
-	pad.position = Vector2(24, -190)
-	pad.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
-	pad.add_theme_constant_override("h_separation", 8)
-	pad.add_theme_constant_override("v_separation", 8)
-	root.add_child(pad)
-	_add_action_button(pad, "", "")
-	_add_action_button(pad, "▲", "move_forward")
-	_add_action_button(pad, "", "")
-	_add_action_button(pad, "◀", "move_left")
-	_add_action_button(pad, "▼", "move_back")
-	_add_action_button(pad, "▶", "move_right")
+	var joystick := VirtualJoystick.new()
+	joystick.name = "MovementJoystick"
+	joystick.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+	joystick.position = Vector2(24, -190)
+	joystick.size = Vector2(160, 160)
+	root.add_child(joystick)
+	joystick.changed.connect(func(value: Vector2): player.set_mobile_input(value))
 
 	var jump_button := Button.new()
 	jump_button.text = "ПРЫЖОК"
@@ -526,16 +565,6 @@ func _setup_mobile_ui() -> void:
 	enter_button.add_theme_font_size_override("font_size", 17)
 	root.add_child(enter_button)
 	enter_button.pressed.connect(_toggle_vehicle)
-
-func _add_action_button(parent: GridContainer, caption: String, action: String) -> void:
-	var button := Button.new()
-	button.text = caption
-	button.custom_minimum_size = Vector2(62, 58)
-	button.add_theme_font_size_override("font_size", 22)
-	parent.add_child(button)
-	if action != "":
-		button.button_down.connect(func(): Input.action_press(action))
-		button.button_up.connect(func(): Input.action_release(action))
 
 func _toggle_vehicle() -> void:
 	if player == null:
