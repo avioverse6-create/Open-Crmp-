@@ -497,7 +497,14 @@ func _setup_downtown() -> void:
 	if detailed_roads and ResourceLoader.exists("res://assets/models/vinish_city/traffic-signal.glb"):
 		var signal_scene := load("res://assets/models/vinish_city/traffic-signal.glb") as PackedScene
 		if signal_scene != null:
-			for intersection in [Vector2(-32.0, 123.0), Vector2(32.0, 187.0)]:
+			# Put a signal at each of the four main downtown junctions.
+			# Keeping them on the same corner offset prevents them from sitting in the road center.
+			for intersection in [
+				Vector2(-32.0, 123.0),
+				Vector2(32.0, 123.0),
+				Vector2(-32.0, 187.0),
+				Vector2(32.0, 187.0)
+			]:
 				var signal_model := signal_scene.instantiate() as Node3D
 				if signal_model != null:
 					signal_model.position = Vector3(intersection.x + 6.5, 0.0, intersection.y + 6.5)
