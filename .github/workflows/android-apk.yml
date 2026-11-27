@@ -78,6 +78,21 @@ jobs:
           mkdir -p assets/sky
           fetch_optional "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/kloofendal_48d_partly_cloudy_puresky_1k.hdr" "assets/sky/cloudy_day_1k.hdr"
           ls -lh assets/models/city/downtown assets/models/vehicles
+      - name: Download CC0 winter PBR snow textures
+        run: |
+          mkdir -p assets/textures/winter
+          if curl -fL --retry 2 --connect-timeout 20 "https://ambientcg.com/get?file=Snow003_1K-JPG.zip" -o /tmp/Snow003_1K-JPG.zip; then
+            mkdir -p /tmp/snow003
+            unzip -oq /tmp/Snow003_1K-JPG.zip -d /tmp/snow003
+            color_map="$(find /tmp/snow003 -type f -iname '*Color.jpg' | head -n 1)"
+            normal_map="$(find /tmp/snow003 -type f -iname '*NormalGL.jpg' | head -n 1)"
+            if test -n "$color_map"; then cp "$color_map" assets/textures/winter/snow_color.jpg; fi
+            if test -n "$normal_map"; then cp "$normal_map" assets/textures/winter/snow_normal.jpg; fi
+            echo "Snow PBR maps downloaded from ambientCG (CC0)"
+          else
+            echo "Snow texture download unavailable; game uses procedural fallback"
+          fi
+          ls -lh assets/textures/winter
       - name: Configure Godot Android SDK paths
         run: |
           mkdir -p ~/.config/godot
