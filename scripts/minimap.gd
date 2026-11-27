@@ -99,9 +99,9 @@ func _draw() -> void:
 		var a := _world_to_screen(-75, road_z - 5)
 		var b := _world_to_screen(75, road_z + 5)
 		draw_rect(Rect2(a, b - a), Color(0.20, 0.22, 0.23), true)
-		for road_x in [-52.0, -26.0, 26.0, 52.0]:
-			var c := _world_to_screen(road_x - 3.5, road_z - 29)
-			var d := _world_to_screen(road_x + 3.5, road_z + 29)
+		for road_x in [-48.0, -16.0, 16.0, 48.0]:
+			var c := _world_to_screen(road_x - 8.0, road_z - 37.0)
+			var d := _world_to_screen(road_x + 8.0, road_z + 37.0)
 			draw_rect(Rect2(c, d - c), Color(0.19, 0.21, 0.22), true)
 
 	# Downtown modular GLB grid: five north-south roads and five cross streets.
@@ -117,9 +117,9 @@ func _draw() -> void:
 
 	# Existing village plots and the 16 apartment blocks in the new downtown grid.
 	for district_z in [-34.0, 34.0]:
-		for x in range(-5, 6):
+		for block_x in [-65.0, -32.0, 0.0, 32.0, 65.0]:
 			for side in [-1.0, 1.0]:
-				var p := _world_to_screen(float(x) * 13.0, district_z + side * 20.0)
+				var p := _world_to_screen(block_x, district_z + side * 20.0)
 				var block := maxf(3.0, rect.size.x * 0.012)
 				draw_rect(Rect2(p - Vector2(block, block), Vector2(block * 2, block * 2)), Color(0.49, 0.51, 0.48), true)
 	for city_z in [107.0, 139.0, 171.0, 203.0]:
