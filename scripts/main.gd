@@ -397,21 +397,23 @@ func _setup_player() -> void:
 	add_child(player)
 
 func _setup_traffic() -> void:
-	for i in range(5):
+	# Spawn one of each imported vehicle model, with traffic moving both ways.
+	for i in range(VehicleScenes.size()):
 		var car: Variant = CharacterBody3D.new()
 		car.set_script(CarScript)
-		car.speed = randf_range(3.0, 6.0)
-		car.start_x = -65.0 - float(i) * 22.0
-		car.end_x = 65.0
+		car.speed = randf_range(3.2, 5.4)
+		car.direction = 1.0 if i % 2 == 0 else -1.0
+		car.start_x = -65.0 if car.direction > 0.0 else 65.0
+		car.end_x = 65.0 if car.direction > 0.0 else -65.0
 		car.lane_z = -34.0 if i % 2 == 0 else 34.0
 		add_child(car)
-		_make_car_visual(car, i % 2 == 0)
+		_make_car_visual(car, i)
 		cars.append(car)
 
-func _make_car_visual(car: Node3D, _forward: bool) -> void:
-	# Use the imported Kenney Car Kit fleet instead of cloning one model.
+func _make_car_visual(car: Node3D, model_index: int) -> void:
+	# One distinct Kenney Car Kit model is assigned to each traffic vehicle.
 	# Each GLB keeps its original atlas colors and separate body details.
-	var model_scene: PackedScene = VehicleScenes[randi() % VehicleScenes.size()]
+	var model_scene: PackedScene = VehicleScenes[model_index]
 	var model := model_scene.instantiate() as Node3D
 	if model == null:
 		return
