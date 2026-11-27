@@ -209,14 +209,21 @@ func _setup_world() -> void:
 	var sky_mat := ProceduralSkyMaterial.new()
 	sky_mat.sky_top_color = Color(0.12, 0.28, 0.48)
 	sky_mat.sky_horizon_color = Color(0.65, 0.78, 0.86)
-	sky.sky_material = sky_mat
+	var hdri_path := "res://assets/sky/cloudy_day_1k.hdr"
+	if ResourceLoader.exists(hdri_path):
+		var panorama_material := PanoramaSkyMaterial.new()
+		panorama_material.panorama = load(hdri_path) as Texture2D
+		sky.sky_material = panorama_material
+	else:
+		sky.sky_material = sky_mat
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
 	env.ambient_light_energy = 0.78
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	environment.environment = env
 	add_child(environment)
-	_setup_clouds()
+	if not ResourceLoader.exists("res://assets/sky/cloudy_day_1k.hdr"):
+		_setup_clouds()
 
 	_make_box("Mainland West", Vector3(0, -0.6, -41.25), Vector3(150, 1, 67.5), Color(0.28, 0.39, 0.27), true)
 	_make_box("Mainland East", Vector3(0, -0.6, 41.25), Vector3(150, 1, 67.5), Color(0.28, 0.39, 0.27), true)
@@ -259,7 +266,60 @@ func _setup_world() -> void:
 	_add_sidewalks()
 	_add_road_markings()
 	_add_city_road_assets()
+	_setup_downtown()
 
+
+func _setup_downtown() -> void:
+	# A new, larger downtown district beyond the existing river bridge.
+	# The village/suburb area remains intact; this extends the playable land.
+	_make_box("Mainland Downtown", Vector3(0, -0.6, 155), Vector3(150, 1, 160), Color(0.28, 0.39, 0.27), true)
+	_make_box("Bridge North Approach", Vector3(0, 0.025, -23), Vector3(11, 0.12, 22), Color(0.12, 0.13, 0.15), true)
+	_make_box("Bridge South Approach", Vector3(0, 0.025, 23), Vector3(11, 0.12, 22), Color(0.12, 0.13, 0.15), true)
+	_make_box("Downtown Highway", Vector3(0, 0.025, 134.5), Vector3(11, 0.12, 201), Color(0.12, 0.13, 0.15), true)
+	for street_z in [95.0, 155.0, 215.0]:
+		_make_box("Downtown Cross Street", Vector3(0, 0.02, street_z), Vector3(132, 0.12, 7), Color(0.14, 0.15, 0.17), true)
+	for street_x in [-54.0, 54.0]:
+		_make_box("Downtown Side Street", Vector3(street_x, 0.02, 155), Vector3(7, 0.12, 160), Color(0.14, 0.15, 0.17), true)
+	_make_box("Downtown Sidewalk", Vector3(-7.3, 0.04, 155), Vector3(2.2, 0.18, 160), Color(0.43, 0.44, 0.42), true)
+	_make_box("Downtown Sidewalk", Vector3(7.3, 0.04, 155), Vector3(2.2, 0.18, 160), Color(0.43, 0.44, 0.42), true)
+
+	# Two detailed CC0 architectural landmarks, with the original city kit as
+	# supporting blocks so the district is not made from repeated primitives.
+	_spawn_optional_city_model("res://assets/models/city/downtown/apartment_block.glb", Vector3(-38, 0, 95), Vector3.ONE, Vector3(30, 20, 22))
+	_spawn_optional_city_model("res://assets/models/city/downtown/apartment_block.glb", Vector3(38, 0, 95), Vector3.ONE, Vector3(30, 20, 22))
+	_spawn_optional_city_model("res://assets/models/city/downtown/highrise_apartment.glb", Vector3(-38, 0, 175), Vector3.ONE, Vector3(25, 52, 26))
+	_spawn_optional_city_model("res://assets/models/city/downtown/highrise_apartment.glb", Vector3(38, 0, 175), Vector3.ONE, Vector3(25, 52, 26))
+	for at in [
+		Vector3(-62, 0, 112), Vector3(62, 0, 112),
+		Vector3(-62, 0, 155), Vector3(62, 0, 155),
+		Vector3(-62, 0, 198), Vector3(62, 0, 198)
+	]:
+		_spawn_asset_building(CityBuildingScenes[0], at, 3.4)
+
+
+func _spawn_optional_city_model(path: String, at: Vector3, model_scale: Vector3, collision_size: Vector3) -> void:
+	if not ResourceLoader.exists(path):
+		return
+	var packed := load(path) as PackedScene
+	if packed == null:
+		push_warning("Could not load optional city model: " + path)
+		return
+	var body := StaticBody3D.new()
+	body.name = "DetailedDowntownBuilding"
+	body.position = at
+	var model := packed.instantiate() as Node3D
+	if model == null:
+		body.queue_free()
+		return
+	model.scale = model_scale
+	body.add_child(model)
+	var collision := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = collision_size
+	collision.shape = shape
+	collision.position.y = collision_size.y * 0.5
+	body.add_child(collision)
+	add_child(body)
 
 
 func _add_city_road_assets() -> void:
