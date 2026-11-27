@@ -120,6 +120,13 @@ var cars: Array[Node3D] = []
 var status_label: Label
 var enter_button: Button
 var controls_layer: CanvasLayer
+var menu_layer: CanvasLayer
+var menu_music: AudioStreamPlayer
+var settings_panel: PanelContainer
+var home_panel: PanelContainer
+var fps_value_label: Label
+var cloud_groups: Array[Node3D] = []
+var selected_fps := 60
 
 func _ready() -> void:
 	randomize()
@@ -129,6 +136,13 @@ func _ready() -> void:
 	_setup_audio()
 	_setup_people()
 	_setup_mobile_ui()
+	_setup_main_menu()
+
+func _process(delta: float) -> void:
+	for cloud in cloud_groups:
+		cloud.position.x += delta * 0.42
+		if cloud.position.x > 98.0:
+			cloud.position.x = -98.0
 
 func _setup_audio() -> void:
 	# Authentic field-recorded city traffic and distant crowd chatter, downloaded by CI.
@@ -180,6 +194,7 @@ func _setup_world() -> void:
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	environment.environment = env
 	add_child(environment)
+	_setup_clouds()
 
 	_make_box("Mainland", Vector3(0, -0.6, 0), Vector3(150, 1, 150), Color(0.28, 0.39, 0.27), true)
 	_make_box("River", Vector3(0, -0.05, 0), Vector3(150, 0.15, 17), Color(0.08, 0.30, 0.48), false)
@@ -598,6 +613,189 @@ func _setup_mobile_ui() -> void:
 	enter_button.add_theme_font_size_override("font_size", 17)
 	root.add_child(enter_button)
 	enter_button.pressed.connect(_toggle_vehicle)
+
+
+func _setup_clouds() -> void:
+	var cloud_material := StandardMaterial3D.new()
+	cloud_material.albedo_color = Color(0.94, 0.97, 1.0, 0.78)
+	cloud_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	cloud_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	cloud_material.roughness = 1.0
+	var cloud_mesh := SphereMesh.new()
+	cloud_mesh.radius = 1.0
+	cloud_mesh.height = 1.8
+	cloud_mesh.radial_segments = 14
+	cloud_mesh.rings = 7
+	for i in range(9):
+		var cloud := Node3D.new()
+		cloud.name = "SkyCloud_%02d" % i
+		cloud.position = Vector3(-92.0 + float(i) * 23.0, 36.0 + randf_range(-2.0, 4.0), -82.0 + float(i % 3) * 78.0)
+		var puff_count := randi_range(3, 5)
+		for puff_index in range(puff_count):
+			var puff := MeshInstance3D.new()
+			puff.mesh = cloud_mesh
+			puff.material_override = cloud_material
+			puff.scale = Vector3(randf_range(5.5, 9.0), randf_range(1.0, 1.8), randf_range(2.6, 4.6))
+			puff.position = Vector3(float(puff_index) * randf_range(3.0, 5.5) - 6.0, randf_range(-0.4, 0.7), randf_range(-1.2, 1.2))
+			cloud.add_child(puff)
+		add_child(cloud)
+		cloud_groups.append(cloud)
+
+func _make_menu_panel(parent: Control, panel_size: Vector2, offset: Vector2) -> PanelContainer:
+	var panel := PanelContainer.new()
+	panel.set_anchors_preset(Control.PRESET_CENTER_LEFT)
+	panel.position = offset
+	panel.size = panel_size
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.025, 0.035, 0.045, 0.91)
+	style.border_color = Color(0.70, 0.79, 0.84, 0.35)
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(8)
+	style.content_margin_left = 24
+	style.content_margin_right = 24
+	style.content_margin_top = 24
+	style.content_margin_bottom = 24
+	panel.add_theme_stylebox_override("panel", style)
+	parent.add_child(panel)
+	return panel
+
+func _make_menu_button(caption: String) -> Button:
+	var button := Button.new()
+	button.text = caption
+	button.custom_minimum_size = Vector2(310, 58)
+	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	button.add_theme_font_size_override("font_size", 22)
+	button.add_theme_color_override("font_color", Color(0.92, 0.95, 0.97))
+	button.add_theme_color_override("font_hover_color", Color.WHITE)
+	var normal := StyleBoxFlat.new()
+	normal.bg_color = Color(0.10, 0.13, 0.16, 0.86)
+	normal.border_color = Color(0.46, 0.55, 0.60, 0.42)
+	normal.set_border_width_all(1)
+	normal.set_corner_radius_all(5)
+	normal.content_margin_left = 18
+	var hover := normal.duplicate() as StyleBoxFlat
+	hover.bg_color = Color(0.18, 0.24, 0.28, 0.98)
+	hover.border_color = Color(0.82, 0.88, 0.91, 0.8)
+	var pressed := normal.duplicate() as StyleBoxFlat
+	pressed.bg_color = Color(0.06, 0.08, 0.10, 1.0)
+	button.add_theme_stylebox_override("normal", normal)
+	button.add_theme_stylebox_override("hover", hover)
+	button.add_theme_stylebox_override("pressed", pressed)
+	return button
+
+func _setup_main_menu() -> void:
+	get_tree().paused = true
+	controls_layer.visible = false
+	menu_layer = CanvasLayer.new()
+	menu_layer.name = "MainMenuLayer"
+	menu_layer.layer = 30
+	menu_layer.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(menu_layer)
+	var root := Control.new()
+	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	root.process_mode = Node.PROCESS_MODE_ALWAYS
+	menu_layer.add_child(root)
+	var shade := ColorRect.new()
+	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	shade.color = Color(0.005, 0.012, 0.02, 0.46)
+	shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(shade)
+
+	home_panel = _make_menu_panel(root, Vector2(390, 468), Vector2(38, -234))
+	var home_content := VBoxContainer.new()
+	home_content.add_theme_constant_override("separation", 13)
+	home_panel.add_child(home_content)
+	var brand := Label.new()
+	brand.text = "OPEN CITY"
+	brand.add_theme_font_size_override("font_size", 42)
+	brand.add_theme_color_override("font_color", Color.WHITE)
+	home_content.add_child(brand)
+	var subtitle := Label.new()
+	subtitle.text = "THE CITY IS YOURS"
+	subtitle.add_theme_font_size_override("font_size", 13)
+	subtitle.add_theme_color_override("font_color", Color(0.60, 0.72, 0.78))
+	home_content.add_child(subtitle)
+	var spacer := Control.new()
+	spacer.custom_minimum_size.y = 24
+	home_content.add_child(spacer)
+	var play_button := _make_menu_button("▶   ИГРАТЬ")
+	home_content.add_child(play_button)
+	play_button.pressed.connect(_start_game)
+	var settings_button := _make_menu_button("⚙   НАСТРОЙКИ")
+	home_content.add_child(settings_button)
+	settings_button.pressed.connect(_show_settings)
+	var version := Label.new()
+	version.text = "OPEN CITY  •  MOBILE BUILD"
+	version.add_theme_font_size_override("font_size", 11)
+	version.add_theme_color_override("font_color", Color(0.47, 0.56, 0.61))
+	home_content.add_child(version)
+
+	settings_panel = _make_menu_panel(root, Vector2(390, 380), Vector2(38, -190))
+	settings_panel.visible = false
+	var settings_content := VBoxContainer.new()
+	settings_content.add_theme_constant_override("separation", 16)
+	settings_panel.add_child(settings_content)
+	var settings_title := Label.new()
+	settings_title.text = "НАСТРОЙКИ"
+	settings_title.add_theme_font_size_override("font_size", 32)
+	settings_title.add_theme_color_override("font_color", Color.WHITE)
+	settings_content.add_child(settings_title)
+	var fps_title := Label.new()
+	fps_title.text = "ОГРАНИЧЕНИЕ FPS"
+	fps_title.add_theme_font_size_override("font_size", 15)
+	fps_title.add_theme_color_override("font_color", Color(0.65, 0.75, 0.80))
+	settings_content.add_child(fps_title)
+	fps_value_label = Label.new()
+	fps_value_label.add_theme_font_size_override("font_size", 20)
+	fps_value_label.add_theme_color_override("font_color", Color.WHITE)
+	settings_content.add_child(fps_value_label)
+	var fps_row := HBoxContainer.new()
+	fps_row.add_theme_constant_override("separation", 8)
+	settings_content.add_child(fps_row)
+	for fps in [60, 90, 120]:
+		var fps_button := _make_menu_button("%d FPS" % fps)
+		fps_button.custom_minimum_size = Vector2(96, 54)
+		fps_button.add_theme_font_size_override("font_size", 17)
+		fps_button.alignment = HORIZONTAL_ALIGNMENT_CENTER
+		fps_row.add_child(fps_button)
+		fps_button.pressed.connect(_set_fps_cap.bind(fps))
+	var back_button := _make_menu_button("←   НАЗАД")
+	settings_content.add_child(back_button)
+	back_button.pressed.connect(_show_home)
+	_set_fps_cap(60)
+
+	menu_music = AudioStreamPlayer.new()
+	menu_music.name = "MenuMusic"
+	menu_music.process_mode = Node.PROCESS_MODE_ALWAYS
+	if ResourceLoader.exists("res://assets/audio/menu_urban.mp3"):
+		menu_music.stream = load("res://assets/audio/menu_urban.mp3")
+		if menu_music.stream is AudioStreamMP3:
+			(menu_music.stream as AudioStreamMP3).loop = true
+		menu_music.volume_db = -13.0
+		add_child(menu_music)
+		menu_music.play()
+
+func _set_fps_cap(value: int) -> void:
+	selected_fps = value
+	Engine.max_fps = value
+	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
+	if fps_value_label != null:
+		fps_value_label.text = "ТЕКУЩИЙ ЛИМИТ: %d FPS" % value
+
+func _show_settings() -> void:
+	home_panel.visible = false
+	settings_panel.visible = true
+
+func _show_home() -> void:
+	settings_panel.visible = false
+	home_panel.visible = true
+
+func _start_game() -> void:
+	menu_layer.visible = false
+	controls_layer.visible = true
+	get_tree().paused = false
+	if menu_music != null:
+		menu_music.stop()
 
 func _toggle_vehicle() -> void:
 	if player == null:
