@@ -20,6 +20,34 @@ jobs:
       - name: Checkout project
         uses: actions/checkout@v4
 
+      - name: Prepare compressed character models for Godot
+        run: |
+          npm install --no-save --no-package-lock @gltf-transform/core @gltf-transform/extensions @gltf-transform/functions meshoptimizer
+          node scripts/preprocess_glb.mjs
+
+      - name: Download PBR textures required by main.gd preloads
+        run: |
+          mkdir -p assets/textures/pbr
+          fetch_pbr() {
+            asset="$1"
+            prefix="$2"
+            archive="/tmp/${asset}_1K-JPG.zip"
+            folder="/tmp/${asset}_maps"
+            curl -fsSL --retry 2 --connect-timeout 20 "https://ambientcg.com/get?file=${asset}_1K-JPG.zip" -o "$archive"
+            mkdir -p "$folder"
+            unzip -oq "$archive" -d "$folder"
+            color_map="$(find "$folder" -type f -iname '*Color.jpg' | head -n 1)"
+            normal_map="$(find "$folder" -type f -iname '*NormalGL.jpg' | head -n 1)"
+            rough_map="$(find "$folder" -type f -iname '*Roughness.jpg' | head -n 1)"
+            test -n "$color_map" && test -n "$normal_map" && test -n "$rough_map"
+            cp "$color_map" "assets/textures/pbr/${prefix}_color.jpg"
+            cp "$normal_map" "assets/textures/pbr/${prefix}_normal.jpg"
+            cp "$rough_map" "assets/textures/pbr/${prefix}_roughness.jpg"
+          }
+          fetch_pbr "Road015A" "road"
+          fetch_pbr "Grass005" "grass"
+          fetch_pbr "Concrete007" "concrete"
+
       - name: Install Godot 4.3
         run: |
           curl -L --fail --retry 3 \
