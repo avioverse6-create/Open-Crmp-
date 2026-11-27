@@ -16,6 +16,7 @@ Original small-scale 3D open-world mobile game prototype made with Godot 4.x.
 - Two small city districts separated by a river, connected by a bridge.
 - Main roads, side streets, sidewalks, lane markings and imported intersection pieces.
 - Third-person camera with swipe rotation on the right side of the screen.
+- Live top-right minimap showing the river, bridge, main roads, side streets, building blocks and player position.
 - Camera-relative player movement, running and jumping.
 - 16 rigged Mixamo pedestrians, randomly selected from four character models, patrolling the sidewalks in both districts.
 - Eleven distinct imported traffic vehicles with collision shapes, two-way movement and rotating wheel meshes.
