@@ -45,15 +45,17 @@ func update(delta: float, moving: bool, running: bool) -> void:
 		_set_pose(skeleton, bones, "mixamorigRightLeg", right_knee)
 		_set_pose(skeleton, bones, "mixamorigLeftFoot", -left_knee * 0.28)
 		_set_pose(skeleton, bones, "mixamorigRightFoot", -right_knee * 0.28)
-		_set_pose(skeleton, bones, "mixamorigLeftArm", -swing * 0.72)
-		_set_pose(skeleton, bones, "mixamorigRightArm", swing * 0.72)
-		_set_pose(skeleton, bones, "mixamorigLeftForeArm", 0.10 + left_knee * 0.12)
-		_set_pose(skeleton, bones, "mixamorigRightForeArm", 0.10 + right_knee * 0.12)
+		# Mixamo legs swing around local X. Arms swing around local Z;
+		# the previous X-axis rotation rolled the shoulders instead of swinging them.
+		_set_pose(skeleton, bones, "mixamorigLeftArm", swing * 0.68, Vector3.FORWARD)
+		_set_pose(skeleton, bones, "mixamorigRightArm", -swing * 0.68, Vector3.FORWARD)
+		_set_pose(skeleton, bones, "mixamorigLeftForeArm", -0.16 - left_knee * 0.20, Vector3.FORWARD)
+		_set_pose(skeleton, bones, "mixamorigRightForeArm", -0.16 - right_knee * 0.20, Vector3.FORWARD)
 
-func _set_pose(skeleton: Skeleton3D, bones: Dictionary, bone_name: String, angle: float) -> void:
+func _set_pose(skeleton: Skeleton3D, bones: Dictionary, bone_name: String, angle: float, axis: Vector3 = Vector3.RIGHT) -> void:
 	if not bones.has(bone_name):
 		return
 	var info: Dictionary = bones[bone_name]
 	var index: int = info["index"]
 	var base: Quaternion = info["base"]
-	skeleton.set_bone_pose_rotation(index, base * Quaternion(Vector3.RIGHT, angle))
+	skeleton.set_bone_pose_rotation(index, base * Quaternion(axis.normalized(), angle))
