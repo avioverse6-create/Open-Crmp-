@@ -912,7 +912,7 @@ func _setup_mobile_ui() -> void:
 	jump_button.size = Vector2(66, 66)
 	jump_button.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
 	jump_button.add_theme_font_size_override("font_size", 11)
-	_style_action_button(jump_button, 18)
+	_style_action_button(jump_button, 33)
 	root.add_child(jump_button)
 	jump_button.button_down.connect(func(): Input.action_press("jump"))
 	jump_button.button_up.connect(func(): Input.action_release("jump"))
@@ -923,18 +923,18 @@ func _setup_mobile_ui() -> void:
 	run_button.size = Vector2(66, 66)
 	run_button.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
 	run_button.add_theme_font_size_override("font_size", 13)
-	_style_action_button(run_button, 18)
+	_style_action_button(run_button, 33)
 	root.add_child(run_button)
 	run_button.button_down.connect(func(): Input.action_press("run"))
 	run_button.button_up.connect(func(): Input.action_release("run"))
 
 	enter_button = Button.new()
 	enter_button.text = "СЕСТЬ"
-	enter_button.position = Vector2(-170, -34)
+	enter_button.position = Vector2(198, -80)
 	enter_button.size = Vector2(146, 54)
-	enter_button.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-	enter_button.add_theme_font_size_override("font_size", 17)
-	_style_action_button(enter_button, 18)
+	enter_button.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+	enter_button.add_theme_font_size_override("font_size", 16)
+	_style_action_button(enter_button, 27)
 	root.add_child(enter_button)
 	enter_button.pressed.connect(_toggle_vehicle)
 
@@ -945,7 +945,7 @@ func _setup_mobile_ui() -> void:
 	scanner_button.size = Vector2(66, 58)
 	scanner_button.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
 	scanner_button.add_theme_font_size_override("font_size", 15)
-	_style_action_button(scanner_button, 18)
+	_style_action_button(scanner_button, 29)
 	root.add_child(scanner_button)
 	scanner_button.pressed.connect(func():
 		if is_instance_valid(player) and player.has_method("scan_pulse"):
