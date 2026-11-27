@@ -97,6 +97,9 @@ func _physics_process(delta: float) -> void:
 			return
 		else:
 			character_visual.visible = true
+			# Resume ambient chatter when this pedestrian returns to the audible area.
+			if chatter_player != null and not chatter_player.playing:
+				chatter_player.play(randf_range(0.0, 18.0))
 
 	_simulation_accumulator += delta
 	var interval := 0.033
@@ -170,19 +173,23 @@ func _physics_process(delta: float) -> void:
 	if humanoid_animator != null:
 		humanoid_animator.update(step_delta, moving, false)
 
-	if moving and is_on_floor():
-		footstep_timer -= step_delta
-		if footstep_timer <= 0.0:
-			_play_footstep()
-			footstep_timer = randf_range(0.48, 0.58)
-	else:
-		footstep_timer = 0.16
-
 	if not is_on_floor():
 		velocity.y -= 20.0 * step_delta
 	else:
 		velocity.y = 0.0
 	move_and_slide()
+
+	# Trigger footsteps only after collision resolution. A pedestrian pressing
+	# against a wall or another character should not sound like they are walking.
+	var actual_horizontal_speed := Vector2(velocity.x, velocity.z).length()
+	if actual_horizontal_speed > 0.55 and is_on_floor():
+		footstep_timer -= step_delta
+		if footstep_timer <= 0.0:
+			_play_footstep()
+			footstep_timer = randf_range(0.48, 0.58) * clampf(1.25 / actual_horizontal_speed, 0.78, 1.35)
+	else:
+		footstep_timer = 0.12
+
 	# If a pedestrian reaches a wall or gets blocked by another character,
 	# choose a fresh sidewalk destination instead of pushing against it.
 	if is_on_wall():
