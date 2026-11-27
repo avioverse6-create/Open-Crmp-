@@ -73,3 +73,9 @@ The mobile scene uses CC0 AmbientCG color/albedo maps for Asphalt021 (roads), Co
 ### Surface detail maps
 
 Roads, sidewalks, bridge surfaces and terrain now have normal and roughness texture slots wired into their Godot materials. The asphalt and concrete detail maps currently use the project's lightweight procedural SVG maps; grass has matching procedural detail maps. They are not scanned AmbientCG normal/roughness maps, so their bump detail is intentionally subtle. The AmbientCG color maps remain the source of the surface color.
+
+## Recorded audio sources
+- Vehicle engine loop: Generic V8 Engine Sound by DerMeehdrescher / Meehdrescher Studios, CC BY-SA 4.0.
+- Engine start: Car engine Start Up 02 by looneybits, CC0.
+- Street traffic ambience and distant pedestrian chatter: field recordings from Gregor Quendel's Free General Ambience Sounds collection, CC BY-SA 4.0.
+- The Android CI workflow downloads these files before Godot import; audio is spatialized for vehicles and city districts. Keep the credits and licenses with the project.
