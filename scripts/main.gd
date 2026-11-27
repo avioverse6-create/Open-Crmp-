@@ -395,9 +395,14 @@ func _setup_vinish_district_roads() -> void:
 	var road_scene := load("res://assets/models/vinish_city/road-straight.glb") as PackedScene
 	var cross_scene := load("res://assets/models/vinish_city/road-crossroads.glb") as PackedScene
 	if road_scene == null:
-		push_warning("Vinish road mesh could not be loaded; keeping procedural road fallback")
+		push_warning("Vinish road mesh could not be loaded; building the complete procedural road fallback")
 		_make_box("West road", Vector3(0, 0.02, -34), Vector3(150, 0.12, 10), Color(0.12, 0.13, 0.15), true)
 		_make_box("East road", Vector3(0, 0.02, 34), Vector3(150, 0.12, 10), Color(0.12, 0.13, 0.15), true)
+		for street_x in [-52.0, -26.0, 26.0, 52.0]:
+			_make_box("Side street", Vector3(street_x, 0.015, -34), Vector3(7, 0.1, 58), Color(0.16, 0.17, 0.18), false)
+			_make_box("Side street", Vector3(street_x, 0.015, 34), Vector3(7, 0.1, 58), Color(0.16, 0.17, 0.18), false)
+		_add_sidewalks()
+		_add_road_markings()
 		return
 
 	# Four side-road junctions on each district boulevard use proper crossroads.
@@ -449,9 +454,9 @@ func _setup_downtown() -> void:
 
 	var detailed_roads := ResourceLoader.exists("res://assets/models/vinish_city/road-crossroads.glb") and ResourceLoader.exists("res://assets/models/vinish_city/road-straight.glb")
 	if detailed_roads:
-		_setup_vinish_downtown_roads()
-	else:
-		# Safe fallback if a downloaded model is missing from the Android export.
+		detailed_roads = _setup_vinish_downtown_roads()
+	if not detailed_roads:
+		# Safe fallback if a downloaded model is missing or cannot be loaded in the Android export.
 		_make_box("Downtown Boulevard Road", Vector3(0, 0.025, 155), Vector3(13, 0.14, 160), Color(0.12, 0.13, 0.15), true)
 		for street_x in [-60.0, -30.0, 30.0, 60.0]:
 			_make_box("Downtown Street", Vector3(street_x, 0.02, 155), Vector3(8.5, 0.13, 160), Color(0.13, 0.14, 0.16), true)
@@ -521,14 +526,14 @@ func _setup_downtown() -> void:
 
 
 
-func _setup_vinish_downtown_roads() -> void:
+func _setup_vinish_downtown_roads() -> bool:
 	# Each GLB is a 16 x 16 m tile. Crossroads sit at 32 m intervals;
 	# straight tiles fill the exact 16 m gaps, avoiding overlaps and mismatched seams.
 	var straight_scene := load("res://assets/models/vinish_city/road-straight.glb") as PackedScene
 	var cross_scene := load("res://assets/models/vinish_city/road-crossroads.glb") as PackedScene
 	if straight_scene == null or cross_scene == null:
 		push_warning("Vinish downtown road scenes unavailable; procedural road fallback will be used")
-		return
+		return false
 
 	var intersection_x := [-64.0, -32.0, 0.0, 32.0, 64.0]
 	var intersection_z := [91.0, 123.0, 155.0, 187.0, 219.0]
@@ -541,6 +546,7 @@ func _setup_vinish_downtown_roads() -> void:
 	for street_x in intersection_x:
 		for segment_z in [107.0, 139.0, 171.0, 203.0]:
 			_spawn_vinish_road_tile(straight_scene, Vector3(street_x, -0.42, segment_z), 0.0)
+	return true
 
 
 func _spawn_vinish_road_tile(scene: PackedScene, at: Vector3, yaw: float) -> void:
