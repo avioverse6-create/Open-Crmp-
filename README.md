@@ -8,7 +8,7 @@ Original small-scale 3D open-world mobile game prototype made with Godot 4.x.
 - **Roads:** 10 modular Kenney City Kit Roads GLB pieces, including straight sections, bends, crossings, intersections, a roundabout and a bridge.
 - **Street props:** imported traffic lights, highway signs, bridge pillars, construction barriers and cones. Matching road color atlas is included.
 - **People:** four rigged Mixamo GLB characters are used for the player and pedestrians. The separate animation library currently supplies Idle and Run; Run is slowed to approximate a walk for pedestrians. There is not yet a dedicated Walk clip.
-- **Cars:** all eight imported Kenney Car Kit GLBs are now used in traffic: sedan, SUV, taxi, police car, delivery van, truck, fire truck and garbage truck. Each model appears once in the current traffic set, with cars moving in opposite directions on the two main roads. Their original atlas colors are preserved. Wheel animation is still future work.
+- **Cars:** 11 imported Kenney Car Kit GLBs are used in traffic: sedan, SUV, taxi, police car, delivery van, box truck, fire truck, garbage truck, sports hatchback, sports sedan and ambulance. Each model appears once in the current traffic set, with vehicles moving in opposite directions on the two main roads. Their embedded textures are preserved, and separate wheel meshes rotate while the vehicles move.
 - **Nature:** imported low-poly tree models from the original CC0 City Kit.
 
 ## World and gameplay
@@ -18,7 +18,7 @@ Original small-scale 3D open-world mobile game prototype made with Godot 4.x.
 - Third-person camera with swipe rotation on the right side of the screen.
 - Camera-relative player movement, running and jumping.
 - Pedestrian movement with rigged character animation.
-- Eight distinct imported traffic vehicles with collision shapes and two-way movement.
+- Eleven distinct imported traffic vehicles with collision shapes, two-way movement and rotating wheel meshes.
 - Enter/drive/exit interaction with a follow camera.
 - On-screen mobile movement, run, jump and vehicle buttons.
 
@@ -46,17 +46,17 @@ No GTA code, maps, characters, logos or extracted game assets are included.
 
 ## Next milestones
 
-1. Add animated wheels and more realistic vehicle handling.
-2. Improve pedestrian navigation, traffic lane logic and collisions.
-3. Replace the legacy procedural SVG surface maps with genuine seamless PBR materials where they improve the imported city assets.
-4. Add minimap, camera smoothing, missions, save data, sound and graphics settings.
+1. Improve vehicle handling, steering and traffic lane changes.
+2. Improve pedestrian navigation and collisions.
+3. Replace the legacy procedural SVG surface maps with genuine seamless PBR materials where they improve the city assets.
+4. Add a minimap, camera smoothing, missions, save data, sound and graphics settings.
 5. Import and test on an Android device, then optimize based on real frame-time measurements.
 
 ## Asset licensing
 
-- City buildings, road pieces, roadside props and the eight-vehicle Car Kit fleet: Kenney assets, CC0 1.0. See `assets/models/city/CREDITS.md` and `assets/models/vehicles/CREDITS.md`.
+- City buildings, road pieces and roadside props: Kenney assets, CC0 1.0. See `assets/models/city/CREDITS.md`.
+- The 11-model vehicle fleet: Kenney Car Kit, CC0 1.0. See `assets/models/vehicles/CREDITS.md` and `CC0-1.0.txt`.
 - Player and pedestrian characters and their animation library: Mixamo assets bundled by vinish.dev. See `assets/models/people/CREDITS.md`; review Adobe's current terms before publishing.
 - Original city-kit tree and street-light assets: see `assets/licenses/CC0-1.0-City-Kit.txt`.
-- Additional vehicles: Kenney Car Kit, CC0 1.0; see `assets/models/vehicles/CREDITS.md` and `CC0-1.0.txt`.
 
 Keep the asset credit and license files with the project. The project has not yet been verified in the Godot editor on a real Android device.
