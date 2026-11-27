@@ -47,9 +47,6 @@ jobs:
           test -n "$first_wav"
           cp "$first_wav" assets/audio/car_engine_loop.wav
           curl -fsSL https://opengameart.org/sites/default/files/engine_start_up_01.wav -o assets/audio/car_start.wav
-          curl -fsSL https://opengameart.org/sites/default/files/car1.wav -o assets/audio/car_passby.wav
-          curl -fsSL https://opengameart.org/sites/default/files/water_stream_-_i.mp3 -o assets/audio/river_ambience.mp3
-          curl -fsSL https://opengameart.org/sites/default/files/splash1.wav -o assets/audio/water_splash.wav
           curl -fsSL "https://opengameart.org/sites/default/files/city_ambience_-_traffic_-_street_-_cars_and_tram.mp3" -o assets/audio/city_traffic.mp3
           curl -fsSL https://opengameart.org/sites/default/files/crowd_-_mall_ambience.mp3 -o assets/audio/pedestrian_chatter.mp3
           mkdir -p assets/audio/footsteps
