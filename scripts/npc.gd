@@ -86,12 +86,16 @@ func _physics_process(delta: float) -> void:
 	var distance := 0.0
 	if camera != null:
 		distance = global_position.distance_to(camera.global_position)
-		if distance > 62.0:
+		var in_view := camera.is_position_in_frustum(global_position)
+		if distance > 62.0 or (distance > 20.0 and not in_view):
 			character_visual.visible = false
 			if footstep_player.playing:
 				footstep_player.stop()
 			if chatter_player != null and chatter_player.playing:
 				chatter_player.stop()
+			# Do not run distant/off-screen navigation or animation work.
+			velocity.x = 0.0
+			velocity.z = 0.0
 			return
 		else:
 			character_visual.visible = true
@@ -105,11 +109,13 @@ func _physics_process(delta: float) -> void:
 			chatter_player.stop()
 
 	_simulation_accumulator += delta
-	var interval := 0.05
+	# Nearby pedestrians animate and move at the full physics rate; reducing
+	# this to 20 Hz made limbs visibly snap between poses on mobile.
+	var interval := 0.0
 	if distance > 38.0:
-		interval = 0.22
+		interval = 0.18
 	elif distance > 22.0:
-		interval = 0.10
+		interval = 0.07
 	if _simulation_accumulator < interval:
 		return
 	var step_delta := _simulation_accumulator
