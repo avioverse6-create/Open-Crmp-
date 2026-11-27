@@ -1,18 +1,9 @@
-# Vehicle asset credits
+# Kenney Car Kit
 
-The following GLB models are from **Kenney Car Kit 3.1**:
+These standalone GLB vehicle models are from the Kenney Car Kit collection mirrored in
+[Papyszoo/CC0-Public-Domain-Models](https://github.com/Papyszoo/CC0-Public-Domain-Models/tree/6eff5b79357bff6bf9b578f7a50b29d8cb42ed74/packs/kenney-car-kit).
 
-- `sedan.glb`
-- `suv.glb`
-- `taxi.glb`
-- `police.glb`
-- `delivery.glb`
-- `truck.glb`
-- `firetruck.glb`
-- `garbage_truck.glb`
+Original creator: Kenney — https://kenney.nl/assets/car-kit
+License: CC0 1.0 Universal. The full CC0 legal code is copied to `CC0-1.0.txt`.
 
-Original author/source: Kenney — https://kenney.nl/assets/car-kit
-
-License: **CC0 1.0 Universal**. The assets may be used, modified and included in personal or commercial games without attribution. Keep this notice with the project; attribution to Kenney is appreciated.
-
-These are optimized stylized low-poly game vehicles. They are separate imported 3D meshes, not photorealistic scanned cars. Wheel rotation and individual wheel physics have not yet been implemented.
+Included models: sedan, SUV, taxi, police car, delivery van, fire truck, garbage truck, box truck, sports hatchback, sports sedan and ambulance. Each GLB contains its own embedded color-map texture.
