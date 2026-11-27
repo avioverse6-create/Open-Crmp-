@@ -414,7 +414,8 @@ func _setup_vinish_district_roads() -> void:
 
 
 func _spawn_vinish_apartment(at: Vector3, variant_index: int) -> void:
-	var model_path := "res://assets/models/vinish_city/apartment-block-01.glb" if variant_index % 2 == 0 else "res://assets/models/vinish_city/apartment-block-02.glb"
+	var use_first := variant_index % 2 == 0
+	var model_path := "res://assets/models/vinish_city/apartment-block-01.glb" if use_first else "res://assets/models/vinish_city/apartment-block-02.glb"
 	if not ResourceLoader.exists(model_path):
 		_spawn_asset_building(CityBuildingScenes[0], at, 3.4)
 		return
@@ -423,7 +424,7 @@ func _spawn_vinish_apartment(at: Vector3, variant_index: int) -> void:
 		_spawn_asset_building(CityBuildingScenes[0], at, 3.4)
 		return
 	var root := StaticBody3D.new()
-	root.name = "VinishDetailedApartment"
+	root.name = "VinishBrickApartment"
 	root.position = at
 	var model := packed.instantiate() as Node3D
 	if model == null:
@@ -433,103 +434,11 @@ func _spawn_vinish_apartment(at: Vector3, variant_index: int) -> void:
 	root.add_child(model)
 	var collision := CollisionShape3D.new()
 	var shape := BoxShape3D.new()
-	shape.size = Vector3(14.8, 24.0, 14.0) if variant_index % 2 == 0 else Vector3(11.5, 20.5, 13.0)
+	shape.size = Vector3(14.5, 23.2, 13.5) if use_first else Vector3(11.0, 20.0, 12.5)
 	collision.shape = shape
 	collision.position.y = shape.size.y * 0.5
 	root.add_child(collision)
 	add_child(root)
-
-
-func _setup_downtown() -> void:
-	# Expanded urban grid: four cross streets, a central boulevard and 12 city blocks.
-	_make_box("Mainland Downtown", Vector3(0, -0.6, 155), Vector3(150, 1, 160), Color(0.28, 0.39, 0.27), true)
-
-	# Central north-south boulevard and parallel streets.
-	_make_box("Downtown Boulevard Road", Vector3(0, 0.025, 155), Vector3(13, 0.14, 160), Color(0.12, 0.13, 0.15), true)
-	for street_x in [-60.0, -30.0, 30.0, 60.0]:
-		_make_box("Downtown Street", Vector3(street_x, 0.02, 155), Vector3(8.5, 0.13, 160), Color(0.13, 0.14, 0.16), true)
-
-	# Four east-west roads create a connected, readable street grid.
-	for street_z in [95.0, 135.0, 175.0, 215.0]:
-		_make_box("Downtown Cross Street", Vector3(0, 0.02, street_z), Vector3(132, 0.13, 9.5), Color(0.13, 0.14, 0.16), true)
-		# Sidewalk strips on both sides of each cross street.
-		for side in [-1.0, 1.0]:
-			_make_box("Downtown Sidewalk", Vector3(0, 0.045, street_z + side * 6.0), Vector3(132, 0.18, 2.7), Color(0.43, 0.44, 0.42), true)
-
-	# Sidewalks run along every north-south street.
-	for street_x in [-60.0, -30.0, 0.0, 30.0, 60.0]:
-		for side in [-1.0, 1.0]:
-			_make_box("Downtown Sidewalk", Vector3(street_x + side * (7.5 if street_x == 0.0 else 5.8), 0.045, 155), Vector3(2.4, 0.18, 160), Color(0.43, 0.44, 0.42), true)
-
-	# A different imported building variant is selected for each placement.
-	# Two buildings per block leave space for alleys, parking and sight lines.
-	var block_x_centers := [-45.0, -15.0, 15.0, 45.0]
-	var block_z_centers := [115.0, 155.0, 195.0]
-	for row_index in range(block_z_centers.size()):
-		for column_index in range(block_x_centers.size()):
-			var center_x: float = block_x_centers[column_index]
-			var center_z: float = block_z_centers[row_index]
-			# Reserve two block centres for optional landmark imports to avoid overlapping meshes.
-			if row_index == 0 and column_index == 0 and ResourceLoader.exists("res://assets/models/city/downtown/apartment_block.glb"):
-				_spawn_optional_city_model("res://assets/models/city/downtown/apartment_block.glb", Vector3(center_x, 0, center_z), Vector3.ONE, Vector3(15, 20, 15))
-				continue
-			if row_index == 2 and column_index == 3 and ResourceLoader.exists("res://assets/models/city/downtown/highrise_apartment.glb"):
-				_spawn_optional_city_model("res://assets/models/city/downtown/highrise_apartment.glb", Vector3(center_x, 0, center_z), Vector3.ONE, Vector3(18, 48, 18))
-				continue
-			var left_building := Vector3(center_x - 7.0, 0.0, center_z + randf_range(-2.0, 2.0))
-			var right_building := Vector3(center_x + 7.0, 0.0, center_z + randf_range(-2.0, 2.0))
-			if ResourceLoader.exists("res://assets/models/vinish_city/apartment-block-01.glb"):
-				_spawn_vinish_apartment(left_building, row_index + column_index)
-				_spawn_vinish_apartment(right_building, row_index + column_index + 1)
-			else:
-				_spawn_asset_building(CityBuildingScenes[0], left_building, 3.4)
-				_spawn_asset_building(CityBuildingScenes[0], right_building, 3.4)
-
-	# Traffic lights at selected boulevard junctions and street lamps along sidewalks.
-	for street_z in [95.0, 135.0, 175.0, 215.0]:
-		_spawn_city_asset(TrafficLightScene, Vector3(-7.8, 0.0, street_z - 5.8), Vector3.ONE * 2.8)
-		_spawn_city_asset(TrafficLightScene, Vector3(7.8, 0.0, street_z + 5.8), Vector3.ONE * 2.8, Vector3(0, PI, 0))
-	for lamp_z in range(85, 226, 20):
-		_spawn_prop(StreetLightScene, Vector3(-9.0, 0.0, float(lamp_z)), 2.4)
-		_spawn_prop(StreetLightScene, Vector3(9.0, 0.0, float(lamp_z) + 10.0), 2.4)
-
-	# Visible crosswalk stripes at the central boulevard crossings.
-	var stripe_material := _make_color_material(Color(0.82, 0.84, 0.86), 0.9)
-	for street_z in [95.0, 135.0, 175.0, 215.0]:
-		for stripe in range(6):
-			var mark := MeshInstance3D.new()
-			var mark_mesh := BoxMesh.new()
-			mark_mesh.size = Vector3(0.72, 0.025, 4.0)
-			mark.mesh = mark_mesh
-			mark.position = Vector3(-2.8 + float(stripe) * 1.12, 0.105, street_z - 7.2)
-			mark.material_override = stripe_material
-			add_child(mark)
-
-
-func _spawn_optional_city_model(path: String, at: Vector3, model_scale: Vector3, collision_size: Vector3, rotation_value: Vector3 = Vector3.ZERO) -> void:
-	if not ResourceLoader.exists(path):
-		return
-	var packed := load(path) as PackedScene
-	if packed == null:
-		push_warning("Could not load optional city model: " + path)
-		return
-	var body := StaticBody3D.new()
-	body.name = "DetailedDowntownBuilding"
-	body.position = at
-	body.rotation = rotation_value
-	var model := packed.instantiate() as Node3D
-	if model == null:
-		body.queue_free()
-		return
-	model.scale = model_scale
-	body.add_child(model)
-	var collision := CollisionShape3D.new()
-	var shape := BoxShape3D.new()
-	shape.size = collision_size
-	collision.shape = shape
-	collision.position.y = collision_size.y * 0.5
-	body.add_child(collision)
-	add_child(body)
 
 
 func _add_city_road_assets() -> void:
