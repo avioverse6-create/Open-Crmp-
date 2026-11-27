@@ -13,6 +13,8 @@ const BrickTexture: Texture2D = preload("res://assets/textures/brick_wall.svg")
 const ConcreteTexture: Texture2D = preload("res://assets/textures/concrete.svg")
 const RoofTexture: Texture2D = preload("res://assets/textures/roof_tiles.svg")
 const AsphaltTexture: Texture2D = preload("res://assets/textures/asphalt.svg")
+const AsphaltNormal: Texture2D = preload("res://assets/textures/asphalt_normal.svg")
+const AsphaltRoughness: Texture2D = preload("res://assets/textures/asphalt_roughness.svg")
 
 var player: Variant
 var cars: Array[Node3D] = []
@@ -78,6 +80,47 @@ func _setup_world() -> void:
 	for x in [-52.0, -26.0, 26.0, 52.0]:
 		_make_box("Side street", Vector3(x, 0.015, -34), Vector3(7, 0.1, 58), Color(0.16,0.17,0.18), false)
 		_make_box("Side street", Vector3(x, 0.015, 34), Vector3(7, 0.1, 58), Color(0.16,0.17,0.18), false)
+
+	_add_sidewalks()
+	_add_road_markings()
+
+
+func _add_sidewalks() -> void:
+	for road_z in [-34.0, 34.0]:
+		for side in [-1.0, 1.0]:
+			var sidewalk_z := road_z + side * 6.35
+			_make_box("Sidewalk", Vector3(0, 0.035, sidewalk_z), Vector3(150, 0.20, 2.45), Color(0.43, 0.44, 0.42), false)
+			_make_box("Curb", Vector3(0, 0.15, road_z + side * 5.12), Vector3(150, 0.28, 0.22), Color(0.57, 0.57, 0.53), false)
+
+func _add_road_markings() -> void:
+	var paint := _make_color_material(Color(0.82, 0.81, 0.73), 0.88)
+	for road_z in [-34.0, 34.0]:
+		for x in range(-70, 71, 9):
+			var dash := MeshInstance3D.new()
+			var dash_mesh := BoxMesh.new()
+			dash_mesh.size = Vector3(4.0, 0.025, 0.16)
+			dash.mesh = dash_mesh
+			dash.position = Vector3(float(x), 0.091, road_z)
+			dash.material_override = paint
+			add_child(dash)
+		for side in [-1.0, 1.0]:
+			var edge := MeshInstance3D.new()
+			var edge_mesh := BoxMesh.new()
+			edge_mesh.size = Vector3(150, 0.018, 0.10)
+			edge.mesh = edge_mesh
+			edge.position = Vector3(0, 0.088, road_z + side * 4.55)
+			edge.material_override = paint
+			add_child(edge)
+	for street_x in [-52.0, -26.0, 26.0, 52.0]:
+		for district_z in [-34.0, 34.0]:
+			for offset in range(-24, 25, 9):
+				var dash := MeshInstance3D.new()
+				var dash_mesh := BoxMesh.new()
+				dash_mesh.size = Vector3(0.14, 0.022, 4.0)
+				dash.mesh = dash_mesh
+				dash.position = Vector3(street_x, 0.085, district_z + float(offset))
+				dash.material_override = paint
+				add_child(dash)
 
 func _spawn_asset_building(scene: PackedScene, at: Vector3, scale_factor: float) -> void:
 	# Textured, GTA-SA-inspired original buildings. The imported CC0 kit remains
@@ -226,8 +269,31 @@ func _make_box(label: String, at: Vector3, dimensions: Vector3, color: Color, so
 	material.roughness = 0.92
 	if label.to_lower().contains("road") or label.to_lower().contains("street"):
 		material.albedo_texture = AsphaltTexture
-		material.uv1_scale = Vector3(10, 10, 1)
+		material.normal_enabled = true
+		material.normal_texture = AsphaltNormal
+		material.normal_scale = 0.42
+		material.roughness_texture = AsphaltRoughness
+		material.roughness = 0.96
+		material.uv1_scale = Vector3(14, 14, 1)
 		material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	elif label == "River":
+		var water_shader := Shader.new()
+		water_shader.code = """
+shader_type spatial;
+void fragment() {
+	float a = sin(UV.x * 52.0 + TIME * 0.72) * 0.5 + 0.5;
+	float b = sin(UV.y * 39.0 - TIME * 0.51 + UV.x * 13.0) * 0.5 + 0.5;
+	float shimmer = smoothstep(0.58, 0.96, a * 0.56 + b * 0.44);
+	ALBEDO = mix(vec3(0.018, 0.105, 0.17), vec3(0.075, 0.29, 0.36), shimmer * 0.62);
+	METALLIC = 0.12;
+	ROUGHNESS = 0.19;
+}
+"""
+		var water_material := ShaderMaterial.new()
+		water_material.shader = water_shader
+		mesh_instance.material_override = water_material
+		add_child(root)
+		return root
 	mesh_instance.material_override = material
 	add_child(root)
 	return root
