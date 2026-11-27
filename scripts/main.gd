@@ -15,6 +15,14 @@ const RoofTexture: Texture2D = preload("res://assets/textures/roof_tiles.svg")
 const AsphaltTexture: Texture2D = preload("res://assets/textures/asphalt.svg")
 const AsphaltNormal: Texture2D = preload("res://assets/textures/asphalt_normal.svg")
 const AsphaltRoughness: Texture2D = preload("res://assets/textures/asphalt_roughness.svg")
+const ConcreteNormal: Texture2D = preload("res://assets/textures/concrete_normal.svg")
+const ConcreteRoughness: Texture2D = preload("res://assets/textures/concrete_roughness.svg")
+const PlasterNormal: Texture2D = preload("res://assets/textures/plaster_normal.svg")
+const PlasterRoughness: Texture2D = preload("res://assets/textures/plaster_roughness.svg")
+const BrickNormal: Texture2D = preload("res://assets/textures/brick_normal.svg")
+const BrickRoughness: Texture2D = preload("res://assets/textures/brick_roughness.svg")
+const RoofNormal: Texture2D = preload("res://assets/textures/roof_normal.svg")
+const RoofRoughness: Texture2D = preload("res://assets/textures/roof_roughness.svg")
 
 var player: Variant
 var cars: Array[Node3D] = []
@@ -184,6 +192,26 @@ func _make_texture_material(texture: Texture2D, tint: Color, uv_scale: Vector3) 
 	material.roughness = 0.88
 	material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	material.uv1_scale = uv_scale
+	if texture == ConcreteTexture:
+		material.normal_enabled = true
+		material.normal_texture = ConcreteNormal
+		material.normal_scale = 0.28
+		material.roughness_texture = ConcreteRoughness
+	elif texture == PlasterTexture:
+		material.normal_enabled = true
+		material.normal_texture = PlasterNormal
+		material.normal_scale = 0.22
+		material.roughness_texture = PlasterRoughness
+	elif texture == BrickTexture:
+		material.normal_enabled = true
+		material.normal_texture = BrickNormal
+		material.normal_scale = 0.38
+		material.roughness_texture = BrickRoughness
+	elif texture == RoofTexture:
+		material.normal_enabled = true
+		material.normal_texture = RoofNormal
+		material.normal_scale = 0.48
+		material.roughness_texture = RoofRoughness
 	return material
 
 func _make_color_material(color: Color, roughness_value: float) -> StandardMaterial3D:
@@ -378,6 +406,16 @@ func _setup_mobile_ui() -> void:
 	_add_action_button(pad, "◀", "move_left")
 	_add_action_button(pad, "▼", "move_back")
 	_add_action_button(pad, "▶", "move_right")
+
+	var jump_button := Button.new()
+	jump_button.text = "ПРЫЖОК"
+	jump_button.position = Vector2(-150, -168)
+	jump_button.size = Vector2(126, 54)
+	jump_button.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+	jump_button.add_theme_font_size_override("font_size", 15)
+	root.add_child(jump_button)
+	jump_button.button_down.connect(func(): Input.action_press("jump"))
+	jump_button.button_up.connect(func(): Input.action_release("jump"))
 
 	var run_button := Button.new()
 	run_button.text = "БЕЖАТЬ"
