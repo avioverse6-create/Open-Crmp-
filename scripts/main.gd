@@ -8,6 +8,11 @@ const MarketScene: PackedScene = preload("res://assets/models/mercado.glb")
 const CarScene: PackedScene = preload("res://assets/models/carro.glb")
 const TreeScene: PackedScene = preload("res://assets/models/ipe_amarelo.glb")
 const StreetLightScene: PackedScene = preload("res://assets/models/poste_luz.glb")
+const PlasterTexture: Texture2D = preload("res://assets/textures/wall_plaster.svg")
+const BrickTexture: Texture2D = preload("res://assets/textures/brick_wall.svg")
+const ConcreteTexture: Texture2D = preload("res://assets/textures/concrete.svg")
+const RoofTexture: Texture2D = preload("res://assets/textures/roof_tiles.svg")
+const AsphaltTexture: Texture2D = preload("res://assets/textures/asphalt.svg")
 
 var player: Variant
 var cars: Array[Node3D] = []
@@ -75,22 +80,120 @@ func _setup_world() -> void:
 		_make_box("Side street", Vector3(x, 0.015, 34), Vector3(7, 0.1, 58), Color(0.16,0.17,0.18), false)
 
 func _spawn_asset_building(scene: PackedScene, at: Vector3, scale_factor: float) -> void:
+	# Textured, GTA-SA-inspired original buildings. The imported CC0 kit remains
+	# in the project as licensed source material; these buildings use UV-mapped
+	# facade/roof textures so the result is consistent and readable on mobile.
+	var is_market := scene == MarketScene
 	var root := StaticBody3D.new()
-	root.name = "ImportedBuilding"
+	root.name = "TexturedMarket" if is_market else "TexturedHouse"
 	root.position = at
-	var model := scene.instantiate() as Node3D
-	if model == null:
-		root.queue_free()
-		return
-	model.scale = Vector3.ONE * scale_factor
-	root.add_child(model)
+	var width := randf_range(8.0, 10.5)
+	var depth := randf_range(7.0, 9.0)
+	var floors := randi_range(2, 4) if not is_market else 2
+	var floor_height := 2.7
+	var height := float(floors) * floor_height
+	var wall_mat := _make_texture_material(BrickTexture if randf() < 0.32 else PlasterTexture, Color(1,1,1), Vector3(2.4, 2.4, 1))
+	var side_mat := _make_texture_material(ConcreteTexture, Color(1,1,1), Vector3(2, 2, 1))
+	var roof_mat := _make_texture_material(RoofTexture, Color(1,1,1), Vector3(2.2, 2.2, 1))
+	_add_textured_box(root, "Facade", Vector3(width, height, depth), Vector3(0, height * 0.5, 0), wall_mat)
+	_add_textured_box(root, "Roof", Vector3(width + 0.45, 0.28, depth + 0.45), Vector3(0, height + 0.14, 0), roof_mat)
+	# Side concrete bands and roof parapet add architectural depth.
+	for side in [-1.0, 1.0]:
+		_add_textured_box(root, "SideBand", Vector3(0.16, height, 0.16), Vector3(side * (width * 0.5 - 0.08), height * 0.5, 0), side_mat)
+		_add_textured_box(root, "Parapet", Vector3(0.22, 0.75, depth + 0.3), Vector3(side * (width * 0.5 - 0.08), height + 0.48, 0), side_mat)
+	# Front and rear window rows, with frames and inset reflective glass.
+	var columns := max(2, int(width / 2.0))
+	for floor in range(floors):
+		var y := 1.0 + float(floor) * floor_height
+		for col in range(columns):
+			var x := -width * 0.5 + (float(col) + 0.5) * width / float(columns)
+			if is_market and floor == 0:
+				_add_window(root, Vector3(x, y, depth * 0.5 + 0.055), Vector2(1.65, 1.85), true)
+				_add_window(root, Vector3(x, y, -depth * 0.5 - 0.055), Vector2(1.65, 1.85), true)
+			else:
+				_add_window(root, Vector3(x, y, depth * 0.5 + 0.055), Vector2(1.05, 1.45), false)
+				_add_window(root, Vector3(x, y, -depth * 0.5 - 0.055), Vector2(1.05, 1.45), false)
+	# Ground-floor entrance and a colored shop fascia.
+	if is_market:
+		_add_textured_box(root, "ShopSign", Vector3(width * 0.82, 0.62, 0.18), Vector3(0, 2.28, depth * 0.5 + 0.14), _make_color_material(Color(0.58, 0.16, 0.10), 0.75))
+		_add_textured_box(root, "ShopDoor", Vector3(0.9, 2.0, 0.12), Vector3(0, 1.0, depth * 0.5 + 0.12), _make_color_material(Color(0.10, 0.16, 0.19), 0.25))
+	else:
+		_add_textured_box(root, "Entrance", Vector3(0.95, 2.0, 0.12), Vector3(0, 1.0, depth * 0.5 + 0.12), _make_color_material(Color(0.18, 0.22, 0.23), 0.3))
+	# Windows on both side elevations.
+	for side in [-1.0, 1.0]:
+		for floor in range(floors):
+			var y := 1.0 + float(floor) * floor_height
+			for z_index in range(2):
+				var z := -depth * 0.28 + float(z_index) * depth * 0.56
+				_add_side_window(root, Vector3(side * (width * 0.5 + 0.055), y, z), Vector2(1.0, 1.4))
 	var collision := CollisionShape3D.new()
 	var shape := BoxShape3D.new()
-	shape.size = Vector3(6.8, 8.0, 6.8)
+	shape.size = Vector3(width, height + 0.9, depth)
 	collision.shape = shape
-	collision.position.y = 4.0
+	collision.position.y = (height + 0.9) * 0.5
 	root.add_child(collision)
 	add_child(root)
+
+func _make_texture_material(texture: Texture2D, tint: Color, uv_scale: Vector3) -> StandardMaterial3D:
+	var material := StandardMaterial3D.new()
+	material.albedo_texture = texture
+	material.albedo_color = tint
+	material.roughness = 0.88
+	material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	material.uv1_scale = uv_scale
+	return material
+
+func _make_color_material(color: Color, roughness_value: float) -> StandardMaterial3D:
+	var material := StandardMaterial3D.new()
+	material.albedo_color = color
+	material.roughness = roughness_value
+	return material
+
+func _add_textured_box(parent: Node3D, label: String, dimensions: Vector3, at: Vector3, material: Material) -> MeshInstance3D:
+	var mesh_instance := MeshInstance3D.new()
+	mesh_instance.name = label
+	var box := BoxMesh.new()
+	box.size = dimensions
+	mesh_instance.mesh = box
+	mesh_instance.material_override = material
+	mesh_instance.position = at
+	parent.add_child(mesh_instance)
+	return mesh_instance
+
+func _add_window(parent: Node3D, at: Vector3, window_size: Vector2, storefront: bool) -> void:
+	var frame_mat := _make_color_material(Color(0.20, 0.19, 0.17), 0.72)
+	var glass_mat := _make_color_material(Color(0.10, 0.19, 0.23, 1), 0.18)
+	glass_mat.metallic = 0.22
+	glass_mat.metallic_specular = 0.65
+	var frame_depth := 0.12
+	var pane := BoxMesh.new()
+	pane.size = Vector3(window_size.x, window_size.y, 0.07)
+	var glass := MeshInstance3D.new()
+	glass.mesh = pane
+	glass.material_override = glass_mat
+	glass.position = at
+	parent.add_child(glass)
+	var bar_w := 0.10 if not storefront else 0.07
+	_add_textured_box(parent, "WindowFrame", Vector3(bar_w, window_size.y + 0.16, frame_depth), at + Vector3(-window_size.x * 0.5, 0, 0), frame_mat)
+	_add_textured_box(parent, "WindowFrame", Vector3(bar_w, window_size.y + 0.16, frame_depth), at + Vector3(window_size.x * 0.5, 0, 0), frame_mat)
+	_add_textured_box(parent, "WindowSill", Vector3(window_size.x + 0.18, 0.11, frame_depth), at + Vector3(0, -window_size.y * 0.5, 0), frame_mat)
+	_add_textured_box(parent, "WindowLintel", Vector3(window_size.x + 0.18, 0.11, frame_depth), at + Vector3(0, window_size.y * 0.5, 0), frame_mat)
+	if not storefront:
+		_add_textured_box(parent, "WindowMullion", Vector3(0.07, window_size.y, 0.10), at, frame_mat)
+
+func _add_side_window(parent: Node3D, at: Vector3, window_size: Vector2) -> void:
+	var frame_mat := _make_color_material(Color(0.20, 0.19, 0.17), 0.72)
+	var glass_mat := _make_color_material(Color(0.10, 0.19, 0.23), 0.2)
+	var pane := BoxMesh.new()
+	pane.size = Vector3(0.07, window_size.y, window_size.x)
+	var glass := MeshInstance3D.new()
+	glass.mesh = pane
+	glass.material_override = glass_mat
+	glass.position = at
+	parent.add_child(glass)
+	_add_textured_box(parent, "SideWindowFrame", Vector3(0.12, window_size.y + 0.16, 0.10), at + Vector3(0, 0, -window_size.x * 0.5), frame_mat)
+	_add_textured_box(parent, "SideWindowFrame", Vector3(0.12, window_size.y + 0.16, 0.10), at + Vector3(0, 0, window_size.x * 0.5), frame_mat)
+
 
 func _spawn_prop(scene: PackedScene, at: Vector3, scale_factor: float) -> void:
 	var model := scene.instantiate() as Node3D
@@ -121,6 +224,10 @@ func _make_box(label: String, at: Vector3, dimensions: Vector3, color: Color, so
 	var material := StandardMaterial3D.new()
 	material.albedo_color = color
 	material.roughness = 0.92
+	if label.to_lower().contains("road") or label.to_lower().contains("street"):
+		material.albedo_texture = AsphaltTexture
+		material.uv1_scale = Vector3(10, 10, 1)
+		material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	mesh_instance.material_override = material
 	add_child(root)
 	return root
