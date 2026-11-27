@@ -316,19 +316,28 @@ func _make_box(label: String, at: Vector3, dimensions: Vector3, color: Color, so
 	material.albedo_color = color
 	material.roughness = 0.92
 	if label.to_lower().contains("road") or label.to_lower().contains("street"):
+		# AmbientCG Asphalt021 albedo: repeated at street scale, not stretched over the full district.
 		material.albedo_texture = AsphaltTexture
 		material.roughness = 0.96
 		material.uv1_scale = Vector3(14, 14, 1)
+		material.uv1_triplanar = true
+		material.uv1_triplanar_sharpness = 4.0
 		material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
-	elif label.to_lower().contains("sidewalk") or label.to_lower().contains("curb"):
+	elif label.to_lower().contains("sidewalk") or label.to_lower().contains("curb") or label.to_lower().contains("bridge"):
+		# Concrete012 keeps sidewalks, curbs and bridge surfaces in one material family.
 		material.albedo_texture = ConcreteTexture
 		material.roughness = 0.94
 		material.uv1_scale = Vector3(7, 7, 1)
+		material.uv1_triplanar = true
+		material.uv1_triplanar_sharpness = 4.0
 		material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	elif label.to_lower().contains("mainland"):
+		# Grass004 covers the walkable terrain around both districts.
 		material.albedo_texture = GrassTexture
 		material.roughness = 0.98
 		material.uv1_scale = Vector3(28, 28, 1)
+		material.uv1_triplanar = true
+		material.uv1_triplanar_sharpness = 4.0
 		material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	elif label == "River":
 		var water_shader := Shader.new()
