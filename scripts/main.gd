@@ -960,7 +960,7 @@ func _setup_people() -> void:
 
 	# Pedestrians use the textured sidewalk edges of all five east-west streets.
 	var downtown_pedestrian_streets := [91.0, 123.0, 155.0, 187.0, 219.0]
-	for i in range(10):
+	for i in range(16):
 		var downtown_npc := CharacterBody3D.new()
 		downtown_npc.set_script(NpcScript)
 		downtown_npc.district_center_z = downtown_pedestrian_streets[i % downtown_pedestrian_streets.size()]
@@ -971,7 +971,7 @@ func _setup_people() -> void:
 
 	# Extra pedestrians walk the north-south sidewalks, completing both axes of the grid.
 	var downtown_vertical_streets := [-64.0, -32.0, 0.0, 32.0, 64.0]
-	for i in range(10):
+	for i in range(16):
 		var vertical_npc := CharacterBody3D.new()
 		vertical_npc.set_script(NpcScript)
 		vertical_npc.vertical_route = true
