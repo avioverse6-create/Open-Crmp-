@@ -177,11 +177,13 @@ func _try_begin_traffic_turn() -> void:
 			_traffic_turn_serial += 1
 			if (int(get_instance_id()) + _traffic_turn_serial * 3) % 5 != 0:
 				return
+			var junction := Vector3(ix, global_position.y, iz)
+			if not _is_intersection_clear(junction):
+				return
 			var incoming := Vector3(0.0, 0.0, direction) if vertical_traffic else Vector3(direction, 0.0, 0.0)
 			var turn_left := (int(get_instance_id()) + _traffic_turn_serial) % 2 == 0
 			var outgoing := Vector3(-incoming.z, 0.0, incoming.x) if turn_left else Vector3(incoming.z, 0.0, -incoming.x)
 			var lane_offset := Vector3(-2.0 if outgoing.z > 0.0 else 2.0, 0.0, 0.0) if absf(outgoing.z) > 0.5 else Vector3(0.0, 0.0, -2.0 if outgoing.x > 0.0 else 2.0)
-			var junction := Vector3(ix, global_position.y, iz)
 			_traffic_turn_start = global_position
 			_traffic_turn_control_a = global_position + incoming * 3.0
 			_traffic_turn_end = junction + outgoing * 5.5 + lane_offset
@@ -191,6 +193,18 @@ func _try_begin_traffic_turn() -> void:
 			_traffic_turn_elapsed = 0.0
 			_traffic_turn_active = true
 			return
+
+
+func _is_intersection_clear(junction: Vector3) -> bool:
+	# Do not begin a curved path while another vehicle occupies the junction.
+	for other in get_tree().get_nodes_in_group("traffic_vehicles"):
+		if other == self or not is_instance_valid(other):
+			continue
+		var other_position: Vector3 = other.global_position
+		var flat_distance := Vector2(other_position.x - junction.x, other_position.z - junction.z).length()
+		if flat_distance < 7.2:
+			return false
+	return true
 
 
 func _process_traffic_turn(delta: float, traffic_speed: float) -> void:
