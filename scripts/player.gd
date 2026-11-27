@@ -98,15 +98,18 @@ func _physics_process(delta: float) -> void:
 
 		# Keep the close third-person camera in front of walls and buildings.
 		# Exclude the player body so the ray does not pull the camera into the character.
-		var desired_camera_position := camera_pivot.to_global(Vector3(0, 0.58, 1.85))
+		var desired_camera_offset := Vector3(0, 0.58, 1.85)
+		var desired_camera_position := camera_pivot.to_global(desired_camera_offset)
 		var camera_query := PhysicsRayQueryParameters3D.create(camera_pivot.global_position, desired_camera_position)
 		camera_query.exclude = [get_rid()]
 		camera_query.collide_with_areas = false
 		var camera_hit := get_world_3d().direct_space_state.intersect_ray(camera_query)
-		if camera_hit.is_empty():
-			camera.position = Vector3(0, 0.58, 1.85)
-		else:
-			camera.global_position = camera_hit.position + camera_hit.normal * 0.16
+		var safe_camera_offset := desired_camera_offset
+		if not camera_hit.is_empty():
+			safe_camera_offset = camera_pivot.to_local(camera_hit.position + camera_hit.normal * 0.18)
+		# Smoothly retract and restore the camera around walls instead of snapping.
+		var camera_weight := 1.0 - exp(-delta * (22.0 if not camera_hit.is_empty() else 9.0))
+		camera.position = camera.position.lerp(safe_camera_offset, camera_weight)
 
 	var input_dir := mobile_input_vector
 	if input_dir.length() < 0.05:
