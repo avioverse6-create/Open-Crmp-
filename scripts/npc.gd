@@ -19,6 +19,8 @@ var target := Vector3.ZERO
 var walk_speed := 1.25
 var change_timer := 0.0
 var district_center_z: float = -34.0
+var district_center_x: float = 0.0
+var vertical_route := false
 var sidewalk_side: float = -1.0
 var sidewalk_offset: float = 6.35
 var pause_timer := 0.0
@@ -160,9 +162,16 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 
 func _pick_target() -> void:
-	target = Vector3(
-		randf_range(-65.0, 65.0),
-		global_position.y,
-		district_center_z + sidewalk_side * sidewalk_offset + randf_range(-0.45, 0.45)
-	)
+	if vertical_route:
+		target = Vector3(
+			district_center_x + sidewalk_side * sidewalk_offset + randf_range(-0.35, 0.35),
+			global_position.y,
+			randf_range(87.0, 223.0)
+		)
+	else:
+		target = Vector3(
+			randf_range(-65.0, 65.0),
+			global_position.y,
+			district_center_z + sidewalk_side * sidewalk_offset + randf_range(-0.45, 0.45)
+		)
 	change_timer = randf_range(5.0, 10.0)
