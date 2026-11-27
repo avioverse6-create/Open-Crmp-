@@ -112,8 +112,8 @@ func _setup_world() -> void:
 	_make_box("River", Vector3(0, -0.05, 0), Vector3(150, 0.15, 17), Color(0.08, 0.30, 0.48), false)
 
 	# Main road, two districts and the bridge connecting them.
-	_make_box("West road", Vector3(0, 0.02, -34), Vector3(150, 0.12, 10), Color(0.12, 0.13, 0.15), false)
-	_make_box("East road", Vector3(0, 0.02, 34), Vector3(150, 0.12, 10), Color(0.12, 0.13, 0.15), false)
+	_make_box("West road", Vector3(0, 0.02, -34), Vector3(150, 0.12, 10), Color(0.12, 0.13, 0.15), true)
+	_make_box("East road", Vector3(0, 0.02, 34), Vector3(150, 0.12, 10), Color(0.12, 0.13, 0.15), true)
 	_make_box("Bridge", Vector3(0, 0.18, 0), Vector3(11, 0.45, 24), Color(0.25, 0.26, 0.28), true)
 	_make_box("Bridge rail left", Vector3(-5.4, 1.0, 0), Vector3(0.35, 1.5, 24), Color(0.55, 0.58, 0.6), true)
 	_make_box("Bridge rail right", Vector3(5.4, 1.0, 0), Vector3(0.35, 1.5, 24), Color(0.55, 0.58, 0.6), true)
@@ -180,8 +180,8 @@ func _add_sidewalks() -> void:
 	for road_z in [-34.0, 34.0]:
 		for side in [-1.0, 1.0]:
 			var sidewalk_z := road_z + side * 6.35
-			_make_box("Sidewalk", Vector3(0, 0.035, sidewalk_z), Vector3(150, 0.20, 2.45), Color(0.43, 0.44, 0.42), false)
-			_make_box("Curb", Vector3(0, 0.15, road_z + side * 5.12), Vector3(150, 0.28, 0.22), Color(0.57, 0.57, 0.53), false)
+			_make_box("Sidewalk", Vector3(0, 0.035, sidewalk_z), Vector3(150, 0.20, 2.45), Color(0.43, 0.44, 0.42), true)
+			_make_box("Curb", Vector3(0, 0.15, road_z + side * 5.12), Vector3(150, 0.28, 0.22), Color(0.57, 0.57, 0.53), true)
 
 func _add_road_markings() -> void:
 	var paint := _make_color_material(Color(0.82, 0.81, 0.73), 0.88)
@@ -411,7 +411,7 @@ func _setup_traffic() -> void:
 		var road_z := -34.0 if i % 2 == 0 else 34.0
 		var lane_offset := -1.9 if car.direction > 0.0 else 1.9
 		var spawn_group := int(i / 4)
-		car.start_x = -65.0 - float(spawn_group) * 26.0 if car.direction > 0.0 else 65.0 + float(spawn_group) * 26.0
+		car.start_x = -65.0 + float(spawn_group) * 24.0 if car.direction > 0.0 else 65.0 - float(spawn_group) * 24.0
 		car.end_x = 65.0 if car.direction > 0.0 else -65.0
 		car.lane_z = road_z + lane_offset
 		add_child(car)
