@@ -93,7 +93,6 @@ var menu_music: AudioStreamPlayer
 var settings_panel: PanelContainer
 var home_panel: PanelContainer
 var fps_value_label: Label
-var cloud_groups: Array[Node3D] = []
 var selected_fps := 60
 var vehicle_hud: PanelContainer
 var vehicle_hud_label: Label
@@ -120,10 +119,6 @@ func _ready() -> void:
 	_setup_main_menu()
 
 func _process(delta: float) -> void:
-	for cloud in cloud_groups:
-		cloud.position.x += delta * 0.42
-		if cloud.position.x > 98.0:
-			cloud.position.x = -98.0
 	if vehicle_hud != null and is_instance_valid(player):
 		var driving := player.active_vehicle != null
 		if minimap_control != null and driving != _minimap_tracks_vehicle:
@@ -229,8 +224,6 @@ func _setup_world() -> void:
 	env.fog_enabled = false
 	environment.environment = env
 	add_child(environment)
-	if not ResourceLoader.exists("res://assets/sky/cloudy_day_1k.hdr"):
-		_setup_clouds()
 
 	_make_box("Mainland West", Vector3(0, -0.6, -41.25), Vector3(150, 1, 67.5), Color(0.28, 0.39, 0.27), true)
 	_make_box("Mainland East", Vector3(0, -0.6, 41.25), Vector3(150, 1, 67.5), Color(0.28, 0.39, 0.27), true)
@@ -682,33 +675,11 @@ func _make_box(label: String, at: Vector3, dimensions: Vector3, color: Color, so
 		water_plane.subdivide_depth = 2
 		mesh_instance.mesh = water_plane
 		root.position.y = at.y + dimensions.y * 0.5
-		var water_shader := Shader.new()
-		water_shader.code = """
-shader_type spatial;
-render_mode cull_disabled, diffuse_burley, specular_schlick_ggx;
-uniform vec3 deep_color : source_color = vec3(0.012, 0.075, 0.12);
-uniform vec3 shallow_color : source_color = vec3(0.035, 0.22, 0.27);
-void vertex() {
-	float long_wave = sin(VERTEX.x * 0.16 + TIME * 0.72) * 0.075;
-	float cross_wave = sin(VERTEX.z * 0.82 - TIME * 0.58) * 0.032;
-	float fine_wave = sin((VERTEX.x + VERTEX.z) * 0.34 + TIME * 0.41) * 0.018;
-	VERTEX.y += long_wave + cross_wave + fine_wave;
-}
-void fragment() {
-	float ripple_a = sin(UV.x * 118.0 + TIME * 0.82);
-	float ripple_b = sin(UV.y * 86.0 - TIME * 0.66 + UV.x * 18.0);
-	float ripple = smoothstep(0.25, 0.92, (ripple_a + ripple_b) * 0.25 + 0.5);
-	float fresnel = pow(1.0 - max(dot(normalize(NORMAL), normalize(VIEW)), 0.0), 4.0);
-	vec3 water = mix(deep_color, shallow_color, 0.30 + ripple * 0.28 + fresnel * 0.30);
-	ALBEDO = water;
-	METALLIC = 0.24;
-	ROUGHNESS = mix(0.18, 0.055, fresnel);
-	SPECULAR = 0.96;
-	EMISSION = shallow_color * ripple * 0.035;
-}
-"""
-		var water_material := ShaderMaterial.new()
-		water_material.shader = water_shader
+		var water_material := StandardMaterial3D.new()
+		water_material.albedo_color = Color(0.035, 0.16, 0.22, 1.0)
+		water_material.metallic = 0.12
+		water_material.roughness = 0.28
+		water_material.cull_mode = BaseMaterial3D.CULL_DISABLED
 		mesh_instance.material_override = water_material
 		add_child(root)
 		return root
@@ -1058,32 +1029,6 @@ func _make_drive_button(parent: Control, caption: String, anchor, offset: Vector
 	parent.add_child(button)
 	return button
 
-
-func _setup_clouds() -> void:
-	var cloud_material := StandardMaterial3D.new()
-	cloud_material.albedo_color = Color(0.94, 0.97, 1.0, 0.78)
-	cloud_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	cloud_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	cloud_material.roughness = 1.0
-	var cloud_mesh := SphereMesh.new()
-	cloud_mesh.radius = 1.0
-	cloud_mesh.height = 1.8
-	cloud_mesh.radial_segments = 14
-	cloud_mesh.rings = 7
-	for i in range(9):
-		var cloud := Node3D.new()
-		cloud.name = "SkyCloud_%02d" % i
-		cloud.position = Vector3(-92.0 + float(i) * 23.0, 36.0 + randf_range(-2.0, 4.0), -82.0 + float(i % 3) * 78.0)
-		var puff_count := randi_range(3, 5)
-		for puff_index in range(puff_count):
-			var puff := MeshInstance3D.new()
-			puff.mesh = cloud_mesh
-			puff.material_override = cloud_material
-			puff.scale = Vector3(randf_range(5.5, 9.0), randf_range(1.0, 1.8), randf_range(2.6, 4.6))
-			puff.position = Vector3(float(puff_index) * randf_range(3.0, 5.5) - 6.0, randf_range(-0.4, 0.7), randf_range(-1.2, 1.2))
-			cloud.add_child(puff)
-		add_child(cloud)
-		cloud_groups.append(cloud)
 
 func _make_menu_panel(parent: Control, panel_size: Vector2, offset: Vector2) -> PanelContainer:
 	var panel := PanelContainer.new()
