@@ -96,6 +96,7 @@ var fps_value_label: Label
 var selected_fps := 60
 var vehicle_hud: PanelContainer
 var vehicle_hud_label: Label
+var vehicle_fuel_label: Label
 var movement_joystick: VirtualJoystick
 var jump_button: Button
 var run_button: Button
@@ -135,7 +136,8 @@ func _process(delta: float) -> void:
 			run_button.visible = not driving
 		if driving:
 			var car = player.active_vehicle
-			vehicle_hud_label.text = "%03d  KM/H\nБЕНЗИН  %.1f L" % [int(car.get("speed_kmh")), float(car.get("fuel_liters"))]
+			vehicle_hud_label.text = "%03d" % int(car.get("speed_kmh"))
+			vehicle_fuel_label.text = "БЕНЗИН  %.1f L" % float(car.get("fuel_liters"))
 		if enter_button != null:
 			if driving:
 				enter_button.visible = true
@@ -885,25 +887,36 @@ func _setup_mobile_ui() -> void:
 	vehicle_hud = PanelContainer.new()
 	vehicle_hud.name = "VehicleDashboard"
 	vehicle_hud.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	vehicle_hud.position = Vector2(-154, 14)
-	vehicle_hud.size = Vector2(308, 76)
+	vehicle_hud.position = Vector2(-132, 14)
+	vehicle_hud.size = Vector2(264, 88)
 	vehicle_hud.visible = false
 	var dashboard_style := StyleBoxFlat.new()
-	dashboard_style.bg_color = Color(0.025, 0.035, 0.045, 0.88)
-	dashboard_style.border_color = Color(0.72, 0.82, 0.92, 0.42)
+	dashboard_style.bg_color = Color(0.018, 0.026, 0.034, 0.94)
+	dashboard_style.border_color = Color(0.55, 0.72, 0.84, 0.52)
 	dashboard_style.set_border_width_all(1)
-	dashboard_style.set_corner_radius_all(14)
-	dashboard_style.content_margin_left = 14
-	dashboard_style.content_margin_right = 14
-	dashboard_style.content_margin_top = 8
-	dashboard_style.content_margin_bottom = 8
+	dashboard_style.set_corner_radius_all(16)
+	dashboard_style.content_margin_left = 16
+	dashboard_style.content_margin_right = 16
+	dashboard_style.content_margin_top = 7
+	dashboard_style.content_margin_bottom = 7
 	vehicle_hud.add_theme_stylebox_override("panel", dashboard_style)
+	var dashboard_stack := VBoxContainer.new()
+	dashboard_stack.alignment = BoxContainer.ALIGNMENT_CENTER
+	dashboard_stack.add_theme_constant_override("separation", 0)
 	vehicle_hud_label = Label.new()
 	vehicle_hud_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vehicle_hud_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	vehicle_hud_label.text = "000  KM/H\nБЕНЗИН  60.0 L"
-	vehicle_hud_label.add_theme_font_size_override("font_size", 19)
-	vehicle_hud.add_child(vehicle_hud_label)
+	vehicle_hud_label.text = "000"
+	vehicle_hud_label.add_theme_font_size_override("font_size", 34)
+	vehicle_hud_label.add_theme_color_override("font_color", Color(0.96, 0.98, 1.0))
+	dashboard_stack.add_child(vehicle_hud_label)
+	vehicle_fuel_label = Label.new()
+	vehicle_fuel_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vehicle_fuel_label.text = "KM/H     БЕНЗИН  60.0 L"
+	vehicle_fuel_label.add_theme_font_size_override("font_size", 12)
+	vehicle_fuel_label.add_theme_color_override("font_color", Color(0.62, 0.72, 0.80))
+	dashboard_stack.add_child(vehicle_fuel_label)
+	vehicle_hud.add_child(dashboard_stack)
 	root.add_child(vehicle_hud)
 
 	movement_joystick = VirtualJoystick.new()
