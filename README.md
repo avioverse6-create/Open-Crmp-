@@ -8,7 +8,7 @@ Original small-scale 3D open-world mobile game prototype made with Godot 4.x.
 - **Roads:** 10 modular Kenney City Kit Roads GLB pieces, including straight sections, bends, crossings, intersections, a roundabout and a bridge.
 - **Street props:** imported traffic lights, highway signs, bridge pillars, construction barriers and cones. Matching road color atlas is included.
 - **People:** four rigged Mixamo GLB characters are used for the player and pedestrians. The separate animation library currently supplies Idle and Run; Run is slowed to approximate a walk for pedestrians. There is not yet a dedicated Walk clip.
-- **Cars:** the current traffic fleet uses one imported CC0 low-poly car model with six paint-color variations. Separate sedan/SUV/van/bus models and animated wheels are still future work.
+- **Cars:** traffic now randomly uses eight separate imported Kenney Car Kit GLBs: sedan, SUV, taxi, police car, delivery van, truck, fire truck and garbage truck. Their original atlas colors are preserved. Wheel animation and traffic variety by district are still future work.
 - **Nature:** imported low-poly tree models from the original CC0 City Kit.
 
 ## World and gameplay
@@ -54,7 +54,7 @@ No GTA code, maps, characters, logos or extracted game assets are included.
 
 ## Asset licensing
 
-- City buildings, road pieces and roadside props: Kenney assets, CC0 1.0. See `assets/models/city/CREDITS.md`.
+- City buildings, road pieces, roadside props and the eight-vehicle Car Kit fleet: Kenney assets, CC0 1.0. See `assets/models/city/CREDITS.md` and `assets/models/vehicles/CREDITS.md`.
 - Player and pedestrian characters and their animation library: Mixamo assets bundled by vinish.dev. See `assets/models/people/CREDITS.md`; review Adobe's current terms before publishing.
 - Original city-kit car, tree and street-light assets: see `assets/licenses/CC0-1.0-City-Kit.txt`.
 
