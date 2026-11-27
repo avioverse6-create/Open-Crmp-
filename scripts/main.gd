@@ -13,8 +13,12 @@ const VehicleScenes: Array[PackedScene] = [
 	preload("res://assets/models/vehicles/delivery.glb"),
 	preload("res://assets/models/vehicles/truck.glb"),
 	preload("res://assets/models/vehicles/firetruck.glb"),
-	preload("res://assets/models/vehicles/garbage_truck.glb")
+	preload("res://assets/models/vehicles/garbage_truck.glb"),
+	preload("res://assets/models/vehicles/hatchback_sports.glb"),
+	preload("res://assets/models/vehicles/sedan_sports.glb"),
+	preload("res://assets/models/vehicles/ambulance.glb")
 ]
+const VehicleScales: Array[float] = [1.5, 1.45, 1.45, 1.5, 1.35, 1.3, 1.3, 1.25, 1.5, 1.5, 1.35]
 const TreeScene: PackedScene = preload("res://assets/models/ipe_amarelo.glb")
 const StreetLightScene: PackedScene = preload("res://assets/models/poste_luz.glb")
 
@@ -411,15 +415,17 @@ func _setup_traffic() -> void:
 		cars.append(car)
 
 func _make_car_visual(car: Node3D, model_index: int) -> void:
-	# One distinct Kenney Car Kit model is assigned to each traffic vehicle.
-	# Each GLB keeps its original atlas colors and separate body details.
-	var model_scene: PackedScene = VehicleScenes[model_index]
+	# Each traffic vehicle gets a distinct textured GLB from the Kenney Car Kit.
+	var safe_index := model_index % VehicleScenes.size()
+	var model_scene: PackedScene = VehicleScenes[safe_index]
 	var model := model_scene.instantiate() as Node3D
 	if model == null:
 		return
-	model.scale = Vector3.ONE * 1.5
+	var model_scale: float = VehicleScales[safe_index]
+	model.scale = Vector3.ONE * model_scale
 	model.position.y = 0.02
 	car.add_child(model)
+	car.call("register_vehicle_visual", model, 0.30 * model_scale)
 
 func _setup_people() -> void:
 	for i in range(16):
