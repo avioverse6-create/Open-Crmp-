@@ -132,7 +132,7 @@ func _physics_process(delta: float) -> void:
 		speed_kmh = absf(traffic_speed) * 3.6
 		if _traffic_turn_active:
 			_process_traffic_turn(delta, traffic_speed)
-		else:
+		elif target_traffic_speed > speed * 0.65:
 			_try_begin_traffic_turn()
 		if _traffic_turn_active:
 			pass
@@ -187,13 +187,15 @@ func _try_begin_traffic_turn() -> void:
 			_traffic_turn_end = junction + outgoing * 5.5 + lane_offset
 			_traffic_turn_control_b = _traffic_turn_end - outgoing * 3.0
 			_traffic_turn_exit_direction = outgoing
+			_traffic_turn_duration = maxf(1.5, _traffic_turn_start.distance_to(_traffic_turn_end) / maxf(speed, 2.5) * 1.3)
 			_traffic_turn_elapsed = 0.0
 			_traffic_turn_active = true
 			return
 
 
 func _process_traffic_turn(delta: float, traffic_speed: float) -> void:
-	_traffic_turn_elapsed = minf(_traffic_turn_elapsed + delta, _traffic_turn_duration)
+	var turn_speed_factor := clampf(traffic_speed / maxf(speed, 0.1), 0.15, 1.1)
+	_traffic_turn_elapsed = minf(_traffic_turn_elapsed + delta * turn_speed_factor, _traffic_turn_duration)
 	var t := _traffic_turn_elapsed / _traffic_turn_duration
 	var one_minus_t := 1.0 - t
 	var next_position := one_minus_t * one_minus_t * one_minus_t * _traffic_turn_start
