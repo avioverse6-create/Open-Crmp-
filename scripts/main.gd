@@ -361,34 +361,62 @@ func _setup_world() -> void:
 
 
 func _setup_downtown() -> void:
-	# A new, larger downtown district beyond the existing river bridge.
-	# The village/suburb area remains intact; this extends the playable land.
+	# Expanded urban grid: four cross streets, a central boulevard and 12 city blocks.
 	_make_box("Mainland Downtown", Vector3(0, -0.6, 155), Vector3(150, 1, 160), Color(0.28, 0.39, 0.27), true)
-	_make_box("Bridge North Approach", Vector3(0, 0.025, -23), Vector3(11, 0.12, 22), Color(0.12, 0.13, 0.15), true)
-	_make_box("Bridge South Approach", Vector3(0, 0.025, 23), Vector3(11, 0.12, 22), Color(0.12, 0.13, 0.15), true)
-	_make_box("Downtown Highway", Vector3(0, 0.025, 134.5), Vector3(11, 0.12, 201), Color(0.12, 0.13, 0.15), true)
-	for street_z in [95.0, 155.0, 215.0]:
-		_make_box("Downtown Cross Street", Vector3(0, 0.02, street_z), Vector3(132, 0.12, 7), Color(0.14, 0.15, 0.17), true)
-	for street_x in [-54.0, 54.0]:
-		_make_box("Downtown Side Street", Vector3(street_x, 0.02, 155), Vector3(7, 0.12, 160), Color(0.14, 0.15, 0.17), true)
-	_make_box("Downtown Sidewalk", Vector3(-7.3, 0.04, 155), Vector3(2.2, 0.18, 160), Color(0.43, 0.44, 0.42), true)
-	_make_box("Downtown Sidewalk", Vector3(7.3, 0.04, 155), Vector3(2.2, 0.18, 160), Color(0.43, 0.44, 0.42), true)
 
-	# Two detailed CC0 architectural landmarks, with the original city kit as
-	# supporting blocks so the district is not made from repeated primitives.
-	_spawn_optional_city_model("res://assets/models/city/downtown/apartment_block.glb", Vector3(-38, 0, 95), Vector3.ONE, Vector3(30, 20, 22))
-	_spawn_optional_city_model("res://assets/models/city/downtown/apartment_block.glb", Vector3(38, 0, 95), Vector3.ONE, Vector3(30, 20, 22))
-	_spawn_optional_city_model("res://assets/models/city/downtown/highrise_apartment.glb", Vector3(-38, 0, 175), Vector3.ONE, Vector3(25, 52, 26))
-	_spawn_optional_city_model("res://assets/models/city/downtown/highrise_apartment.glb", Vector3(38, 0, 175), Vector3.ONE, Vector3(25, 52, 26))
-	for at in [
-		Vector3(-62, 0, 112), Vector3(62, 0, 112),
-		Vector3(-62, 0, 155), Vector3(62, 0, 155),
-		Vector3(-62, 0, 198), Vector3(62, 0, 198)
-	]:
-		_spawn_asset_building(CityBuildingScenes[0], at, 3.4)
+	# Central north-south boulevard and parallel streets.
+	_make_box("Downtown Boulevard", Vector3(0, 0.025, 155), Vector3(13, 0.14, 160), Color(0.12, 0.13, 0.15), true)
+	for street_x in [-60.0, -30.0, 30.0, 60.0]:
+		_make_box("Downtown Street", Vector3(street_x, 0.02, 155), Vector3(8.5, 0.13, 160), Color(0.13, 0.14, 0.16), true)
 
-	# One detailed CC0 sports coupe as a visible downtown street/parking vehicle.
-	_spawn_optional_city_model("res://assets/models/vehicles/realistic_sports.glb", Vector3(-12, 0, 112), Vector3.ONE * 2.4, Vector3(2.2, 1.25, 4.6), Vector3(0, PI, 0))
+	# Four east-west roads create a connected, readable street grid.
+	for street_z in [95.0, 135.0, 175.0, 215.0]:
+		_make_box("Downtown Cross Street", Vector3(0, 0.02, street_z), Vector3(132, 0.13, 9.5), Color(0.13, 0.14, 0.16), true)
+		# Sidewalk strips on both sides of each cross street.
+		for side in [-1.0, 1.0]:
+			_make_box("Downtown Sidewalk", Vector3(0, 0.045, street_z + side * 6.0), Vector3(132, 0.18, 2.7), Color(0.43, 0.44, 0.42), true)
+
+	# Sidewalks run along every north-south street.
+	for street_x in [-60.0, -30.0, 0.0, 30.0, 60.0]:
+		for side in [-1.0, 1.0]:
+			_make_box("Downtown Sidewalk", Vector3(street_x + side * (7.5 if street_x == 0.0 else 5.8), 0.045, 155), Vector3(2.4, 0.18, 160), Color(0.43, 0.44, 0.42), true)
+
+	# A different imported building variant is selected for each placement.
+	# Two buildings per block leave space for alleys, parking and sight lines.
+	var block_x_centers := [-45.0, -15.0, 15.0, 45.0]
+	var block_z_centers := [115.0, 155.0, 195.0]
+	for row_index in range(block_z_centers.size()):
+		for column_index in range(block_x_centers.size()):
+			var center_x: float = block_x_centers[column_index]
+			var center_z: float = block_z_centers[row_index]
+			var left_building := Vector3(center_x - 7.0, 0.0, center_z + randf_range(-2.0, 2.0))
+			var right_building := Vector3(center_x + 7.0, 0.0, center_z + randf_range(-2.0, 2.0))
+			_spawn_asset_building(CityBuildingScenes[0], left_building, 3.4)
+			_spawn_asset_building(CityBuildingScenes[0], right_building, 3.4)
+
+	# Landmark buildings are optional imports; the rest of the city remains playable without them.
+	_spawn_optional_city_model("res://assets/models/city/downtown/apartment_block.glb", Vector3(-45, 0, 115), Vector3.ONE, Vector3(15, 20, 15))
+	_spawn_optional_city_model("res://assets/models/city/downtown/highrise_apartment.glb", Vector3(45, 0, 195), Vector3.ONE, Vector3(18, 48, 18))
+
+	# Traffic lights at selected boulevard junctions and street lamps along sidewalks.
+	for street_z in [95.0, 135.0, 175.0, 215.0]:
+		_spawn_city_asset(TrafficLightScene, Vector3(-7.8, 0.0, street_z - 5.8), Vector3.ONE * 2.8)
+		_spawn_city_asset(TrafficLightScene, Vector3(7.8, 0.0, street_z + 5.8), Vector3.ONE * 2.8, Vector3(0, PI, 0))
+	for lamp_z in range(85, 226, 20):
+		_spawn_prop(StreetLightScene, Vector3(-9.0, 0.0, float(lamp_z)), 2.4)
+		_spawn_prop(StreetLightScene, Vector3(9.0, 0.0, float(lamp_z) + 10.0), 2.4)
+
+	# Visible crosswalk stripes at the central boulevard crossings.
+	var stripe_material := _make_color_material(Color(0.82, 0.84, 0.86), 0.9)
+	for street_z in [95.0, 135.0, 175.0, 215.0]:
+		for stripe in range(6):
+			var mark := MeshInstance3D.new()
+			var mark_mesh := BoxMesh.new()
+			mark_mesh.size = Vector3(0.72, 0.025, 4.0)
+			mark.mesh = mark_mesh
+			mark.position = Vector3(-2.8 + float(stripe) * 1.12, 0.105, street_z - 7.2)
+			mark.material_override = stripe_material
+			add_child(mark)
 
 
 func _spawn_optional_city_model(path: String, at: Vector3, model_scale: Vector3, collision_size: Vector3, rotation_value: Vector3 = Vector3.ZERO) -> void:
@@ -716,6 +744,20 @@ func _setup_traffic() -> void:
 		_make_car_visual(car, i)
 		cars.append(car)
 
+	# Downtown boulevard traffic: one vehicle on each new cross-street.
+	for i in range(4):
+		var downtown_car: Variant = CharacterBody3D.new()
+		downtown_car.set_script(CarScript)
+		downtown_car.speed = randf_range(3.8, 5.8)
+		downtown_car.direction = 1.0 if i % 2 == 0 else -1.0
+		var road_z := [95.0, 135.0, 175.0, 215.0][i]
+		downtown_car.start_x = -64.0 if downtown_car.direction > 0.0 else 64.0
+		downtown_car.end_x = 64.0 if downtown_car.direction > 0.0 else -64.0
+		downtown_car.lane_z = road_z + (-2.0 if downtown_car.direction > 0.0 else 2.0)
+		add_child(downtown_car)
+		_make_car_visual(downtown_car, VehicleScenes.size() + i)
+		cars.append(downtown_car)
+
 func _make_car_visual(car: Node3D, model_index: int) -> void:
 	# Each traffic vehicle gets a distinct textured GLB from the Kenney Car Kit.
 	var safe_index := model_index % VehicleScenes.size()
@@ -744,6 +786,15 @@ func _setup_people() -> void:
 			district_z + sidewalk_side * 6.35 + randf_range(-0.55, 0.55)
 		)
 		add_child(npc)
+
+	# A small extra pedestrian population brings the downtown blocks to life.
+	for i in range(8):
+		var downtown_npc := CharacterBody3D.new()
+		downtown_npc.set_script(NpcScript)
+		downtown_npc.district_center_z = [95.0, 135.0, 175.0, 215.0][i % 4]
+		downtown_npc.sidewalk_side = -1.0 if i % 2 == 0 else 1.0
+		downtown_npc.position = Vector3(randf_range(-62.0, 62.0), 0.1, downtown_npc.district_center_z + downtown_npc.sidewalk_side * 6.0)
+		add_child(downtown_npc)
 
 func _setup_mobile_ui() -> void:
 	controls_layer = CanvasLayer.new()
