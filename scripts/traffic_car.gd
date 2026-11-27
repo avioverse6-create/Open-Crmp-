@@ -36,6 +36,9 @@ var _traffic_turn_control_a := Vector3.ZERO
 var _traffic_turn_control_b := Vector3.ZERO
 var _traffic_turn_end := Vector3.ZERO
 var _traffic_turn_exit_direction := Vector3.ZERO
+var _traffic_decision_timer := 0.0
+var _audio_update_timer := 0.0
+var _cached_safe_speed := 0.0
 
 func set_mobile_input(value: Vector2) -> void:
 	mobile_input_vector = value.limit_length(1.0)
@@ -124,7 +127,11 @@ func _physics_process(delta: float) -> void:
 	if is_player_driven:
 		_drive_player(delta)
 	else:
-		var target_traffic_speed := _get_safe_traffic_speed()
+		_traffic_decision_timer -= delta
+		if _traffic_decision_timer <= 0.0:
+			_cached_safe_speed = _get_safe_traffic_speed()
+			_traffic_decision_timer = 0.18
+		var target_traffic_speed := _cached_safe_speed
 		# Keep a steady, low speed for the full duration of a junction turn.
 		if _traffic_turn_active:
 			target_traffic_speed = minf(target_traffic_speed, 3.2)
@@ -134,7 +141,7 @@ func _physics_process(delta: float) -> void:
 		speed_kmh = absf(traffic_speed) * 3.6
 		if _traffic_turn_active:
 			_process_traffic_turn(delta, traffic_speed)
-		elif target_traffic_speed > speed * 0.65:
+		elif target_traffic_speed > speed * 0.65 and _traffic_decision_timer > 0.12:
 			_try_begin_traffic_turn()
 		if _traffic_turn_active:
 			pass
@@ -159,8 +166,11 @@ func _physics_process(delta: float) -> void:
 			elif direction < 0.0 and position.x < end_x:
 				position.x = start_x
 
-	_update_engine_audio()
-	_update_passby_audio()
+	_audio_update_timer -= delta
+	if _audio_update_timer <= 0.0:
+		_update_engine_audio()
+		_update_passby_audio()
+		_audio_update_timer = 0.12
 	_update_vehicle_camera_collision(delta)
 
 
