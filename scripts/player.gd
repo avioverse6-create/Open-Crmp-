@@ -62,7 +62,9 @@ func _setup_mixamo_animations(character: Node3D) -> void:
 	for library_name in source_player.get_animation_library_list():
 		var source_library := source_player.get_animation_library(library_name)
 		if source_library != null:
-			animation_player.add_animation_library(library_name, source_library.duplicate(true))
+			var copied_library := source_library.duplicate(true) as AnimationLibrary
+			if copied_library != null:
+				animation_player.add_animation_library(library_name, copied_library)
 	for clip in animation_player.get_animation_list():
 		var lower := String(clip).to_lower()
 		if lower.ends_with("/idle") or lower == "idle":
