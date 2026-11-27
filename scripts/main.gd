@@ -353,10 +353,11 @@ func _setup_world() -> void:
 	_make_box("Bridge rail right", Vector3(5.4, 1.0, 0), Vector3(0.35, 1.5, 24), Color(0.55, 0.58, 0.6), true)
 
 	for district_z in [-34.0, 34.0]:
-		for x in range(-5, 6):
+		# Keep buildings inside the blocks between the new modular side streets.
+		for block_x in [-65.0, -32.0, 0.0, 32.0, 65.0]:
 			for side in [-1.0, 1.0]:
-				var bx := float(x) * 13.0 + randf_range(-2.0, 2.0)
-				var bz: float = district_z + side * randf_range(13.0, 28.0)
+				var bx := block_x + randf_range(-1.2, 1.2)
+				var bz: float = district_z + side * randf_range(15.0, 23.0)
 				var chosen_scene: PackedScene = HouseScene if randf() < 0.72 else MarketScene
 				_spawn_asset_building(chosen_scene, Vector3(bx, 0.0, bz), 3.4)
 
@@ -398,7 +399,7 @@ func _setup_vinish_district_roads() -> void:
 		return
 
 	# Four side-road junctions on each district boulevard use proper crossroads.
-	var side_street_x := [-48.0, -32.0, 32.0, 48.0]
+	var side_street_x := [-48.0, -16.0, 16.0, 48.0]
 	for road_z in [-34.0, 34.0]:
 		for tile_index in range(9):
 			var road_x := -64.0 + float(tile_index) * 16.0
