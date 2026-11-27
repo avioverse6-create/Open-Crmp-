@@ -97,10 +97,6 @@ var cloud_groups: Array[Node3D] = []
 var selected_fps := 60
 var vehicle_hud: PanelContainer
 var vehicle_hud_label: Label
-var snow_particles: GPUParticles3D
-var snow_particle_material: ParticleProcessMaterial
-var snow_overlay_material: ShaderMaterial
-var weather_clock := 0.0
 var movement_joystick: VirtualJoystick
 var jump_button: Button
 var run_button: Button
@@ -120,20 +116,10 @@ func _ready() -> void:
 	_setup_traffic()
 	_setup_audio()
 	_setup_people()
-	_setup_winter()
 	_setup_mobile_ui()
 	_setup_main_menu()
 
 func _process(delta: float) -> void:
-	# Gentle changing wind prevents snowfall from looking like a static vertical curtain.
-	weather_clock += delta
-	if snow_particle_material != null:
-		var wind_phase := weather_clock * 0.19
-		snow_particle_material.gravity = Vector3(-0.18 + sin(wind_phase) * 0.34, -0.38, 0.12 + cos(wind_phase * 0.83) * 0.24)
-	if snow_particles != null and is_instance_valid(player):
-		var snow_anchor: Node3D = player.active_vehicle if player.active_vehicle != null else player
-		if is_instance_valid(snow_anchor):
-			snow_particles.global_position = snow_anchor.global_position + Vector3(0.0, 10.0, 0.0)
 	for cloud in cloud_groups:
 		cloud.position.x += delta * 0.42
 		if cloud.position.x > 98.0:
@@ -213,106 +199,11 @@ func _setup_audio() -> void:
 			chatter.play()
 
 
-func _setup_winter() -> void:
-	# Snow overlay is a second material pass: original model textures remain intact.
-	var snow_shader := load("res://assets/shaders/snow_overlay.gdshader") as Shader
-	if snow_shader != null:
-		snow_overlay_material = ShaderMaterial.new()
-		snow_overlay_material.shader = snow_shader
-		var snow_color_path := "res://assets/textures/winter/snow_color.jpg"
-		var snow_normal_path := "res://assets/textures/winter/snow_normal.jpg"
-		var snow_color: Texture2D
-		var snow_normal: Texture2D
-		if ResourceLoader.exists(snow_color_path):
-			snow_color = load(snow_color_path) as Texture2D
-		else:
-			var noise := FastNoiseLite.new()
-			noise.frequency = 0.045
-			var noise_texture := NoiseTexture2D.new()
-			noise_texture.noise = noise
-			noise_texture.width = 256
-			noise_texture.height = 256
-			snow_color = noise_texture
-		if ResourceLoader.exists(snow_normal_path):
-			snow_normal = load(snow_normal_path) as Texture2D
-		else:
-			var normal_image := Image.create(4, 4, false, Image.FORMAT_RGBA8)
-			normal_image.fill(Color(0.5, 0.5, 1.0, 1.0))
-			snow_normal = ImageTexture.create_from_image(normal_image)
-		snow_overlay_material.set_shader_parameter("snow_albedo", snow_color)
-		snow_overlay_material.set_shader_parameter("snow_normal", snow_normal)
-		_apply_snow_overlay(self)
-
-	# GPU snow particles follow the player, keeping a local snowfall volume around the camera.
-	snow_particles = GPUParticles3D.new()
-	snow_particles.name = "WinterSnowfall"
-	snow_particles.amount = 1500
-	snow_particles.lifetime = 6.0
-	snow_particles.preprocess = 3.0
-	snow_particles.explosiveness = 0.0
-	snow_particles.emitting = true
-	snow_particles.visibility_aabb = AABB(Vector3(-16, -12, -16), Vector3(32, 24, 32))
-	var particle_process := ParticleProcessMaterial.new()
-	particle_process.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
-	particle_process.emission_box_extents = Vector3(12, 8, 12)
-	particle_process.direction = Vector3(-0.12, -1.0, 0.08)
-	particle_process.spread = 8.0
-	particle_process.gravity = Vector3(-0.18, -0.38, 0.12)
-	snow_particle_material = particle_process
-	particle_process.initial_velocity_min = 1.8
-	particle_process.initial_velocity_max = 3.1
-	particle_process.scale_min = 0.9
-	particle_process.scale_max = 1.55
-	snow_particles.process_material = particle_process
-	var snowflake := QuadMesh.new()
-	snowflake.size = Vector2(0.105, 0.105)
-	var flake_material := StandardMaterial3D.new()
-	flake_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	flake_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	flake_material.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
-	flake_material.albedo_color = Color(0.96, 0.99, 1.0, 0.94)
-	flake_material.roughness = 1.0
-	snowflake.material = flake_material
-	snow_particles.draw_pass_1 = snowflake
-	add_child(snow_particles)
-	if is_instance_valid(player):
-		snow_particles.global_position = player.global_position + Vector3(0.0, 10.0, 0.0)
-
-
-func _apply_snow_overlay(node: Node) -> void:
-	# Keep open water clear: snow settles on banks and roads, not the river surface.
-	if node.name == "River":
-		return
-	if node is MeshInstance3D:
-		var mesh_instance := node as MeshInstance3D
-		if mesh_instance.mesh != null:
-			# material_override has priority over per-surface overrides in Godot.
-			# Layer that material directly, otherwise the snow pass can silently disappear
-			# on generated terrain, roads, and other procedural meshes.
-			if mesh_instance.material_override != null:
-				var source_override := mesh_instance.material_override
-				var layered_override := source_override.duplicate() as Material
-				if layered_override != null:
-					layered_override.next_pass = snow_overlay_material
-					mesh_instance.material_override = layered_override
-			else:
-				for surface_index in range(mesh_instance.mesh.get_surface_count()):
-					var source_material := mesh_instance.get_active_material(surface_index)
-					if source_material == null:
-						continue
-					var layered_material := source_material.duplicate() as Material
-					if layered_material != null:
-						layered_material.next_pass = snow_overlay_material
-						mesh_instance.set_surface_override_material(surface_index, layered_material)
-	for child in node.get_children():
-		_apply_snow_overlay(child)
-
-
 func _setup_world() -> void:
 	var sun := DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-48, -28, 0)
 	sun.light_energy = 1.15
-	sun.shadow_enabled = true
+	sun.shadow_enabled = false
 	sun.shadow_bias = 0.05
 	add_child(sun)
 
@@ -335,9 +226,7 @@ func _setup_world() -> void:
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
 	env.ambient_light_energy = 0.92
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
-	env.fog_enabled = true
-	env.fog_light_color = Color(0.67, 0.75, 0.82)
-	env.fog_density = 0.00115
+	env.fog_enabled = false
 	environment.environment = env
 	add_child(environment)
 	if not ResourceLoader.exists("res://assets/sky/cloudy_day_1k.hdr"):
@@ -789,8 +678,8 @@ func _make_box(label: String, at: Vector3, dimensions: Vector3, color: Color, so
 	elif label == "River":
 		var water_plane := PlaneMesh.new()
 		water_plane.size = Vector2(dimensions.x, dimensions.z)
-		water_plane.subdivide_width = 120
-		water_plane.subdivide_depth = 20
+		water_plane.subdivide_width = 16
+		water_plane.subdivide_depth = 2
 		mesh_instance.mesh = water_plane
 		root.position.y = at.y + dimensions.y * 0.5
 		var water_shader := Shader.new()
@@ -935,7 +824,7 @@ func _make_car_visual(car: Node3D, model_index: int) -> void:
 
 func _setup_people() -> void:
 	# Keep pedestrians on the two sidewalk strips beside each district road.
-	for i in range(16):
+	for i in range(8):
 		var npc := CharacterBody3D.new()
 		npc.set_script(NpcScript)
 		var district_z := -34.0 if i < 8 else 34.0
@@ -951,7 +840,7 @@ func _setup_people() -> void:
 
 	# Pedestrians use the textured sidewalk edges of all five east-west streets.
 	var downtown_pedestrian_streets := [91.0, 123.0, 155.0, 187.0, 219.0]
-	for i in range(16):
+	for i in range(8):
 		var downtown_npc := CharacterBody3D.new()
 		downtown_npc.set_script(NpcScript)
 		downtown_npc.district_center_z = downtown_pedestrian_streets[i % downtown_pedestrian_streets.size()]
@@ -962,7 +851,7 @@ func _setup_people() -> void:
 
 	# Extra pedestrians walk the north-south sidewalks, completing both axes of the grid.
 	var downtown_vertical_streets := [-64.0, -32.0, 0.0, 32.0, 64.0]
-	for i in range(16):
+	for i in range(8):
 		var vertical_npc := CharacterBody3D.new()
 		vertical_npc.set_script(NpcScript)
 		vertical_npc.vertical_route = true
