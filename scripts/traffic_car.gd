@@ -66,6 +66,7 @@ var start_z := 99.0
 var end_z := 219.0
 
 func _ready() -> void:
+	add_to_group("traffic_vehicles")
 	if vertical_traffic:
 		position.x = lane_x
 		position.z = start_z
@@ -113,23 +114,24 @@ func _physics_process(delta: float) -> void:
 	if is_player_driven:
 		_drive_player(delta)
 	else:
-		speed_kmh = absf(speed) * 3.6
+		var traffic_speed := _get_safe_traffic_speed()
+		speed_kmh = absf(traffic_speed) * 3.6
 		if vertical_traffic:
 			velocity.x = 0.0
-			velocity.z = speed * direction
+			velocity.z = traffic_speed * direction
 			rotation.y = PI if direction > 0.0 else 0.0
 			move_and_slide()
-			_spin_wheels(delta, speed * direction)
+			_spin_wheels(delta, traffic_speed * direction)
 			if direction > 0.0 and position.z > end_z:
 				position.z = start_z
 			elif direction < 0.0 and position.z < end_z:
 				position.z = start_z
 		else:
-			velocity.x = speed * direction
+			velocity.x = traffic_speed * direction
 			velocity.z = 0.0
 			rotation.y = -PI * 0.5 if direction > 0.0 else PI * 0.5
 			move_and_slide()
-			_spin_wheels(delta, speed * direction)
+			_spin_wheels(delta, traffic_speed * direction)
 			if direction > 0.0 and position.x > end_x:
 				position.x = start_x
 			elif direction < 0.0 and position.x < end_x:
@@ -184,6 +186,31 @@ func _drive_player(delta: float) -> void:
 	velocity.z = forward.z * drive_speed
 	move_and_slide()
 	_spin_wheels(delta, drive_speed)
+
+func _get_safe_traffic_speed() -> float:
+	# Same-lane traffic slows down behind a vehicle instead of driving through it.
+	var safe_speed := speed
+	for other in get_tree().get_nodes_in_group("traffic_vehicles"):
+		if other == self or not is_instance_valid(other):
+			continue
+		if other.get("is_player_driven") or bool(other.get("vertical_traffic")) != vertical_traffic:
+			continue
+		if absf(float(other.get("direction")) - direction) > 0.01:
+			continue
+		var gap := INF
+		if vertical_traffic:
+			if absf(float(other.global_position.x) - global_position.x) > 1.8:
+				continue
+			gap = (other.global_position.z - global_position.z) * direction
+		else:
+			if absf(float(other.global_position.z) - global_position.z) > 1.8:
+				continue
+			gap = (other.global_position.x - global_position.x) * direction
+		if gap > 0.0:
+			var following_factor := clampf((gap - 3.2) / 8.0, 0.0, 1.0)
+			safe_speed = minf(safe_speed, speed * following_factor)
+	return safe_speed
+
 
 func _update_engine_audio() -> void:
 	if engine_audio == null:
