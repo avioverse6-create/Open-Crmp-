@@ -291,14 +291,24 @@ func _apply_snow_overlay(node: Node) -> void:
 	if node is MeshInstance3D:
 		var mesh_instance := node as MeshInstance3D
 		if mesh_instance.mesh != null:
-			for surface_index in range(mesh_instance.mesh.get_surface_count()):
-				var source_material := mesh_instance.get_active_material(surface_index)
-				if source_material == null:
-					continue
-				var layered_material := source_material.duplicate() as Material
-				if layered_material != null:
-					layered_material.next_pass = snow_overlay_material
-					mesh_instance.set_surface_override_material(surface_index, layered_material)
+			# material_override has priority over per-surface overrides in Godot.
+			# Layer that material directly, otherwise the snow pass can silently disappear
+			# on generated terrain, roads, and other procedural meshes.
+			if mesh_instance.material_override != null:
+				var source_override := mesh_instance.material_override
+				var layered_override := source_override.duplicate() as Material
+				if layered_override != null:
+					layered_override.next_pass = snow_overlay_material
+					mesh_instance.material_override = layered_override
+			else:
+				for surface_index in range(mesh_instance.mesh.get_surface_count()):
+					var source_material := mesh_instance.get_active_material(surface_index)
+					if source_material == null:
+						continue
+					var layered_material := source_material.duplicate() as Material
+					if layered_material != null:
+						layered_material.next_pass = snow_overlay_material
+						mesh_instance.set_surface_override_material(surface_index, layered_material)
 	for child in node.get_children():
 		_apply_snow_overlay(child)
 
