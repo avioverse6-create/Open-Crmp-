@@ -510,6 +510,23 @@ func _setup_downtown() -> void:
 					signal_model.position = Vector3(intersection.x + 6.5, 0.0, intersection.y + 6.5)
 					add_child(signal_model)
 
+	# Fire hydrants add small, recognizable street-level details to the sidewalks.
+	if detailed_roads and ResourceLoader.exists("res://assets/models/vinish_city/fire-hydrant.glb"):
+		var hydrant_scene := load("res://assets/models/vinish_city/fire-hydrant.glb") as PackedScene
+		if hydrant_scene != null:
+			for hydrant_position in [
+				Vector3(-41.0, 0.0, 114.0),
+				Vector3(41.0, 0.0, 114.0),
+				Vector3(-41.0, 0.0, 178.0),
+				Vector3(41.0, 0.0, 178.0),
+				Vector3(-9.0, 0.0, 146.0),
+				Vector3(9.0, 0.0, 146.0)
+			]:
+				var hydrant := hydrant_scene.instantiate() as Node3D
+				if hydrant != null:
+					hydrant.position = hydrant_position
+					add_child(hydrant)
+
 
 
 func _setup_vinish_downtown_roads() -> void:
