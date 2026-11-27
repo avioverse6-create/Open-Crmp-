@@ -79,7 +79,7 @@ func bind(character_root: Node) -> void:
 	_animation_player.name = "MixamoAnimationPlayer"
 	# Advance imported clips explicitly so the procedural arm layer can be applied
 	# after each pose update, rather than being overwritten by AnimationPlayer.
-	_animation_player.callback_mode_process = AnimationMixer.ANIMATION_CALLBACK_MODE_MANUAL
+	_animation_player.callback_mode_process = AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_MANUAL
 	_animation_player.root_node = NodePath("..")
 	_animation_player.add_animation_library("", library)
 	character_root.add_child(_animation_player)
