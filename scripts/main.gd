@@ -435,7 +435,7 @@ func _setup_mobile_ui() -> void:
 	var minimap := Control.new()
 	minimap.name = "Minimap"
 	minimap.set_script(MinimapScript)
-	minimap.target = player
+	minimap.set("target", player)
 	minimap.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	minimap.position = Vector2(-190, 18)
 	minimap.size = Vector2(172, 172)
