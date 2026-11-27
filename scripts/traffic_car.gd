@@ -201,7 +201,7 @@ func _try_begin_traffic_turn() -> void:
 			var incoming := Vector3(0.0, 0.0, direction) if vertical_traffic else Vector3(direction, 0.0, 0.0)
 			var turn_left := posmod(int(get_instance_id()) + int(ix * 7.0) - int(iz * 3.0), 2) == 0
 			var outgoing := Vector3(-incoming.z, 0.0, incoming.x) if turn_left else Vector3(incoming.z, 0.0, -incoming.x)
-			var lane_offset := Vector3(-2.0 if outgoing.z > 0.0 else 2.0, 0.0, 0.0) if absf(outgoing.z) > 0.5 else Vector3(0.0, 0.0, -2.0 if outgoing.x > 0.0 else 2.0)
+			var lane_offset := Vector3(-2.0 if outgoing.z > 0.0 else 2.0, 0.0, 0.0) if absf(outgoing.z) > 0.5 else Vector3(0.0, 0.0, 2.0 if outgoing.x > 0.0 else -2.0)
 			_traffic_turn_start = global_position
 			_traffic_turn_control_a = global_position + incoming * 3.0
 			_traffic_turn_end = junction + outgoing * 5.5 + lane_offset
@@ -276,17 +276,18 @@ func _update_vehicle_camera_collision(delta: float) -> void:
 	var active_camera := get_viewport().get_camera_3d()
 	if active_camera == null:
 		return
-	var camera_origin := global_position + Vector3(0.0, 1.0, 0.0)
+	var camera_origin := to_global(Vector3(0.0, 1.0, 0.0))
 	var desired_camera_position := to_global(Vector3(0.0, 2.15, 6.6))
 	var camera_query := PhysicsRayQueryParameters3D.create(camera_origin, desired_camera_position)
 	camera_query.exclude = [get_rid()]
 	camera_query.collide_with_areas = false
 	var camera_hit := get_world_3d().direct_space_state.intersect_ray(camera_query)
-	var safe_camera_position := desired_camera_position
-	if not camera_hit.is_empty():
-		safe_camera_position = camera_hit.position + camera_hit.normal * 0.18
+	var camera_target_local := Vector3.ZERO
+	var camera_pivot := active_camera.get_parent() as Node3D
+	if not camera_hit.is_empty() and camera_pivot != null:
+		camera_target_local = camera_pivot.to_local(camera_hit.position + camera_hit.normal * 0.22)
 	var camera_weight := 1.0 - exp(-delta * (24.0 if not camera_hit.is_empty() else 8.0))
-	active_camera.global_position = active_camera.global_position.lerp(safe_camera_position, camera_weight)
+	active_camera.position = active_camera.position.lerp(camera_target_local, camera_weight)
 
 func _drive_player(delta: float) -> void:
 	var input_dir := mobile_input_vector
