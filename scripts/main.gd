@@ -57,7 +57,8 @@ func _setup_world() -> void:
 				var width := randf_range(6.0, 10.0)
 				var depth := randf_range(7.0, 11.0)
 				var colors := [Color(0.48,0.49,0.47), Color(0.58,0.48,0.38), Color(0.38,0.44,0.49), Color(0.68,0.64,0.55)]
-				_make_box("Building", Vector3(bx, height * 0.5, bz), Vector3(width, height, depth), colors[randi() % colors.size()], true)
+				var building := _make_box("Building", Vector3(bx, height * 0.5, bz), Vector3(width, height, depth), colors[randi() % colors.size()], true)
+				_add_building_windows(building, width, height, depth)
 
 	# Side streets and sidewalks.
 	for x in [-52.0, -26.0, 26.0, 52.0]:
@@ -88,6 +89,26 @@ func _make_box(label: String, at: Vector3, dimensions: Vector3, color: Color, so
 	mesh_instance.material_override = material
 	add_child(root)
 	return root
+
+func _add_building_windows(building: Node3D, width: float, height: float, depth: float) -> void:
+	var window_material := StandardMaterial3D.new()
+	window_material.albedo_color = Color(0.12, 0.2, 0.25)
+	window_material.metallic = 0.12
+	window_material.roughness = 0.28
+	var columns := max(1, int(width / 2.8))
+	var rows := max(1, int(height / 3.0))
+	for row in range(rows):
+		var y := min(2.0 + float(row) * 2.7, height - 1.0)
+		for column in range(columns):
+			var x := -width * 0.5 + (float(column) + 0.5) * (width / float(columns))
+			for side in [-1.0, 1.0]:
+				var window := MeshInstance3D.new()
+				var pane := BoxMesh.new()
+				pane.size = Vector3(1.05, 1.25, 0.07)
+				window.mesh = pane
+				window.position = Vector3(x, y, side * (depth * 0.5 + 0.045))
+				window.material_override = window_material
+				building.add_child(window)
 
 func _setup_player() -> void:
 	player = CharacterBody3D.new()
