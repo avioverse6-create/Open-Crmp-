@@ -46,3 +46,8 @@ The project still retains CC0 GLB assets from the Low Poly City Kit by kayquer f
 ## Asset licensing
 
 Only add assets whose licenses allow game use and redistribution. Keep each asset pack's license file beside the assets. Do not copy models, textures, maps, characters, logos or other protected content from Grand Theft Auto.
+
+
+## Rigged pedestrian and player models
+
+The player and pedestrians now instantiate four imported Mixamo GLB character models rather than the previous capsule-and-cylinder figures. The animation library is bundled separately and currently provides Idle and Run clips; the Run clip is slowed for pedestrian movement and normal walking speed. This is a temporary locomotion approximation, not a separately authored true Walk clip. Source and licence notes are in `assets/models/people/CREDITS.md`.
