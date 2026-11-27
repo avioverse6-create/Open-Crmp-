@@ -4,7 +4,7 @@ const PlayerScript = preload("res://scripts/player.gd")
 const CarScript = preload("res://scripts/traffic_car.gd")
 const NpcScript = preload("res://scripts/npc.gd")
 
-var player: CharacterBody3D
+var player: Variant
 var cars: Array[Node3D] = []
 var status_label: Label
 var enter_button: Button
@@ -97,7 +97,7 @@ func _setup_player() -> void:
 
 func _setup_traffic() -> void:
 	for i in range(5):
-		var car := Node3D.new()
+		var car: Variant = Node3D.new()
 		car.set_script(CarScript)
 		car.speed = randf_range(3.0, 6.0)
 		car.start_x = -65.0 - float(i) * 22.0
