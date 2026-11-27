@@ -4,9 +4,9 @@ Original small-scale 3D open-world mobile game prototype made with Godot 4.x.
 
 ## Current asset set
 
-- **Buildings:** 21 separate Kenney City Kit Suburban GLB building models. The matching color atlas is included beside the models; buildings are selected randomly and rotated for variation.
-- **Roads:** 10 modular Kenney City Kit Roads GLB pieces, including straight sections, bends, crossings, intersections, a roundabout and a bridge.
-- **Street props:** imported traffic lights, highway signs, bridge pillars, construction barriers and cones. Matching road color atlas is included.
+- **Buildings:** the active suburban generator instantiates the authored `casa_simples.glb` and `mercado.glb` models directly. Downtown uses two detailed Vinish City Kit apartment GLBs downloaded as required build assets. Legacy Kenney building files remain in the repository but are no longer referenced by gameplay.
+- **Roads:** the active districts use Vinish City Kit GLB road modules downloaded by the Android build workflow (straight sections, crossroads, T-junctions, bends and sidewalks). Legacy Kenney road files are not referenced by gameplay. Some small road markings and bridge geometry are still generated in Godot.
+- **Street props:** the active downtown workflow uses Vinish street lights, traffic signals and hydrants; the suburban strips use the project's separate street-light GLB.
 - **People:** four rigged Mixamo GLB characters are used for the player and pedestrians. The separate animation library currently supplies Idle and Run; Run is slowed to approximate a walk for pedestrians. The bundled library has Idle and Run but no dedicated Walk clip; the Run cycle is slowed for pedestrian walking.
 - **Cars:** gameplay uses eight detailed Mint vehicle GLBs (sedan, SUV, taxi, police, pickup, fire truck, sports car and ambulance), each around 18k–20k triangles with embedded textures. They are CC0 1.0 and downloaded by the Android build workflow. Legacy Kenney vehicle files may remain in the repository but are not loaded by gameplay.
 - **Nature:** imported low-poly trees plus Quaternius CC0 bush, flowering-bush and grass GLBs scattered along the riverbanks.
@@ -25,7 +25,7 @@ Original small-scale 3D open-world mobile game prototype made with Godot 4.x.
 
 ## Visual target and current limits
 
-This is a mobile-friendly low-poly prototype, not a photorealistic GTA-quality build yet. The imported building and road meshes use their original Kenney color atlases. The old procedural SVG surface maps remain in `assets/textures/` for legacy materials; the current road, sidewalk and grass surfaces use 512×512 AmbientCG color maps. These are albedo/color maps only, not a complete scanned PBR set. The imported city kit is stylized, while the player and pedestrian models are rigged Mixamo characters.
+This is still a mobile-friendly prototype, not a finished photorealistic GTA-quality game. The active gameplay code no longer loads the Kenney building, road or vehicle collections. Those legacy files have not yet been physically removed from the repository. The active road, sidewalk and grass surfaces use AmbientCG color maps plus lightweight detail maps; this is not yet a complete high-resolution scanned PBR environment. Visual quality and Android performance still require an actual device test.
 
 No GTA code, maps, characters, logos or extracted game assets are included.
 
@@ -55,7 +55,8 @@ No GTA code, maps, characters, logos or extracted game assets are included.
 
 ## Asset licensing
 
-- City buildings, road pieces and roadside props: Kenney assets, CC0 1.0. See `assets/models/city/CREDITS.md`.
+- Legacy unused Kenney city/building/road files remain in the repository only; they are not referenced by active gameplay. Their original CC0 attribution is retained in `assets/models/city/CREDITS.md`.
+- Active detailed downtown roads/buildings: Vinish City Kit assets downloaded by the Android workflow; see `assets/models/vinish_city/CREDITS.txt` when present.
 - Realistic vehicle models: Mint CC0 1.0 GLBs. See the Mint vehicle library at https://mint.gg/free-3d-models/category/cars.
 - AmbientCG color textures: CC0 1.0; see `assets/textures/AMBIENTCG-CREDITS.md`.
 - Player and pedestrian characters and their animation library: Mixamo assets bundled by vinish.dev. See `assets/models/people/CREDITS.md`; review Adobe's current terms before publishing.
@@ -67,7 +68,7 @@ Keep the asset credit and license files with the project. The project has not ye
 
 ### Ground texture set
 
-The mobile scene uses CC0 AmbientCG color/albedo maps for Asphalt021 (roads), Concrete012 (sidewalks, curbs and bridge), and Grass004 (terrain). Materials use triplanar mapping to reduce visible stretching on box-shaped surfaces. These committed AmbientCG maps are the color/albedo layer. Lightweight procedural normal and roughness detail maps are wired separately; they are not scanned AmbientCG maps. Imported Kenney city buildings keep their original atlas textures.
+The mobile scene uses CC0 AmbientCG color/albedo maps for Asphalt021 (roads), Concrete012 (sidewalks, curbs and bridge), and Grass004 (terrain). Materials use triplanar mapping to reduce visible stretching on box-shaped surfaces. These committed AmbientCG maps are the color/albedo layer. Lightweight procedural normal and roughness detail maps are wired separately; they are not scanned AmbientCG maps. Legacy Kenney city files are not loaded by the current world generator.
 
 
 ### Surface detail maps
