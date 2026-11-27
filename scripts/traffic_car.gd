@@ -27,6 +27,7 @@ var mobile_drive_controls_active := false
 var fuel_capacity := 60.0
 var fuel_liters := 60.0
 var speed_kmh := 0.0
+var traffic_current_speed := 0.0
 
 func set_mobile_input(value: Vector2) -> void:
 	mobile_input_vector = value.limit_length(1.0)
@@ -66,6 +67,7 @@ var start_z := 99.0
 var end_z := 219.0
 
 func _ready() -> void:
+	traffic_current_speed = speed
 	add_to_group("traffic_vehicles")
 	if vertical_traffic:
 		position.x = lane_x
@@ -114,7 +116,10 @@ func _physics_process(delta: float) -> void:
 	if is_player_driven:
 		_drive_player(delta)
 	else:
-		var traffic_speed := _get_safe_traffic_speed()
+		var target_traffic_speed := _get_safe_traffic_speed()
+		var traffic_rate := braking if target_traffic_speed < traffic_current_speed else acceleration
+		traffic_current_speed = move_toward(traffic_current_speed, target_traffic_speed, traffic_rate * delta)
+		var traffic_speed := traffic_current_speed
 		speed_kmh = absf(traffic_speed) * 3.6
 		if vertical_traffic:
 			velocity.x = 0.0
@@ -193,7 +198,7 @@ func _get_safe_traffic_speed() -> float:
 	for other in get_tree().get_nodes_in_group("traffic_vehicles"):
 		if other == self or not is_instance_valid(other):
 			continue
-		if other.get("is_player_driven") or bool(other.get("vertical_traffic")) != vertical_traffic:
+		if bool(other.get("vertical_traffic")) != vertical_traffic:
 			continue
 		if absf(float(other.get("direction")) - direction) > 0.01:
 			continue
@@ -207,7 +212,9 @@ func _get_safe_traffic_speed() -> float:
 				continue
 			gap = (other.global_position.x - global_position.x) * direction
 		if gap > 0.0:
-			var following_factor := clampf((gap - 3.2) / 8.0, 0.0, 1.0)
+			# Leave a longer buffer behind the player-controlled car.
+			var safe_gap := 4.2 if bool(other.get("is_player_driven")) else 3.2
+			var following_factor := clampf((gap - safe_gap) / 8.0, 0.0, 1.0)
 			safe_speed = minf(safe_speed, speed * following_factor)
 	return safe_speed
 
