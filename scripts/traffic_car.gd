@@ -20,6 +20,9 @@ var passby_audio: AudioStreamPlayer3D
 var _last_listener_distance := INF
 var _passby_played := false
 var mobile_input_vector := Vector2.ZERO
+var fuel_capacity := 60.0
+var fuel_liters := 60.0
+var speed_kmh := 0.0
 
 func set_mobile_input(value: Vector2) -> void:
 	mobile_input_vector = value.limit_length(1.0)
@@ -83,6 +86,7 @@ func _physics_process(delta: float) -> void:
 		_drive_player(delta)
 	else:
 		velocity.x = speed * direction
+		speed_kmh = absf(speed) * 3.6
 		velocity.z = 0.0
 		rotation.y = PI * 0.5 if direction > 0.0 else -PI * 0.5
 		move_and_slide()
@@ -101,6 +105,8 @@ func _drive_player(delta: float) -> void:
 	if input_dir.length() < 0.05:
 		input_dir = Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 	var throttle := -input_dir.y
+	if fuel_liters <= 0.0:
+		throttle = 0.0
 	if abs(throttle) > 0.05:
 		drive_speed = move_toward(drive_speed, throttle * max_drive_speed, acceleration * delta)
 	else:
@@ -109,6 +115,8 @@ func _drive_player(delta: float) -> void:
 	if abs(drive_speed) > 0.15:
 		rotation.y -= input_dir.x * steering_speed * delta * sign(drive_speed)
 
+	fuel_liters = maxf(0.0, fuel_liters - absf(drive_speed) * 0.00008 * delta)
+	speed_kmh = absf(drive_speed) * 3.6
 	var forward := -global_basis.z
 	velocity.x = forward.x * drive_speed
 	velocity.z = forward.z * drive_speed
