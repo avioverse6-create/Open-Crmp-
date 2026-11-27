@@ -97,7 +97,7 @@ func _setup_player() -> void:
 
 func _setup_traffic() -> void:
 	for i in range(5):
-		var car: Variant = Node3D.new()
+		var car := CharacterBody3D.new()
 		car.set_script(CarScript)
 		car.speed = randf_range(3.0, 6.0)
 		car.start_x = -65.0 - float(i) * 22.0
@@ -124,6 +124,57 @@ func _make_car_visual(car: Node3D, forward: bool) -> void:
 	roof.position = Vector3(0, 1.35, -0.1)
 	roof.material_override = mat
 	car.add_child(roof)
+
+	# Dark windshield and side windows.
+	var glass := StandardMaterial3D.new()
+	glass.albedo_color = Color(0.055, 0.09, 0.12)
+	glass.metallic = 0.18
+	glass.roughness = 0.22
+	var windshield := MeshInstance3D.new()
+	var windshield_mesh := BoxMesh.new()
+	windshield_mesh.size = Vector3(1.38, 0.48, 0.08)
+	windshield.mesh = windshield_mesh
+	windshield.position = Vector3(0, 1.38, -0.82)
+	windshield.rotation_degrees.x = -12
+	windshield.material_override = glass
+	car.add_child(windshield)
+
+	# Four simple wheels, positioned outside the body.
+	for x_side in [-1.0, 1.0]:
+		for z_side in [-1.15, 1.15]:
+			var wheel := MeshInstance3D.new()
+			var wheel_mesh := CylinderMesh.new()
+			wheel_mesh.top_radius = 0.38
+			wheel_mesh.bottom_radius = 0.38
+			wheel_mesh.height = 0.22
+			wheel.mesh = wheel_mesh
+			wheel.position = Vector3(x_side * 1.02, 0.38, z_side)
+			wheel.rotation_degrees.z = 90
+			var wheel_mat := StandardMaterial3D.new()
+			wheel_mat.albedo_color = Color(0.035, 0.04, 0.045)
+			wheel_mat.roughness = 0.95
+			wheel.material_override = wheel_mat
+			car.add_child(wheel)
+
+	# Headlights and rear lights.
+	for x_side in [-0.62, 0.62]:
+		var headlight := MeshInstance3D.new()
+		var lamp_mesh := BoxMesh.new()
+		lamp_mesh.size = Vector3(0.34, 0.18, 0.08)
+		headlight.mesh = lamp_mesh
+		headlight.position = Vector3(x_side, 0.68, -1.83)
+		var lamp_mat := StandardMaterial3D.new()
+		lamp_mat.albedo_color = Color(1.0, 0.88, 0.58)
+		headlight.material_override = lamp_mat
+		car.add_child(headlight)
+
+		var taillight := MeshInstance3D.new()
+		taillight.mesh = lamp_mesh
+		taillight.position = Vector3(x_side, 0.68, 1.83)
+		var tail_mat := StandardMaterial3D.new()
+		tail_mat.albedo_color = Color(0.72, 0.035, 0.025)
+		taillight.material_override = tail_mat
+		car.add_child(taillight)
 
 func _setup_people() -> void:
 	for i in range(16):
