@@ -70,17 +70,6 @@ const BushScene: PackedScene = preload("res://assets/models/nature/bush.glb")
 const BushFlowersScene: PackedScene = preload("res://assets/models/nature/bush_flowers.glb")
 const GrassClumpScene: PackedScene = preload("res://assets/models/nature/grass.glb")
 
-const RoadCrossingScene: PackedScene = preload("res://assets/models/city/roads/road-crossing.glb")
-const RoadCrossroadScene: PackedScene = preload("res://assets/models/city/roads/road-crossroad.glb")
-const RoadBridgeScene: PackedScene = preload("res://assets/models/city/roads/road-bridge.glb")
-const RoadStraightScene: PackedScene = preload("res://assets/models/city/roads/road-straight.glb")
-const TrafficLightScene: PackedScene = preload("res://assets/models/city/roads/light-square-cross.glb")
-const HighwaySignScene: PackedScene = preload("res://assets/models/city/roads/sign-highway.glb")
-const ConstructionConeScene: PackedScene = preload("res://assets/models/city/roads/construction-cone.glb")
-const ConstructionBarrierScene: PackedScene = preload("res://assets/models/city/roads/construction-barrier.glb")
-const BridgePillarScene: PackedScene = preload("res://assets/models/city/roads/bridge-pillar.glb")
-
-
 const PlasterTexture: Texture2D = preload("res://assets/textures/wall_plaster.svg")
 const BrickTexture: Texture2D = preload("res://assets/textures/brick_ambientcg.png")
 const ConcreteTexture: Texture2D = preload("res://assets/textures/pbr/concrete_color.jpg")
@@ -600,37 +589,6 @@ func _spawn_optional_city_model(path: String, at: Vector3, model_scale: Vector3,
 	body.add_child(collision)
 	add_child(body)
 
-
-func _add_city_road_assets() -> void:
-	# Imported modular road kit pieces add real mesh detail to key intersections.
-	_spawn_city_asset(RoadBridgeScene, Vector3(0, 0.20, 0), Vector3(11.0, 1.0, 24.0))
-	for road_z in [-34.0, 34.0]:
-		_spawn_city_asset(RoadCrossingScene, Vector3(0, 0.105, road_z), Vector3(10.0, 1.0, 10.0), Vector3(0, deg_to_rad(90.0), 0))
-		for road_x in [-52.0, -26.0, 26.0, 52.0]:
-			_spawn_city_asset(RoadCrossroadScene, Vector3(road_x, 0.105, road_z), Vector3(10.0, 1.0, 10.0), Vector3(0, deg_to_rad(90.0), 0))
-			if absf(road_x) == 52.0:
-				_spawn_city_asset(TrafficLightScene, Vector3(road_x + 5.2, 0.0, road_z + 5.2), Vector3.ONE * 3.2)
-	# Imported straight road tiles cover the four side streets in each district.
-	for road_x in [-52.0, -26.0, 26.0, 52.0]:
-		for road_z in [-54.0, -44.0, -24.0, -14.0, 14.0, 24.0, 44.0, 54.0]:
-			_spawn_city_asset(RoadStraightScene, Vector3(road_x, 0.11, road_z), Vector3(7.0, 1.0, 10.0))
-	# Bridge supports and readable roadside signs make the crossing feel like a built place.
-	for side in [-1.0, 1.0]:
-		_spawn_city_asset(BridgePillarScene, Vector3(side * 4.1, -1.15, -7.0), Vector3.ONE * 2.2)
-		_spawn_city_asset(BridgePillarScene, Vector3(side * 4.1, -1.15, 7.0), Vector3.ONE * 2.2)
-	_spawn_city_asset(HighwaySignScene, Vector3(-61.0, 0.0, -27.0), Vector3.ONE * 1.8)
-	_spawn_city_asset(HighwaySignScene, Vector3(61.0, 0.0, 27.0), Vector3.ONE * 1.8, Vector3(0, PI, 0))
-	# A small roadwork pocket at the far edge adds a few non-building props.
-	_spawn_city_asset(ConstructionBarrierScene, Vector3(62.0, 0.0, -18.0), Vector3.ONE * 1.7)
-	for cone_x in [58.0, 62.0, 66.0]:
-		_spawn_city_asset(ConstructionConeScene, Vector3(cone_x, 0.0, -21.0), Vector3.ONE * 1.5)
-
-func _spawn_city_asset(scene: PackedScene, at: Vector3, target_scale: Vector3, rotation_value: Vector3 = Vector3.ZERO) -> void:
-	var instance := scene.instantiate() as Node3D
-	instance.position = at
-	instance.scale = target_scale
-	instance.rotation = rotation_value
-	add_child(instance)
 
 func _add_sidewalks() -> void:
 	for road_z in [-34.0, 34.0]:
