@@ -20,6 +20,8 @@ var walk_speed := 1.25
 var change_timer := 0.0
 var district_center_z: float = -34.0
 var sidewalk_side: float = -1.0
+var sidewalk_offset: float = 6.35
+var pause_timer := 0.0
 var character_visual: Node3D
 var humanoid_animator
 var footstep_player: AudioStreamPlayer3D
@@ -28,6 +30,7 @@ var footstep_timer := randf_range(0.15, 0.55)
 var _simulation_accumulator := 0.0
 
 func _ready() -> void:
+	walk_speed = randf_range(1.05, 1.48)
 	var shape := CollisionShape3D.new()
 	var capsule := CapsuleShape3D.new()
 	capsule.radius = 0.30
@@ -102,8 +105,31 @@ func _physics_process(delta: float) -> void:
 	_simulation_accumulator = 0.0
 
 	change_timer -= step_delta
+	if pause_timer > 0.0:
+		pause_timer = maxf(0.0, pause_timer - step_delta)
+		velocity.x = move_toward(velocity.x, 0.0, walk_speed * 5.0 * step_delta)
+		velocity.z = move_toward(velocity.z, 0.0, walk_speed * 5.0 * step_delta)
+		if humanoid_animator != null:
+			humanoid_animator.update(step_delta, false, false)
+		if not is_on_floor():
+			velocity.y -= 20.0 * step_delta
+		else:
+			velocity.y = 0.0
+		move_and_slide()
+		return
 	if change_timer <= 0.0 or global_position.distance_to(target) < 1.0:
 		_pick_target()
+		pause_timer = randf_range(0.65, 1.8)
+		velocity.x = 0.0
+		velocity.z = 0.0
+		if humanoid_animator != null:
+			humanoid_animator.update(step_delta, false, false)
+		if not is_on_floor():
+			velocity.y -= 20.0 * step_delta
+		else:
+			velocity.y = 0.0
+		move_and_slide()
+		return
 	var direction := target - global_position
 	direction.y = 0.0
 	var moving := direction.length() > 0.1
@@ -137,6 +163,6 @@ func _pick_target() -> void:
 	target = Vector3(
 		randf_range(-65.0, 65.0),
 		global_position.y,
-		district_center_z + sidewalk_side * 6.35 + randf_range(-0.65, 0.65)
+		district_center_z + sidewalk_side * sidewalk_offset + randf_range(-0.45, 0.45)
 	)
 	change_timer = randf_range(5.0, 10.0)
