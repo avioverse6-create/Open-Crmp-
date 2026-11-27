@@ -24,6 +24,15 @@ func bind(character_root: Node) -> void:
 		push_warning("HumanoidAnimator: target character has no Skeleton3D.")
 		return
 	var target_skeleton := target_skeletons[0] as Skeleton3D
+	# Keep a procedural arm layer even when imported Mixamo clips are present.
+	# This prevents a broken/mismatched arm track from leaving pedestrians in a T-pose.
+	var arm_bones: Dictionary = {}
+	for bone_name in ["mixamorigLeftArm", "mixamorigRightArm", "mixamorigLeftForeArm", "mixamorigRightForeArm"]:
+		var bone_index := target_skeleton.find_bone(bone_name)
+		if bone_index >= 0:
+			arm_bones[bone_name] = {"index": bone_index, "base": target_skeleton.get_bone_pose_rotation(bone_index)}
+	if not arm_bones.is_empty():
+		_rigs.append({"skeleton": target_skeleton, "bones": arm_bones})
 
 	var source_instance := AnimationLibraryScene.instantiate() as Node
 	var source_players := source_instance.find_children("*", "AnimationPlayer", true, false)
@@ -68,6 +77,9 @@ func bind(character_root: Node) -> void:
 
 	_animation_player = AnimationPlayer.new()
 	_animation_player.name = "MixamoAnimationPlayer"
+	# Advance imported clips explicitly so the procedural arm layer can be applied
+	# after each pose update, rather than being overwritten by AnimationPlayer.
+	_animation_player.callback_mode_process = AnimationMixer.ANIMATION_CALLBACK_MODE_MANUAL
 	_animation_player.root_node = NodePath("..")
 	_animation_player.add_animation_library("", library)
 	character_root.add_child(_animation_player)
@@ -80,7 +92,7 @@ func _bind_procedural_fallback(skeleton: Skeleton3D) -> void:
 		var index := skeleton.find_bone(bone_name)
 		if index >= 0:
 			bones[bone_name] = {"index": index, "base": skeleton.get_bone_pose_rotation(index)}
-	if not bones.is_empty():
+	if not bones.is_empty() and _rigs.is_empty():
 		_rigs.append({"skeleton": skeleton, "bones": bones})
 
 func update(delta: float, moving: bool, running: bool) -> void:
@@ -92,6 +104,8 @@ func update(delta: float, moving: bool, running: bool) -> void:
 		# Prefer a dedicated walk cycle when the library contains one; otherwise
 		# slow the run cycle for walking. Idle keeps its authored speed.
 		_animation_player.speed_scale = (1.0 if running or desired == "walk" else 0.72) if moving else 1.0
+		_animation_player.advance(delta)
+		_apply_arm_swing(delta, moving, running)
 		return
 
 	# Fallback only for a model whose imported skeleton does not match Mixamo.
@@ -109,10 +123,27 @@ func update(delta: float, moving: bool, running: bool) -> void:
 		_set_pose(skeleton, bones, "mixamorigRightUpLeg", -swing, Vector3.RIGHT)
 		_set_pose(skeleton, bones, "mixamorigLeftLeg", left_knee, Vector3.RIGHT)
 		_set_pose(skeleton, bones, "mixamorigRightLeg", right_knee, Vector3.RIGHT)
-		_set_pose(skeleton, bones, "mixamorigLeftArm", swing * 0.68, Vector3.FORWARD)
-		_set_pose(skeleton, bones, "mixamorigRightArm", -swing * 0.68, Vector3.FORWARD)
+		_set_pose(skeleton, bones, "mixamorigLeftArm", swing * 0.68, Vector3.UP)
+		_set_pose(skeleton, bones, "mixamorigRightArm", -swing * 0.68, Vector3.UP)
 		_set_pose(skeleton, bones, "mixamorigLeftForeArm", -0.16 - left_knee * 0.20, Vector3.FORWARD)
 		_set_pose(skeleton, bones, "mixamorigRightForeArm", -0.16 - right_knee * 0.20, Vector3.FORWARD)
+
+
+func _apply_arm_swing(delta: float, moving: bool, running: bool) -> void:
+	if moving:
+		_phase = fposmod(_phase + delta * (10.4 if running else 7.2), TAU)
+	var swing := sin(_phase) * (0.62 if running else 0.42) if moving else 0.0
+	var left_elbow := 0.12 + maxf(0.0, -sin(_phase)) * 0.16 if moving else 0.10
+	var right_elbow := 0.12 + maxf(0.0, sin(_phase)) * 0.16 if moving else 0.10
+	for rig in _rigs:
+		var skeleton := rig["skeleton"] as Skeleton3D
+		if not is_instance_valid(skeleton):
+			continue
+		var bones: Dictionary = rig["bones"]
+		_set_pose(skeleton, bones, "mixamorigLeftArm", swing, Vector3.UP)
+		_set_pose(skeleton, bones, "mixamorigRightArm", -swing, Vector3.UP)
+		_set_pose(skeleton, bones, "mixamorigLeftForeArm", left_elbow, Vector3.FORWARD)
+		_set_pose(skeleton, bones, "mixamorigRightForeArm", right_elbow, Vector3.FORWARD)
 
 func _set_pose(skeleton: Skeleton3D, bones: Dictionary, bone_name: String, angle: float, axis: Vector3 = Vector3.RIGHT) -> void:
 	if not bones.has(bone_name):
