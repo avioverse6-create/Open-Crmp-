@@ -133,14 +133,6 @@ func _physics_process(delta: float) -> void:
 	if humanoid_animator != null:
 		humanoid_animator.update(delta, moving and not in_water, running)
 
-	if moving and is_on_floor() and active_vehicle == null and not in_water:
-		footstep_timer -= delta
-		if footstep_timer <= 0.0:
-			_play_footstep()
-			footstep_timer = 0.34 if running else 0.49
-	else:
-		footstep_timer = 0.08
-
 	if Input.is_action_just_pressed("jump") and is_on_floor():
 		velocity.y = jump_velocity
 	if in_water:
@@ -151,6 +143,17 @@ func _physics_process(delta: float) -> void:
 	else:
 		velocity.y = maxf(velocity.y, 0.0)
 	move_and_slide()
+
+	# Trigger footsteps from actual post-collision movement, not joystick intent.
+	# This prevents footstep sounds while pushing into a wall or standing still.
+	var horizontal_speed := Vector2(velocity.x, velocity.z).length()
+	if horizontal_speed > 0.8 and is_on_floor() and active_vehicle == null and not in_water:
+		footstep_timer -= delta
+		if footstep_timer <= 0.0:
+			_play_footstep()
+			footstep_timer = (0.34 if running else 0.49) * clampf(4.2 / horizontal_speed, 0.72, 1.35)
+	else:
+		footstep_timer = 0.08
 
 func set_in_water(value: bool) -> void:
 	if in_water == value:
