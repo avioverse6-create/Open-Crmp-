@@ -38,7 +38,7 @@ No GTA code, maps, characters, logos or extracted game assets are included.
 
 ## Controls
 
-- WASD / arrow keys or on-screen arrows: move.
+- WASD / arrow keys or on-screen virtual joystick: move.
 - Shift or **БЕЖАТЬ**: run.
 - Space or **ПРЫЖОК**: jump.
 - **МАШИНА**: enter the nearest car.
@@ -79,3 +79,6 @@ Roads, sidewalks, bridge surfaces and terrain now have normal and roughness text
 - Engine start: Car engine Start Up 02 by looneybits, CC0.
 - Street traffic ambience and distant pedestrian chatter: field recordings from Gregor Quendel's Free General Ambience Sounds collection, CC BY-SA 4.0.
 - The Android CI workflow downloads these files before Godot import; audio is spatialized for vehicles and city districts. Keep the credits and licenses with the project.
+- Player and NPC footsteps: six short, real field-recorded subway/concrete step samples by GboxMikeFozzy, CC0, from OpenGameArt.org.
+- Main menu music: "Urban Theme" by MintoDog, loopable MP3, CC0, from OpenGameArt.org.
+- Pedestrian chatter uses the existing real field recording from Gregor Quendel's crowd ambience collection; the sound is placed on selected NPCs with 3D distance falloff.
