@@ -2,6 +2,14 @@ extends CharacterBody3D
 
 const PlayerModel: PackedScene = preload("res://assets/models/people/citizen_bryce.glb")
 const MixamoAnimations: PackedScene = preload("res://assets/models/people/mixamo_animation_library.glb")
+const FootstepSounds: Array[AudioStream] = [
+	preload("res://assets/audio/footsteps/01-footstep.ogg"),
+	preload("res://assets/audio/footsteps/02-footstep.ogg"),
+	preload("res://assets/audio/footsteps/03-footstep.ogg"),
+	preload("res://assets/audio/footsteps/04-footstep.ogg"),
+	preload("res://assets/audio/footsteps/05-footstep.ogg"),
+	preload("res://assets/audio/footsteps/06-footstep.ogg")
+]
 
 @export var walk_speed: float = 4.2
 @export var run_speed: float = 7.0
@@ -20,6 +28,8 @@ var walk_clip: StringName = &""
 var run_clip: StringName = &""
 var mobile_input_vector := Vector2.ZERO
 var camera_yaw := 0.0
+var footstep_player: AudioStreamPlayer3D
+var footstep_timer := 0.0
 
 func _ready() -> void:
 	name = "Player"
@@ -40,6 +50,13 @@ func _ready() -> void:
 	var character := PlayerModel.instantiate() as Node3D
 	visual_root.add_child(character)
 	_setup_mixamo_animations(character)
+	footstep_player = AudioStreamPlayer3D.new()
+	footstep_player.name = "FootstepAudio"
+	footstep_player.position = Vector3(0, 0.12, 0)
+	footstep_player.volume_db = -10.0
+	footstep_player.unit_size = 3.5
+	footstep_player.max_distance = 20.0
+	add_child(footstep_player)
 
 	camera_pivot = Node3D.new()
 	camera_pivot.name = "IndependentCameraPivot"
@@ -72,6 +89,7 @@ func _setup_mixamo_animations(character: Node3D) -> void:
 		if source_library != null:
 			var copied_library := source_library.duplicate(true) as AnimationLibrary
 			if copied_library != null:
+				_retarget_animation_library(copied_library, character)
 				animation_player.add_animation_library(library_name, copied_library)
 	for clip in animation_player.get_animation_list():
 		var lower := String(clip).to_lower()
@@ -86,6 +104,59 @@ func _setup_mixamo_animations(character: Node3D) -> void:
 	if idle_clip != &"":
 		animation_player.play(idle_clip)
 	source_scene.queue_free()
+
+func _retarget_animation_library(library: AnimationLibrary, character: Node3D) -> void:
+	var skeletons := character.find_children("*", "Skeleton3D", true, false)
+	if skeletons.is_empty():
+		push_warning("No Skeleton3D found for player animation retargeting.")
+		return
+	var retargeted := 0
+	for clip_name in library.get_animation_list():
+		var clip := library.get_animation(clip_name)
+		if clip == null:
+			continue
+		for track_index in range(clip.get_track_count()):
+			var old_path := clip.track_get_path(track_index)
+			var bone_name := ""
+			for name_index in range(old_path.get_name_count()):
+				var candidate := old_path.get_name(name_index)
+				for skeleton_node in skeletons:
+					var skeleton := skeleton_node as Skeleton3D
+					if skeleton.find_bone(candidate) >= 0:
+						bone_name = candidate
+						break
+				if not bone_name.is_empty():
+					break
+			if bone_name.is_empty():
+				for sub_index in range(old_path.get_subname_count()):
+					var candidate := old_path.get_subname(sub_index)
+					for skeleton_node in skeletons:
+						var skeleton := skeleton_node as Skeleton3D
+						if skeleton.find_bone(candidate) >= 0:
+							bone_name = candidate
+							break
+					if not bone_name.is_empty():
+						break
+			if bone_name.is_empty():
+				continue
+			for skeleton_node in skeletons:
+				var skeleton := skeleton_node as Skeleton3D
+				if skeleton.find_bone(bone_name) >= 0:
+					var relative_path := character.get_path_to(skeleton)
+					clip.track_set_path(track_index, NodePath(String(relative_path) + ":" + bone_name))
+					retargeted += 1
+					break
+	if retargeted == 0:
+		push_warning("Mixamo animation tracks did not match the player skeleton.")
+	else:
+		print("Retargeted ", retargeted, " Mixamo animation tracks for player.")
+
+func _play_footstep() -> void:
+	if footstep_player == null or FootstepSounds.is_empty():
+		return
+	footstep_player.stream = FootstepSounds[randi() % FootstepSounds.size()]
+	footstep_player.pitch_scale = randf_range(0.94, 1.06)
+	footstep_player.play()
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventScreenDrag:
@@ -127,6 +198,14 @@ func _physics_process(delta: float) -> void:
 			animation_player.speed_scale = 0.72 if not running else 1.12
 		else:
 			animation_player.speed_scale = 1.0
+
+	if moving and is_on_floor() and active_vehicle == null:
+		footstep_timer -= delta
+		if footstep_timer <= 0.0:
+			_play_footstep()
+			footstep_timer = 0.34 if running else 0.49
+	else:
+		footstep_timer = 0.08
 
 	if Input.is_action_just_pressed("jump") and is_on_floor():
 		velocity.y = jump_velocity
