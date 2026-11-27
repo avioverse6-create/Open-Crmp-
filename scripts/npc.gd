@@ -74,17 +74,28 @@ func _play_footstep() -> void:
 	footstep_player.play()
 
 func _physics_process(delta: float) -> void:
-	# Keep every pedestrian in the world, but simulate distant citizens less
-	# often. Nearby NPCs update at 30 Hz; far ones at 10 Hz.
+	# Distant pedestrians are hidden and frozen to avoid spending CPU/GPU on
+	# characters the player cannot see. Nearby pedestrians retain smooth motion.
+	var camera := get_viewport().get_camera_3d()
+	var distance := 0.0
+	if camera != null:
+		distance = global_position.distance_to(camera.global_position)
+		if distance > 82.0:
+			character_visual.visible = false
+			if footstep_player.playing:
+				footstep_player.stop()
+			if chatter_player != null and chatter_player.playing:
+				chatter_player.stop()
+			return
+		else:
+			character_visual.visible = true
+
 	_simulation_accumulator += delta
 	var interval := 0.033
-	var camera := get_viewport().get_camera_3d()
-	if camera != null:
-		var distance := global_position.distance_to(camera.global_position)
-		if distance > 55.0:
-			interval = 0.10
-		elif distance > 28.0:
-			interval = 0.066
+	if distance > 50.0:
+		interval = 0.20
+	elif distance > 28.0:
+		interval = 0.066
 	if _simulation_accumulator < interval:
 		return
 	var step_delta := _simulation_accumulator
