@@ -278,6 +278,9 @@ func _setup_winter() -> void:
 
 
 func _apply_snow_overlay(node: Node) -> void:
+	# Keep open water clear: snow settles on banks and roads, not the river surface.
+	if node.name == "River":
+		return
 	if node is MeshInstance3D:
 		var mesh_instance := node as MeshInstance3D
 		if mesh_instance.mesh != null:
@@ -808,6 +811,7 @@ func _setup_people() -> void:
 		downtown_npc.set_script(NpcScript)
 		downtown_npc.district_center_z = [95.0, 135.0, 175.0, 215.0][i % 4]
 		downtown_npc.sidewalk_side = -1.0 if i % 2 == 0 else 1.0
+		downtown_npc.sidewalk_offset = 6.0
 		downtown_npc.position = Vector3(randf_range(-62.0, 62.0), 0.1, downtown_npc.district_center_z + downtown_npc.sidewalk_side * 6.0)
 		add_child(downtown_npc)
 
