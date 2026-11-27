@@ -38,17 +38,13 @@ func _ready() -> void:
 	camera_pivot.add_child(camera)
 
 func _physics_process(delta: float) -> void:
-	if active_vehicle != null:
-		global_position = active_vehicle.global_position + Vector3(0, 1.0, 0)
-		return
-
 	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 	var direction := Vector3(input_dir.x, 0, input_dir.y)
 	if direction.length() > 0.05:
 		direction = direction.normalized()
-		var speed := run_speed if Input.is_action_pressed("run") else walk_speed
-		velocity.x = direction.x * speed
-		velocity.z = direction.z * speed
+		var current_speed := run_speed if Input.is_action_pressed("run") else walk_speed
+		velocity.x = direction.x * current_speed
+		velocity.z = direction.z * current_speed
 		rotation.y = lerp_angle(rotation.y, atan2(-direction.x, -direction.z), delta * 10.0)
 	else:
 		velocity.x = move_toward(velocity.x, 0.0, walk_speed * 7.0 * delta)
@@ -62,13 +58,22 @@ func _physics_process(delta: float) -> void:
 
 func enter_vehicle(vehicle: Node3D) -> void:
 	active_vehicle = vehicle
+	vehicle.set("is_player_driven", true)
 	visible = false
 	set_physics_process(false)
+	camera_pivot.reparent(vehicle)
+	camera_pivot.position = Vector3(0, 3.0, 8.0)
+	camera_pivot.rotation_degrees = Vector3(-15, 0, 0)
 
 func exit_vehicle() -> void:
 	if active_vehicle == null:
 		return
-	global_position = active_vehicle.global_position + active_vehicle.global_basis.x * 2.0
+	var vehicle := active_vehicle
+	vehicle.set("is_player_driven", false)
+	global_position = vehicle.global_position + vehicle.global_basis.x * 2.0
+	camera_pivot.reparent(self)
+	camera_pivot.position = Vector3(0, 2.2, 0)
+	camera_pivot.rotation = Vector3.ZERO
 	active_vehicle = null
 	visible = true
 	set_physics_process(true)
