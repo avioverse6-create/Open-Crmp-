@@ -31,6 +31,11 @@ jobs:
       - name: Install Android build packages
         run: sdkmanager "platforms;android-34" "build-tools;34.0.0"
 
+      - name: Generate temporary Android debug keystore
+        run: |
+          mkdir -p build
+          keytool -genkeypair -v -keystore build/debug.keystore -storepass android -alias androiddebugkey -keypass android -dname "CN=Android Debug,O=Android,C=US" -keyalg RSA -keysize 2048 -validity 10000
+
       - name: Prepare compressed character models for Godot
         run: |
           npm install --no-save --no-package-lock @gltf-transform/core @gltf-transform/extensions @gltf-transform/functions meshoptimizer
