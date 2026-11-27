@@ -247,7 +247,7 @@ func _get_intersection_speed_limit() -> float:
 				if other_vertical == vertical_traffic and not other_is_player:
 					continue
 				# The crossing vehicle must actually be close to this junction.
-				var cross_distance := absf(float(other.global_position.x) - intersection_x) if other_vertical else absf(float(other.global_position.z) - intersection_z)
+				var cross_distance := Vector2(other.global_position.x - intersection_x, other.global_position.z - intersection_z).length() if other_is_player else (absf(float(other.global_position.x) - intersection_x) if other_vertical else absf(float(other.global_position.z) - intersection_z))
 				if cross_distance > 8.5:
 					continue
 				# Player has priority. Otherwise only north-south AI yields to
