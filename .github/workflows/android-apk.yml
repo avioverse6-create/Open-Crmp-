@@ -72,7 +72,17 @@ jobs:
           }
           fetch_optional "https://tevy.dev/models/apartment-block/v2/lod0.glb" "assets/models/city/downtown/apartment_block.glb"
           fetch_optional "https://grab3d.com/dl/high-rise-apartment/high-rise-apartment-light.glb" "assets/models/city/downtown/highrise_apartment.glb"
+          # Mint realistic vehicle GLBs: detailed 18k–20k triangle models, CC0 1.0.
+          # These are intentionally the only vehicle models used by gameplay.
+          fetch_optional "https://cdn.mint.gg/owned-artifacts/4ca9977517ee4cd3c8c1a12a44be9796942fc34b1e3f9334f9b6e0ca58af716c" "assets/models/vehicles/realistic_police.glb"
+          fetch_optional "https://cdn.mint.gg/owned-artifacts/888cbe2c9ab99868c0c5ee4f7e2a43b6dc75972c53bccf013422f2a2be323089" "assets/models/vehicles/realistic_suv.glb"
+          fetch_optional "https://cdn.mint.gg/owned-artifacts/94cdd5d52a8cc9f94a3f8f31dc74f6e0e10eb6575ed735cc589f81312bd512d8" "assets/models/vehicles/realistic_pickup.glb"
+          fetch_optional "https://cdn.mint.gg/owned-artifacts/26d6ce9c917f14b4446d813b0c01326609af064a4d34baee122c195d93793c7a" "assets/models/vehicles/realistic_firetruck.glb"
           fetch_optional "https://cdn.mint.gg/owned-artifacts/a48562173ee793d79703636cb0ccc623ae9b75bd3299837797fbad45f7dc6946" "assets/models/vehicles/realistic_sports.glb"
+          fetch_optional "https://cdn.mint.gg/owned-artifacts/6b6203883c279bfad13d080cf069b777eb0ae4cc70e04533f9e52360c744ad91" "assets/models/vehicles/realistic_taxi.glb"
+          fetch_optional "https://cdn.mint.gg/owned-artifacts/cfcac5c511c1bbb21b9449bbd56a5256b29c31762946c5b8ced3b1f7339da50b" "assets/models/vehicles/realistic_ambulance.glb"
+          # Silver sedan direct asset, used as the regular civilian car.
+          fetch_optional "https://cdn.mint.gg/owned-artifacts/4ca9977517ee4cd3c8c1a12a44be9796942fc34b1e3f9334f9b6e0ca58af716c" "assets/models/vehicles/realistic_sedan.glb"
           mkdir -p assets/sky
           fetch_optional "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/kloofendal_48d_partly_cloudy_puresky_1k.hdr" "assets/sky/cloudy_day_1k.hdr"
           ls -lh assets/models/city/downtown assets/models/vehicles
