@@ -62,16 +62,6 @@ const ConcreteTexture: Texture2D = preload("res://assets/textures/concrete_ambie
 const RoofTexture: Texture2D = preload("res://assets/textures/roof_tiles.svg")
 const AsphaltTexture: Texture2D = preload("res://assets/textures/asphalt_ambientcg.png")
 const GrassTexture: Texture2D = preload("res://assets/textures/grass_ambientcg.png")
-const AsphaltNormal: Texture2D = preload("res://assets/textures/asphalt_normal.svg")
-const AsphaltRoughness: Texture2D = preload("res://assets/textures/asphalt_roughness.svg")
-const ConcreteNormal: Texture2D = preload("res://assets/textures/concrete_normal.svg")
-const ConcreteRoughness: Texture2D = preload("res://assets/textures/concrete_roughness.svg")
-const PlasterNormal: Texture2D = preload("res://assets/textures/plaster_normal.svg")
-const PlasterRoughness: Texture2D = preload("res://assets/textures/plaster_roughness.svg")
-const BrickNormal: Texture2D = preload("res://assets/textures/brick_normal.svg")
-const BrickRoughness: Texture2D = preload("res://assets/textures/brick_roughness.svg")
-const RoofNormal: Texture2D = preload("res://assets/textures/roof_normal.svg")
-const RoofRoughness: Texture2D = preload("res://assets/textures/roof_roughness.svg")
 
 var player: Variant
 var cars: Array[Node3D] = []
