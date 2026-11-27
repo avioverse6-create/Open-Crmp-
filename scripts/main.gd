@@ -860,8 +860,8 @@ func _setup_mobile_ui() -> void:
 	vehicle_hud.add_child(vehicle_hud_label)
 	root.add_child(vehicle_hud)
 
-	var joystick := VirtualJoystick.new()
-	joystick.name = "MovementJoystick"
+	movement_joystick = VirtualJoystick.new()
+	movement_joystick.name = "MovementJoystick"
 	movement_joystick.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
 	movement_joystick.position = Vector2(24, -190)
 	movement_joystick.size = Vector2(160, 160)
@@ -946,7 +946,7 @@ func _setup_mobile_ui() -> void:
 	)
 
 
-func _make_drive_button(parent: Control, caption: String, anchor: Control.LayoutPreset, offset: Vector2) -> Button:
+func _make_drive_button(parent: Control, caption: String, anchor, offset: Vector2) -> Button:
 	var button := Button.new()
 	button.text = caption
 	button.set_anchors_preset(anchor)
