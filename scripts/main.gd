@@ -12,6 +12,7 @@ const StreetLightScene: PackedScene = preload("res://assets/models/poste_luz.glb
 const RoadCrossingScene: PackedScene = preload("res://assets/models/city/roads/road-crossing.glb")
 const RoadCrossroadScene: PackedScene = preload("res://assets/models/city/roads/road-crossroad.glb")
 const RoadBridgeScene: PackedScene = preload("res://assets/models/city/roads/road-bridge.glb")
+const RoadStraightScene: PackedScene = preload("res://assets/models/city/roads/road-straight.glb")
 const TrafficLightScene: PackedScene = preload("res://assets/models/city/roads/light-square-cross.glb")
 const HighwaySignScene: PackedScene = preload("res://assets/models/city/roads/sign-highway.glb")
 const ConstructionConeScene: PackedScene = preload("res://assets/models/city/roads/construction-cone.glb")
@@ -136,9 +137,14 @@ func _add_city_road_assets() -> void:
 	_spawn_city_asset(RoadBridgeScene, Vector3(0, 0.20, 0), Vector3(11.0, 1.0, 24.0))
 	for road_z in [-34.0, 34.0]:
 		_spawn_city_asset(RoadCrossingScene, Vector3(0, 0.105, road_z), Vector3(10.0, 1.0, 10.0), Vector3(0, deg_to_rad(90.0), 0))
-		for road_x in [-52.0, 52.0]:
+		for road_x in [-52.0, -26.0, 26.0, 52.0]:
 			_spawn_city_asset(RoadCrossroadScene, Vector3(road_x, 0.105, road_z), Vector3(10.0, 1.0, 10.0), Vector3(0, deg_to_rad(90.0), 0))
-			_spawn_city_asset(TrafficLightScene, Vector3(road_x + 5.2, 0.0, road_z + 5.2), Vector3.ONE * 3.2)
+			if absf(road_x) == 52.0:
+				_spawn_city_asset(TrafficLightScene, Vector3(road_x + 5.2, 0.0, road_z + 5.2), Vector3.ONE * 3.2)
+	# Imported straight road tiles cover the four side streets in each district.
+	for road_x in [-52.0, -26.0, 26.0, 52.0]:
+		for road_z in [-54.0, -44.0, -24.0, -14.0, 14.0, 24.0, 44.0, 54.0]:
+			_spawn_city_asset(RoadStraightScene, Vector3(road_x, 0.11, road_z), Vector3(7.0, 1.0, 10.0))
 	# Bridge supports and readable roadside signs make the crossing feel like a built place.
 	for side in [-1.0, 1.0]:
 		_spawn_city_asset(BridgePillarScene, Vector3(side * 4.1, -1.15, -7.0), Vector3.ONE * 2.2)
