@@ -726,7 +726,7 @@ func _setup_traffic() -> void:
 		car.speed = randf_range(3.2, 5.4)
 		car.direction = 1.0 if int(i / 2) % 2 == 0 else -1.0
 		var road_z := -34.0 if i % 2 == 0 else 34.0
-		var lane_offset := -1.9 if car.direction > 0.0 else 1.9
+		var lane_offset := 1.9 if car.direction > 0.0 else -1.9
 		var spawn_group := int(i / 4)
 		car.start_x = -65.0 + float(spawn_group) * 24.0 if car.direction > 0.0 else 65.0 - float(spawn_group) * 24.0
 		car.end_x = 65.0 if car.direction > 0.0 else -65.0
@@ -746,7 +746,7 @@ func _setup_traffic() -> void:
 			var road_z: float = downtown_cross_streets[street_index]
 			downtown_car.start_x = -64.0 if downtown_car.direction > 0.0 else 64.0
 			downtown_car.end_x = 64.0 if downtown_car.direction > 0.0 else -64.0
-			downtown_car.lane_z = road_z + (-2.0 if downtown_car.direction > 0.0 else 2.0)
+			downtown_car.lane_z = road_z + (2.0 if downtown_car.direction > 0.0 else -2.0)
 			add_child(downtown_car)
 			_make_car_visual(downtown_car, VehicleScenes.size() + street_index * 2 + lane_index)
 			cars.append(downtown_car)
