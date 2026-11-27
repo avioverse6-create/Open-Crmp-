@@ -139,8 +139,17 @@ func _draw() -> void:
 		if has_destination:
 			var marker_point := _world_to_screen(destination.x, destination.z)
 			draw_line(player_point, marker_point, Color(0.25, 0.72, 1.0, 0.9), 2.0)
-		draw_circle(player_point, 6.0 if expanded else 4.5, Color(0.08, 0.57, 1.0))
-		draw_arc(player_point, 9.0 if expanded else 7.0, 0.0, TAU, 24, Color.WHITE, 1.5)
+		# The marker points in the same direction as the player or active vehicle.
+		var forward := -target.global_basis.z
+		var heading := Vector2(forward.x, forward.z).normalized()
+		var heading_length := 11.0 if expanded else 7.5
+		var heading_width := 5.0 if expanded else 3.5
+		var tip := player_point + heading * heading_length
+		var rear := player_point - heading * heading_width
+		var side := Vector2(-heading.y, heading.x) * heading_width
+		draw_colored_polygon(PackedVector2Array([tip, rear + side, rear - side]), Color(0.08, 0.57, 1.0))
+		draw_circle(player_point, 3.0 if expanded else 2.2, Color.WHITE)
+		draw_arc(player_point, 9.0 if expanded else 7.0, 0.0, TAU, 24, Color.WHITE, 1.3)
 
 	if expanded:
 		draw_string(ThemeDB.fallback_font, Vector2(28, 38), "OPEN CITY  /  КАРТА МИРА", HORIZONTAL_ALIGNMENT_LEFT, -1, 20, Color(0.94, 0.97, 1.0))
