@@ -6,6 +6,8 @@ extends CharacterBody3D
 var camera_pivot: Node3D
 var camera: Camera3D
 var active_vehicle: Node3D = null
+var saved_collision_layer: int = 1
+var saved_collision_mask: int = 1
 
 func _ready() -> void:
 	name = "Player"
@@ -16,6 +18,8 @@ func _ready() -> void:
 	collision.shape = capsule
 	collision.position.y = 0.9
 	add_child(collision)
+	saved_collision_layer = collision_layer
+	saved_collision_mask = collision_mask
 
 	var body := MeshInstance3D.new()
 	var mesh := CapsuleMesh.new()
@@ -68,6 +72,8 @@ func enter_vehicle(vehicle: Node3D) -> void:
 	active_vehicle = vehicle
 	vehicle.set("is_player_driven", true)
 	visible = false
+	collision_layer = 0
+	collision_mask = 0
 	set_physics_process(false)
 	camera_pivot.reparent(vehicle)
 	camera_pivot.position = Vector3(0, 3.0, 8.0)
@@ -84,4 +90,6 @@ func exit_vehicle() -> void:
 	camera_pivot.rotation = Vector3.ZERO
 	active_vehicle = null
 	visible = true
+	collision_layer = saved_collision_layer
+	collision_mask = saved_collision_mask
 	set_physics_process(true)
