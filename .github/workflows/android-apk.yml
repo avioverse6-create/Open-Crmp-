@@ -84,7 +84,7 @@ jobs:
             fi
             echo "Required GLB gameplay asset verified: $target"
           }
-          fetch_optional "https://tevy.dev/models/apartment-block/v2/lod0.glb" "assets/models/city/downtown/apartment_block.glb"
+          # Skip the optional Tevy apartment GLB: it requires meshopt/quantization extensions Godot 4.3 cannot import directly.
           fetch_optional "https://grab3d.com/dl/high-rise-apartment/high-rise-apartment-light.glb" "assets/models/city/downtown/highrise_apartment.glb"
           # Mint realistic vehicle GLBs: detailed 18k–20k triangle models, CC0 1.0.
           # These are intentionally the only vehicle models used by gameplay.
