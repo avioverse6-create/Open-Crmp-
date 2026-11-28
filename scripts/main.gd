@@ -1075,9 +1075,12 @@ func _make_drive_button(parent: Control, caption: String, anchor, offset: Vector
 
 func _make_menu_panel(parent: Control, panel_size: Vector2, offset: Vector2) -> PanelContainer:
 	var panel := PanelContainer.new()
-	panel.set_anchors_preset(Control.PRESET_CENTER_LEFT)
-	panel.position = offset
-	panel.size = panel_size
+	# Center the menu and keep it inside narrow portrait screens.
+	var viewport_width := get_viewport_rect().size.x
+	var actual_width := minf(panel_size.x, maxf(280.0, viewport_width - 32.0))
+	panel.set_anchors_preset(Control.PRESET_CENTER)
+	panel.position = Vector2(-actual_width * 0.5, -panel_size.y * 0.5)
+	panel.size = Vector2(actual_width, panel_size.y)
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.025, 0.035, 0.045, 0.91)
 	style.border_color = Color(0.70, 0.79, 0.84, 0.35)
@@ -1094,7 +1097,8 @@ func _make_menu_panel(parent: Control, panel_size: Vector2, offset: Vector2) -> 
 func _make_menu_button(caption: String) -> Button:
 	var button := Button.new()
 	button.text = caption
-	button.custom_minimum_size = Vector2(310, 58)
+	button.custom_minimum_size = Vector2(0, 58)
+	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	button.add_theme_font_size_override("font_size", 22)
 	button.add_theme_color_override("font_color", Color(0.92, 0.95, 0.97))
@@ -1186,7 +1190,8 @@ func _setup_main_menu() -> void:
 	settings_content.add_child(fps_row)
 	for fps in [60, 90, 120]:
 		var fps_button := _make_menu_button("%d FPS" % fps)
-		fps_button.custom_minimum_size = Vector2(96, 54)
+		fps_button.custom_minimum_size = Vector2(0, 54)
+		fps_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		fps_button.add_theme_font_size_override("font_size", 17)
 		fps_button.alignment = HORIZONTAL_ALIGNMENT_CENTER
 		fps_row.add_child(fps_button)
