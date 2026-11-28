@@ -7,6 +7,7 @@ var _animation_player: AnimationPlayer
 var _current_animation := ""
 var _rigs: Array[Dictionary] = []
 var _phase := 0.0
+static var _animation_source_unavailable := false
 
 const BONE_NAMES := [
 	"mixamorigLeftUpLeg", "mixamorigRightUpLeg",
@@ -34,11 +35,18 @@ func bind(character_root: Node) -> void:
 	if not arm_bones.is_empty():
 		_rigs.append({"skeleton": target_skeleton, "bones": arm_bones})
 
+	# The source GLB is shared by every pedestrian. If it has no imported
+	# AnimationPlayer/Skeleton3D, discover that once and use the local rig fallback
+	# instead of instantiating the same unusable scene for every NPC.
+	if _animation_source_unavailable:
+		_bind_procedural_fallback(target_skeleton)
+		return
 	var source_instance := AnimationLibraryScene.instantiate() as Node
 	var source_players := source_instance.find_children("*", "AnimationPlayer", true, false)
 	var source_skeletons := source_instance.find_children("*", "Skeleton3D", true, false)
 	if source_players.is_empty() or source_skeletons.is_empty():
-		push_warning("HumanoidAnimator: Mixamo animation library has no AnimationPlayer/Skeleton3D.")
+		push_warning("HumanoidAnimator: Mixamo animation library has no AnimationPlayer/Skeleton3D; using cached procedural fallback.")
+		_animation_source_unavailable = true
 		source_instance.free()
 		_bind_procedural_fallback(target_skeleton)
 		return
