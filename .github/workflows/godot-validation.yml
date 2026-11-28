@@ -58,6 +58,96 @@ jobs:
             test -s "assets/audio/footsteps/${target_name}"
           done
 
+      - name: Download real recorded city and vehicle audio
+        run: |
+          mkdir -p assets/audio
+          curl -fsSL https://opengameart.org/sites/default/files/genericv8sound.zip -o /tmp/genericv8sound.zip
+          mkdir -p /tmp/v8audio
+          unzip -o /tmp/genericv8sound.zip -d /tmp/v8audio
+          first_wav="$(find /tmp/v8audio -type f -iname '*.wav' | sort | head -n 1)"
+          test -n "$first_wav"
+          cp "$first_wav" assets/audio/car_engine_loop.wav
+          curl -fsSL https://opengameart.org/sites/default/files/engine_start_up_01.wav -o assets/audio/car_start.wav
+          curl -fsSL "https://opengameart.org/sites/default/files/city_ambience_-_traffic_-_street_-_cars_and_tram.mp3" -o assets/audio/city_traffic.mp3
+          curl -fsSL https://opengameart.org/sites/default/files/crowd_-_mall_ambience.mp3 -o assets/audio/pedestrian_chatter.mp3
+          mkdir -p assets/audio/footsteps
+          for pair in "01-footstep_0.ogg:01-footstep.ogg" "02-footstep.ogg:02-footstep.ogg" "03-footstep.ogg:03-footstep.ogg" "04-footstep.ogg:04-footstep.ogg" "05-footstep.ogg:05-footstep.ogg" "06-footstep.ogg:06-footstep.ogg"; do
+            source_name="${pair%%:*}"
+            target_name="${pair##*:}"
+            curl -fsSL "https://opengameart.org/sites/default/files/${source_name}" -o "assets/audio/footsteps/${target_name}"
+          done
+          curl -fsSL https://opengameart.org/sites/default/files/urban_theme_bpm115.mp3 -o assets/audio/menu_urban.mp3
+          ls -lh assets/audio assets/audio/footsteps
+      - name: Download additional CC0 city and vehicle GLB assets
+        run: |
+          mkdir -p assets/models/city/downtown assets/models/vehicles
+          fetch_optional() {
+            url="$1"
+            target="$2"
+            temp="${target}.download"
+            if curl -fL --retry 2 --connect-timeout 20 "$url" -o "$temp" && test -s "$temp"; then
+              mv "$temp" "$target"
+              echo "Downloaded $target"
+            else
+              rm -f "$temp"
+              echo "Optional asset unavailable: $target"
+            fi
+          }
+          fetch_required() {
+            url="$1"
+            target="$2"
+            curl -fsSL --retry 3 --connect-timeout 20 "$url" -o "$target"
+            test -s "$target"
+            magic="$(head -c 4 "$target")"
+            if [ "$magic" != "glTF" ]; then
+              echo "Downloaded file is not a binary glTF model: $target" >&2
+              exit 1
+            fi
+            echo "Required GLB gameplay asset verified: $target"
+          }
+          fetch_optional "https://tevy.dev/models/apartment-block/v2/lod0.glb" "assets/models/city/downtown/apartment_block.glb"
+          fetch_optional "https://grab3d.com/dl/high-rise-apartment/high-rise-apartment-light.glb" "assets/models/city/downtown/highrise_apartment.glb"
+          # Mint realistic vehicle GLBs: detailed 18k–20k triangle models, CC0 1.0.
+          # These are intentionally the only vehicle models used by gameplay.
+          fetch_required "https://cdn.mint.gg/owned-artifacts/4ca9977517ee4cd3c8c1a12a44be9796942fc34b1e3f9334f9b6e0ca58af716c" "assets/models/vehicles/realistic_police.glb"
+          fetch_required "https://cdn.mint.gg/owned-artifacts/888cbe2c9ab99868c0c5ee4f7e2a43b6dc75972c53bccf013422f2a2be323089" "assets/models/vehicles/realistic_suv.glb"
+          fetch_required "https://cdn.mint.gg/owned-artifacts/94cdd5d52a8cc9f94a3f8f31dc74f6e0e10eb6575ed735cc589f81312bd512d8" "assets/models/vehicles/realistic_pickup.glb"
+          fetch_required "https://cdn.mint.gg/owned-artifacts/26d6ce9c917f14b4446d813b0c01326609af064a4d34baee122c195d93793c7a" "assets/models/vehicles/realistic_firetruck.glb"
+          fetch_required "https://cdn.mint.gg/owned-artifacts/a48562173ee793d79703636cb0ccc623ae9b75bd3299837797fbad45f7dc6946" "assets/models/vehicles/realistic_sports.glb"
+          fetch_required "https://cdn.mint.gg/owned-artifacts/6b6203883c279bfad13d080cf069b777eb0ae4cc70e04533f9e52360c744ad91" "assets/models/vehicles/realistic_taxi.glb"
+          fetch_required "https://cdn.mint.gg/owned-artifacts/cfcac5c511c1bbb21b9449bbd56a5256b29c31762946c5b8ced3b1f7339da50b" "assets/models/vehicles/realistic_ambulance.glb"
+          # Silver sedan direct asset, used as the regular civilian car.
+          fetch_required "https://cdn.mint.gg/owned-artifacts/f25096fa940b1ece067017b70fff6d9dff65aa610aabb08c3015b545d4a9c379" "assets/models/vehicles/realistic_sedan.glb"
+          mkdir -p assets/sky
+          fetch_optional "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/kloofendal_48d_partly_cloudy_puresky_1k.hdr" "assets/sky/cloudy_day_1k.hdr"
+          ls -lh assets/models/city/downtown assets/models/vehicles
+      - name: Download detailed Vinish City Kit GLB models
+        run: |
+          mkdir -p assets/models/vinish_city
+          fetch_city_asset() {
+            source="$1"
+            target="$2"
+            output="assets/models/vinish_city/$target"
+            curl -fsSL --retry 3 --connect-timeout 20 "$source" -o "$output"
+            test -s "$output"
+            magic="$(head -c 4 "$output")"
+            if [ "$magic" != "glTF" ]; then
+              echo "Downloaded file is not a binary glTF model: $output" >&2
+              exit 1
+            fi
+            echo "Verified GLB city asset: $target"
+          }
+          fetch_city_asset "https://models.vinish.dev/city-kit/road-straight.glb" "road-straight.glb"
+          fetch_city_asset "https://models.vinish.dev/city-kit/apartment-block-01.glb" "apartment-block-01.glb"
+          fetch_city_asset "https://models.vinish.dev/city-kit/apartment-block-02.glb" "apartment-block-02.glb"
+          fetch_city_asset "https://models.vinish.dev/city-kit/road-crossroads.glb" "road-crossroads.glb"
+          fetch_city_asset "https://models.vinish.dev/city-kit/road-t-junction.glb" "road-t-junction.glb"
+          fetch_city_asset "https://models.vinish.dev/city-kit/road-bend.glb" "road-bend.glb"
+          fetch_city_asset "https://models.vinish.dev/city-kit/sidewalk-block.glb" "sidewalk-block.glb"
+          fetch_city_asset "https://models.vinish.dev/city-kit/street-light.glb" "street-light.glb"
+          fetch_city_asset "https://models.vinish.dev/city-kit/traffic-signal.glb" "traffic-signal.glb"
+          fetch_city_asset "https://models.vinish.dev/city-kit/fire-hydrant.glb" "fire-hydrant.glb"
+          ls -lh assets/models/vinish_city
       - name: Install Godot 4.3
         run: |
           curl -L --fail --retry 3 \
