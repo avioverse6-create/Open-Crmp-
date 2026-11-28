@@ -221,7 +221,7 @@ func _setup_world() -> void:
 	env.background_mode = Environment.BG_SKY
 	var sky := Sky.new()
 	var sky_mat := ProceduralSkyMaterial.new()
-	# Cold overcast winter sky; the snow particle layer supplies the visible snowfall.
+	# Neutral overcast daylight sky; no snow particles or winter weather effects.
 	sky_mat.sky_top_color = Color(0.24, 0.34, 0.45)
 	sky_mat.sky_horizon_color = Color(0.70, 0.78, 0.84)
 	var hdri_path := "res://assets/sky/cloudy_day_1k.hdr"
