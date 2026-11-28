@@ -76,3 +76,13 @@ jobs:
             echo "Godot reported script or resource parse errors."
             exit 1
           fi
+
+      - name: Launch main scene headlessly
+        shell: bash
+        run: |
+          set -o pipefail
+          Godot_v4.3-stable_linux.x86_64 --headless --path . --quit-after 180 2>&1 | tee godot-runtime.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|ERROR:" godot-runtime.log; then
+            echo "Godot reported runtime startup errors."
+            exit 1
+          fi
