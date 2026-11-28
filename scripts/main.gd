@@ -1076,7 +1076,7 @@ func _make_drive_button(parent: Control, caption: String, anchor, offset: Vector
 func _make_menu_panel(parent: Control, panel_size: Vector2, offset: Vector2) -> PanelContainer:
 	var panel := PanelContainer.new()
 	# Center the menu and keep it inside narrow portrait screens.
-	var viewport_width := get_viewport_rect().size.x
+	var viewport_width: float = get_viewport().get_visible_rect().size.x
 	var actual_width := minf(panel_size.x, maxf(280.0, viewport_width - 32.0))
 	panel.set_anchors_preset(Control.PRESET_CENTER)
 	panel.position = Vector2(-actual_width * 0.5, -panel_size.y * 0.5)
